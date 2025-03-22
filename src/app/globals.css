@@ -1,0 +1,199 @@
+@import "tailwindcss";
+@plugin '@tailwindcss/typography';
+
+@theme {
+  /* Base colors - Light mode */
+  --color-background: #ffffff;
+  --color-background-darker: #f5f5f7;
+  --color-background-lighter: #fafafa;
+  --color-background-alt: #f7f7f9;
+  --color-background-elevated: #ffffff;
+  --color-foreground: #1a1a1a;
+
+  /* Card colors */
+  --color-card: #f7f7f9;
+  --color-card-muted: #f0f0f2;
+  --color-card-hover: #e8e8ec;
+  --color-card-active: #e0e0e6;
+  --color-card-foreground: #1a1a1a;
+
+  /* Popover colors */
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1a1a1a;
+
+  /* Neon Accents */
+  --color-neon-primary: #ffdd00;
+  --color-neon-secondary: #ff9933;
+  --color-neon-accent: #00ffee;
+  --color-neon-complementary: #ff2d2d;
+
+  /* Neon glows - using the actual neon colors instead of the main palette */
+  --color-neon-glow-primary: 0 0 20px #ffdd00, 0 0 40px #ffdd0066;
+  --color-neon-glow-secondary: 0 0 20px #ff9933, 0 0 40px #ff993366;
+  --color-neon-glow-accent: 0 0 20px #00ffee, 0 0 40px #00ffee66;
+  --color-neon-glow-complementary: 0 0 20px #ff2d2d, 0 0 40px #ff2d2d66;
+
+  /* Primary colors */
+  --color-primary-50: #fff9e6;
+  --color-primary-100: #fff3cc;
+  --color-primary-200: #ffe899;
+  --color-primary-300: #ffd766;
+  --color-primary-400: #ffc933;
+  --color-primary-500: #ffba2e;
+  --color-primary-600: #e6a829;
+  --color-primary-700: #cc9621;
+  --color-primary-800: #b38418;
+  --color-primary-900: #99720f;
+  --color-primary: var(--color-primary-600);
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary colors */
+  --color-secondary-50: #fff5ed;
+  --color-secondary-100: #ffebdb;
+  --color-secondary-200: #ffd7b7;
+  --color-secondary-300: #ffc393;
+  --color-secondary-400: #ffaf6f;
+  --color-secondary-500: #ffad69;
+  --color-secondary-600: #e59c5e;
+  --color-secondary-700: #b27a4a;
+  --color-secondary-800: #7f5836;
+  --color-secondary-900: #4c3622;
+  --color-secondary: var(--color-secondary-600);
+  --color-secondary-foreground: #ffffff;
+
+  /* Accent colors */
+  --color-accent-50: #e6f7f9;
+  --color-accent-100: #cceff3;
+  --color-accent-200: #99dfe7;
+  --color-accent-300: #66cfdb;
+  --color-accent-400: #47bfd1;
+  --color-accent-500: #33bfcf;
+  --color-accent-600: #2da7b5;
+  --color-accent-700: #237f8b;
+  --color-accent-800: #195761;
+  --color-accent-900: #0f2f37;
+  --color-accent: var(--color-accent-600);
+  --color-accent-foreground: #ffffff;
+
+  /* Muted colors */
+  --color-muted: #f0f0f2;
+  --color-muted-darker: #e0e0e6;
+  --color-muted-lighter: #f7f7f9;
+  --color-muted-foreground: #71717a;
+  --color-muted-foreground-darker: #52525b;
+  --color-muted-foreground-lighter: #a1a1aa;
+
+  /* Complementary colors */
+  --color-complementary-50: #fde6e8;
+  --color-complementary-100: #fbcdd1;
+  --color-complementary-200: #f79ba3;
+  --color-complementary-300: #f36975;
+  --color-complementary-400: #ef4957;
+  --color-complementary-500: #ef3747;
+  --color-complementary-600: #d62f3d;
+  --color-complementary-700: #a82430;
+  --color-complementary-800: #7a1923;
+  --color-complementary-900: #4c0f16;
+  --color-complementary: var(--color-complementary-600);
+  --color-complementary-foreground: #ffffff;
+
+  /* Success colors */
+  --color-success-50: #e6f7e6;
+  --color-success-100: #d1efd1;
+  --color-success-200: #a3dfa3;
+  --color-success-300: #75cf75;
+  --color-success-400: #4cbf4c;
+  --color-success-500: #38b638;
+  --color-success-600: #2e962e;
+  --color-success-700: #247624;
+  --color-success-800: #1a571a;
+  --color-success-900: #103810;
+  --color-success: var(--color-success-600);
+  --color-success-foreground: #ffffff;
+
+  /* Warning colors */
+  --color-warning-50: #fff8e6;
+  --color-warning-100: #fff1cc;
+  --color-warning-200: #ffe499;
+  --color-warning-300: #ffd666;
+  --color-warning-400: #ffc933;
+  --color-warning-500: #ffbf1f;
+  --color-warning-600: #e0a300;
+  --color-warning-700: #b38300;
+  --color-warning-800: #856200;
+  --color-warning-900: #574100;
+  --color-warning: var(--color-warning-600);
+  --color-warning-foreground: #ffffff;
+
+  /* Destructive colors */
+  --color-destructive-50: #fdebeb;
+  --color-destructive-100: #fad6d6;
+  --color-destructive-200: #f5acad;
+  --color-destructive-300: #ef8384;
+  --color-destructive-400: #ea595a;
+  --color-destructive-500: #e73d3e;
+  --color-destructive-600: #d42728;
+  --color-destructive-700: #a61f1f;
+  --color-destructive-800: #771717;
+  --color-destructive-900: #490e0e;
+  --color-destructive: var(--color-destructive-600);
+  --color-destructive-foreground: #ffffff;
+
+  /* Info colors */
+  --color-info-50: #e6f1ff;
+  --color-info-100: #cce3ff;
+  --color-info-200: #99c8ff;
+  --color-info-300: #66acff;
+  --color-info-400: #3391ff;
+  --color-info-500: #1f85ff;
+  --color-info-600: #0070e0;
+  --color-info-700: #0057ad;
+  --color-info-800: #003f7a;
+  --color-info-900: #002847;
+  --color-info: var(--color-info-600);
+  --color-info-foreground: #ffffff;
+
+  /* Border and input colors */
+  --color-border: #e5e7eb;
+  --color-border-hover: #d1d5db;
+  --color-border-focus: #47a8bd;
+  --color-input: #f7f7f9;
+  --color-input-hover: #f0f0f2;
+  --color-input-focus: #e8e8ec;
+  --color-ring: #fab92e;
+
+  /* Gradients */
+  --gradient-light-1: linear-gradient(to bottom right, #ffffff, #f5f5f7);
+  --gradient-light-2: linear-gradient(to bottom right, #f7f7f9, #f0f0f2);
+  --gradient-accent-1: linear-gradient(
+    to bottom right,
+    var(--color-accent-500),
+    var(--color-primary-500)
+  );
+  --gradient-accent-2: linear-gradient(
+    to bottom right,
+    var(--color-accent-600),
+    var(--color-primary-600)
+  );
+
+  /* Shadow effects */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* Border radius */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  /* Font families */
+  --font-sans: "Inter", "sans-serif";
+  --font-mono: "JetBrains Mono", "monospace";
+}
