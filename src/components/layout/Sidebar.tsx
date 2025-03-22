@@ -74,7 +74,7 @@ export function Sidebar() {
 
       <div className="mt-auto">
         <Link
-          href="/wiki/create"
+          href="/create"
           className="flex items-center justify-center w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg shadow-sm hover:bg-primary-500 transition-colors font-medium"
         >
           <svg

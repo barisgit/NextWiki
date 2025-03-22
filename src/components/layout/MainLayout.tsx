@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 
@@ -9,9 +10,11 @@ export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="flex h-screen bg-background-darker">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-auto p-4">{children}</main>
+        <Suspense fallback={<div>Loading...</div>}>
+          <main className="flex-1 p-4 overflow-auto">{children}</main>
+        </Suspense>
       </div>
     </div>
   );

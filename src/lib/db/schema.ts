@@ -1,15 +1,41 @@
-import { pgTable, serial, text, timestamp, varchar, boolean, jsonb, integer, primaryKey, uuid } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import {
+  pgTable,
+  serial,
+  text,
+  timestamp,
+  varchar,
+  boolean,
+  integer,
+  primaryKey,
+  customType,
+  index,
+} from "drizzle-orm/pg-core";
+import { relations, SQL, sql } from "drizzle-orm";
+
+// Define custom PostgreSQL extension for trigrams
+export const pgExtensions = sql`
+  CREATE EXTENSION IF NOT EXISTS pg_trgm;
+`;
+
+export const tsvector = customType<{
+  data: string;
+}>({
+  dataType() {
+    return `tsvector`;
+  },
+});
 
 // Users table
-export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 255 }),
-  email: varchar('email', { length: 255 }).notNull().unique(),
-  emailVerified: timestamp('email_verified'),
-  image: text('image'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  password: varchar("password", { length: 255 }),
+  emailVerified: timestamp("email_verified"),
+  image: text("image"),
+  isAdmin: boolean("is_admin").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // User relations
@@ -17,78 +43,122 @@ export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
   createdWikiPages: many(wikiPages, {
-    relationName: 'createdBy',
+    relationName: "createdBy",
   }),
   updatedWikiPages: many(wikiPages, {
-    relationName: 'updatedBy',
+    relationName: "updatedBy",
   }),
 }));
 
 // Pages table
-export const wikiPages = pgTable('wiki_pages', {
-  id: serial('id').primaryKey(),
-  path: varchar('path', { length: 1000 }).notNull(),
-  title: varchar('title', { length: 255 }).notNull(),
-  content: text('content'),
-  isPublished: boolean('is_published').default(false),
-  createdById: integer('created_by_id').references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedById: integer('updated_by_id').references(() => users.id),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
+export const wikiPages = pgTable(
+  "wiki_pages",
+  {
+    id: serial("id").primaryKey(),
+    path: varchar("path", { length: 1000 }).notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    content: text("content"),
+    isPublished: boolean("is_published").default(false),
+    createdById: integer("created_by_id")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedById: integer("updated_by_id")
+      .notNull()
+      .references(() => users.id),
+    updatedAt: timestamp("updated_at").defaultNow(),
+    lockedById: integer("locked_by_id").references(() => users.id),
+    lockedAt: timestamp("locked_at"),
+    lockExpiresAt: timestamp("lock_expires_at"),
+    search: tsvector("search")
+      .notNull()
+      .generatedAlwaysAs(
+        (): SQL =>
+          sql`setweight(to_tsvector('english', ${wikiPages.title}), 'A')
+        ||
+        setweight(to_tsvector('english', ${wikiPages.content}), 'B')`
+      ),
+  },
+  (t) => ({
+    // Vector search index for tsvector column
+    searchIdx: index("idx_search").using("gin", t.search),
+    // Generate SQL to create the trigram indexes
+    // We need to use sql`` since Drizzle doesn't directly support gin_trgm_ops
+    titleTrigramIdx: index("trgm_idx_title").on(t.title),
+    contentTrigramIdx: index("trgm_idx_content").on(t.content),
+  })
+);
 
 // Page relations
 export const wikiPagesRelations = relations(wikiPages, ({ one, many }) => ({
   createdBy: one(users, {
     fields: [wikiPages.createdById],
     references: [users.id],
-    relationName: 'createdBy',
+    relationName: "createdBy",
   }),
   updatedBy: one(users, {
     fields: [wikiPages.updatedById],
     references: [users.id],
-    relationName: 'updatedBy',
+    relationName: "updatedBy",
+  }),
+  lockedBy: one(users, {
+    fields: [wikiPages.lockedById],
+    references: [users.id],
+    relationName: "lockedBy",
   }),
   revisions: many(wikiPageRevisions),
   tags: many(wikiPageToTag),
 }));
 
 // Page revisions table
-export const wikiPageRevisions = pgTable('wiki_page_revisions', {
-  id: serial('id').primaryKey(),
-  pageId: integer('page_id').references(() => wikiPages.id).notNull(),
-  content: text('content').notNull(),
-  createdById: integer('created_by_id').references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
+export const wikiPageRevisions = pgTable("wiki_page_revisions", {
+  id: serial("id").primaryKey(),
+  pageId: integer("page_id")
+    .references(() => wikiPages.id)
+    .notNull(),
+  content: text("content").notNull(),
+  createdById: integer("created_by_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Page revision relations
-export const wikiPageRevisionsRelations = relations(wikiPageRevisions, ({ one }) => ({
-  page: one(wikiPages, {
-    fields: [wikiPageRevisions.pageId],
-    references: [wikiPages.id],
-  }),
-  createdBy: one(users, {
-    fields: [wikiPageRevisions.createdById],
-    references: [users.id],
-  }),
-}));
+export const wikiPageRevisionsRelations = relations(
+  wikiPageRevisions,
+  ({ one }) => ({
+    page: one(wikiPages, {
+      fields: [wikiPageRevisions.pageId],
+      references: [wikiPages.id],
+    }),
+    createdBy: one(users, {
+      fields: [wikiPageRevisions.createdById],
+      references: [users.id],
+    }),
+  })
+);
 
 // Tags table
-export const wikiTags = pgTable('wiki_tags', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 100 }).notNull().unique(),
-  description: text('description'),
-  createdAt: timestamp('created_at').defaultNow(),
+export const wikiTags = pgTable("wiki_tags", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Pages to tags (many-to-many)
-export const wikiPageToTag = pgTable('wiki_page_to_tag', {
-  pageId: integer('page_id').references(() => wikiPages.id).notNull(),
-  tagId: integer('tag_id').references(() => wikiTags.id).notNull(),
-}, (t) => ({
-  pk: primaryKey({ columns: [t.pageId, t.tagId] }),
-}));
+export const wikiPageToTag = pgTable(
+  "wiki_page_to_tag",
+  {
+    pageId: integer("page_id")
+      .references(() => wikiPages.id)
+      .notNull(),
+    tagId: integer("tag_id")
+      .references(() => wikiTags.id)
+      .notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.pageId, t.tagId] }),
+  })
+);
 
 // Tag relations
 export const wikiTagsRelations = relations(wikiTags, ({ many }) => ({
@@ -108,21 +178,23 @@ export const wikiPageToTagRelations = relations(wikiPageToTag, ({ one }) => ({
 }));
 
 // NextAuth tables
-export const accounts = pgTable('accounts', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).notNull(),
-  type: varchar('type', { length: 255 }).notNull(),
-  provider: varchar('provider', { length: 255 }).notNull(),
-  providerAccountId: varchar('provider_account_id', { length: 255 }).notNull(),
-  refresh_token: text('refresh_token'),
-  access_token: text('access_token'),
-  expires_at: integer('expires_at'),
-  token_type: varchar('token_type', { length: 255 }),
-  scope: varchar('scope', { length: 255 }),
-  id_token: text('id_token'),
-  session_state: varchar('session_state', { length: 255 }),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+export const accounts = pgTable("accounts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => users.id)
+    .notNull(),
+  type: varchar("type", { length: 255 }).notNull(),
+  provider: varchar("provider", { length: 255 }).notNull(),
+  providerAccountId: varchar("provider_account_id", { length: 255 }).notNull(),
+  refresh_token: text("refresh_token"),
+  access_token: text("access_token"),
+  expires_at: integer("expires_at"),
+  token_type: varchar("token_type", { length: 255 }),
+  scope: varchar("scope", { length: 255 }),
+  id_token: text("id_token"),
+  session_state: varchar("session_state", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Account relations
@@ -133,11 +205,13 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
   }),
 }));
 
-export const sessions = pgTable('sessions', {
-  id: serial('id').primaryKey(),
-  sessionToken: varchar('session_token', { length: 255 }).notNull().unique(),
-  userId: integer('user_id').references(() => users.id).notNull(),
-  expires: timestamp('expires').notNull(),
+export const sessions = pgTable("sessions", {
+  id: serial("id").primaryKey(),
+  sessionToken: varchar("session_token", { length: 255 }).notNull().unique(),
+  userId: integer("user_id")
+    .references(() => users.id)
+    .notNull(),
+  expires: timestamp("expires").notNull(),
 });
 
 // Session relations
@@ -148,10 +222,14 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   }),
 }));
 
-export const verificationTokens = pgTable('verification_tokens', {
-  identifier: varchar('identifier', { length: 255 }).notNull(),
-  token: varchar('token', { length: 255 }).notNull(),
-  expires: timestamp('expires').notNull(),
-}, (t) => ({
-  pk: primaryKey({ columns: [t.identifier, t.token] }),
-})); 
+export const verificationTokens = pgTable(
+  "verification_tokens",
+  {
+    identifier: varchar("identifier", { length: 255 }).notNull(),
+    token: varchar("token", { length: 255 }).notNull(),
+    expires: timestamp("expires").notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.identifier, t.token] }),
+  })
+);

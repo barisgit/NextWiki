@@ -1,6 +1,10 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+
+const config = {
+  content: [
+    "./src/app/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}",
+    "./src/components/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}",
+  ],
   theme: {
     extend: {
       colors: {
@@ -9,6 +13,10 @@ export default {
         card: {
           DEFAULT: "var(--color-card)",
           foreground: "var(--color-card-foreground)",
+        },
+        code: {
+          DEFAULT: "var(--color-code)",
+          foreground: "var(--color-code-foreground)",
         },
         popover: {
           DEFAULT: "var(--color-popover)",
@@ -148,10 +156,37 @@ export default {
         border: "var(--color-border)",
         input: "var(--color-input)",
         ring: "var(--color-ring)",
+        markdown: {
+          DEFAULT: "var(--color-markdown-h1)",
+          h1: "var(--color-markdown-h1)",
+          h2: "var(--color-markdown-h2)",
+          h3: "var(--color-markdown-h3)",
+          h4: "var(--color-markdown-h4)",
+          text: "var(--color-markdown-text)",
+          link: "var(--color-markdown-link)",
+          codebg: "var(--color-markdown-codebg)",
+          codetext: "var(--color-markdown-codetext)",
+          blockquote: "var(--color-markdown-blockquote)",
+          listmarker: "var(--color-markdown-listmarker)",
+        },
       },
       fontFamily: {
         sans: ["var(--font-sans)"],
         mono: ["var(--font-mono)"],
+      },
+      fontSize: {
+        xs: "var(--font-size-xs)",
+        sm: "var(--font-size-sm)",
+        md: "var(--font-size-md)",
+        lg: "var(--font-size-lg)",
+        xl: "var(--font-size-xl)",
+        "2xl": "var(--font-size-2xl)",
+        "3xl": "var(--font-size-3xl)",
+      },
+      lineHeight: {
+        tight: "var(--line-height-tight)",
+        normal: "var(--line-height-normal)",
+        relaxed: "var(--line-height-relaxed)",
       },
       borderRadius: {
         sm: "var(--radius-sm)",
@@ -169,163 +204,9 @@ export default {
         lg: "var(--shadow-lg)",
         xl: "var(--shadow-xl)",
       },
-      typography: {
-        DEFAULT: {
-          css: {
-            color: "var(--color-foreground)",
-            lineHeight: "1.7",
-            maxWidth: "none",
-
-            h1: {
-              color: "var(--color-primary-400)",
-              fontWeight: "700",
-              fontSize: "1.875rem",
-              marginTop: "2rem",
-              marginBottom: "1.5rem",
-            },
-            h2: {
-              color: "var(--color-accent-400)",
-              fontWeight: "700",
-              fontSize: "1.5rem",
-              marginTop: "1.5rem",
-              marginBottom: "1rem",
-            },
-            h3: {
-              color: "var(--color-secondary-400)",
-              fontWeight: "600",
-              fontSize: "1.25rem",
-              marginTop: "1.5rem",
-              marginBottom: "0.75rem",
-            },
-            h4: {
-              color: "var(--color-foreground)",
-              fontWeight: "600",
-              fontSize: "1.125rem",
-              marginTop: "1.25rem",
-              marginBottom: "0.5rem",
-            },
-            p: {
-              color: "var(--color-muted-foreground-lighter)",
-              marginBottom: "0.25rem",
-              lineHeight: "1.5",
-            },
-            a: {
-              color: "var(--color-primary)",
-              textDecoration: "underline",
-              textDecorationThickness: "1px",
-              textUnderlineOffset: "2px",
-              "&:hover": {
-                color: "var(--color-primary-300)",
-              },
-            },
-            ul: {
-              listStyleType: "disc",
-              paddingLeft: "1.5em",
-              marginTop: "0.5rem",
-              marginBottom: "0.5rem",
-              lineHeight: "1.25",
-              "& > li": {
-                marginTop: "0",
-                marginBottom: "0",
-              },
-            },
-            ol: {
-              listStyleType: "decimal",
-              paddingLeft: "1.5em",
-              marginTop: "0.5rem",
-              marginBottom: "0.5rem",
-              lineHeight: "1.25",
-              "& > li": {
-                marginTop: "0",
-                marginBottom: "0",
-              },
-            },
-            li: {
-              marginTop: "0",
-              marginBottom: "0",
-              paddingLeft: "0.25rem",
-              lineHeight: "1.25",
-              color: "var(--color-muted-foreground-lighter)",
-            },
-            "li::marker": {
-              color: "var(--color-primary-400)",
-            },
-            strong: {
-              color: "var(--color-foreground)",
-              fontWeight: "600",
-            },
-            blockquote: {
-              fontWeight: "500",
-              fontStyle: "italic",
-              color: "var(--color-muted-foreground)",
-              borderLeftWidth: "3px",
-              borderLeftColor: "var(--color-accent)",
-              paddingLeft: "1em",
-              marginTop: "1.5rem",
-              marginBottom: "1.5rem",
-            },
-            code: {
-              color: "var(--color-secondary-300)",
-              fontWeight: "400",
-              backgroundColor: "var(--color-muted)",
-              padding: "0.2rem 0.4rem",
-              borderRadius: "0.25rem",
-              fontFamily: "var(--font-mono)",
-            },
-            "code::before": {
-              content: '""',
-            },
-            "code::after": {
-              content: '""',
-            },
-            pre: {
-              color: "var(--color-foreground)",
-              backgroundColor: "var(--color-muted)",
-              padding: "0.5rem",
-              borderRadius: "0.375rem",
-              overflow: "auto",
-              fontFamily: "var(--font-mono)",
-              marginTop: "1rem",
-              marginBottom: "1.5rem",
-            },
-            "pre code": {
-              backgroundColor: "transparent",
-              borderWidth: "0",
-              borderRadius: "0",
-              padding: "0",
-              fontWeight: "400",
-              color: "inherit",
-            },
-            hr: {
-              borderColor: "var(--color-muted-lighter)",
-              marginTop: "2rem",
-              marginBottom: "2rem",
-            },
-            img: {
-              borderRadius: "0.5rem",
-              marginTop: "1.5rem",
-              marginBottom: "1.5rem",
-            },
-          },
-        },
-        lg: {
-          css: {
-            fontSize: "1.125rem",
-          },
-        },
-        invert: {
-          css: {
-            "--tw-prose-body": "var(--color-muted-foreground-lighter)",
-            "--tw-prose-headings": "var(--color-foreground)",
-            "--tw-prose-links": "var(--color-primary)",
-            "--tw-prose-code": "var(--color-secondary-300)",
-            "--tw-prose-pre-code": "var(--color-foreground)",
-            "--tw-prose-pre-bg": "var(--color-muted)",
-            "--tw-prose-hr": "var(--color-muted-lighter)",
-          },
-        },
-      },
     },
   },
-  plugins: [require("@tailwindcss/typography")],
+  plugins: [import("@tailwindcss/typography")],
 };
+
+export default config;

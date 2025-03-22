@@ -17,9 +17,27 @@
   --color-card-active: #e0e0e6;
   --color-card-foreground: #1a1a1a;
 
+  /* Code colors */
+  --color-code: #28282b;
+  --color-code-foreground: #c0c0c0;
+
   /* Popover colors */
   --color-popover: #ffffff;
   --color-popover-foreground: #1a1a1a;
+
+  /* Font sizes */
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-md: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+
+  /* Line heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
 
   /* Neon Accents */
   --color-neon-primary: #ffdd00;
@@ -152,6 +170,18 @@
   --color-info-900: #002847;
   --color-info: var(--color-info-600);
   --color-info-foreground: #ffffff;
+
+  /* Markdown specific colors */
+  --color-markdown-h1: var(--color-primary-400);
+  --color-markdown-h2: var(--color-accent-400);
+  --color-markdown-h3: var(--color-secondary-400);
+  --color-markdown-h4: var(--color-foreground);
+  --color-markdown-text: var(--color-muted-foreground);
+  --color-markdown-link: var(--color-primary);
+  --color-markdown-codebg: var(--color-code);
+  --color-markdown-codetext: var(--color-code-foreground);
+  --color-markdown-blockquote: var(--color-muted-foreground-lighter);
+  --color-markdown-listmarker: var(--color-primary-400);
 
   /* Border and input colors */
   --color-border: #e5e7eb;

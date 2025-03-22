@@ -10,7 +10,7 @@ An open-source wiki system built with modern web technologies, inspired by WikiJ
 - **Markdown Support**: Write content using simple Markdown syntax
 - **Authentication**: Secure login with credentials or OAuth providers
 - **Permissions**: Control who can view and edit content
-- **Search**: Quickly find content throughout your wiki
+- **Advanced Search**: Full-text and fuzzy search with typo tolerance
 - **Tags & Categories**: Organize your content effectively
 
 ## Tech Stack
@@ -19,6 +19,7 @@ An open-source wiki system built with modern web technologies, inspired by WikiJ
 - **Database**: PostgreSQL with [Drizzle ORM](https://orm.drizzle.team)
 - **API**: Type-safe APIs with [tRPC](https://trpc.io)
 - **Authentication**: [NextAuth.js](https://next-auth.js.org)
+- **Search**: PostgreSQL full-text search with trigram similarity for fuzzy matching
 - **Styling**: Tailwind CSS
 - **Deployment**: Compatible with Vercel, Netlify, or self-hosted
 
@@ -52,6 +53,7 @@ An open-source wiki system built with modern web technologies, inspired by WikiJ
    ```bash
    npm run db:generate  # Generate migrations
    npm run db:migrate   # Apply migrations
+   npm run db:setup     # Setup database with fuzzy search capabilities
    ```
 
 5. Start the development server:
@@ -60,6 +62,30 @@ An open-source wiki system built with modern web technologies, inspired by WikiJ
    ```
 
 6. Open [http://localhost:3000](http://localhost:3000) in your browser to see the wiki.
+
+## Search Features
+
+NextWiki includes a powerful search system with several capabilities:
+
+- **Full-text search**: Using PostgreSQL's tsvector/tsquery for efficient text search
+- **Fuzzy matching**: Find content even when search terms have typos
+- **Highlighted results**: Search results and matched terms are highlighted
+- **Multi-layer approach**:
+  1. Exact vector matching (highest relevance)
+  2. Title matching (high relevance)
+  3. Content matching (medium relevance)
+  4. Similarity matching for typos (lower relevance)
+
+### Search Implementation
+
+The search functionality is implemented in two parts:
+
+1. **Schema Definition**: The Drizzle schema defines regular indexes on text fields.
+2. **Index Conversion**: A migration script converts these to specialized GIN trigram indexes.
+
+This approach allows us to define the structure in the schema while getting the specialized PostgreSQL functionality we need for fuzzy search.
+
+When a user clicks a search result, they'll be taken directly to the page with all instances of the search term highlighted, and the view will automatically scroll to the first match.
 
 ## Project Structure
 
