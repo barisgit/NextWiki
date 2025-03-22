@@ -59,30 +59,16 @@ export default async function WikiPageView({
   const isEditMode = resolvedSearchParams.edit === "true";
 
   if (isEditMode) {
+    // Return the editor directly without MainLayout wrapper
     return (
-      <MainLayout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-2xl font-bold">Edit Wiki Page</h1>
-            <p className="mt-1 text-muted-foreground">
-              Update the content and metadata for this wiki page.
-            </p>
-          </div>
-
-          <div className="mt-6">
-            <WikiEditor
-              mode="edit"
-              pageId={page.id}
-              initialTitle={page.title}
-              initialContent={page.content ?? ""}
-              initialTags={
-                page.tags?.map((relation) => relation.tag.name) || []
-              }
-              pagePath={page.path}
-            />
-          </div>
-        </div>
-      </MainLayout>
+      <WikiEditor
+        mode="edit"
+        pageId={page.id}
+        initialTitle={page.title}
+        initialContent={page.content ?? ""}
+        initialTags={page.tags?.map((relation) => relation.tag.name) || []}
+        pagePath={page.path}
+      />
     );
   }
 

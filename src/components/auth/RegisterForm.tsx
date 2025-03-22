@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { trpc } from "~/lib/trpc/client";
 import { signIn } from "next-auth/react";
@@ -18,6 +18,17 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (isFirstUser && pathname !== "/") {
+      try {
+        router.replace("/");
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }, [isFirstUser, pathname, router]);
 
   const registerMutation = trpc.user.register.useMutation({
     onSuccess: async () => {
@@ -74,7 +85,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
   return (
     <>
       {error && (
-        <div className="rounded-md bg-red-50 p-4 text-sm text-red-500">
+        <div className="p-4 text-sm text-red-500 rounded-md bg-red-50">
           {error}
         </div>
       )}
@@ -90,7 +101,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
               name="name"
               type="text"
               required
-              className="relative block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+              className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
               placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -106,7 +117,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
               type="email"
               autoComplete="email"
               required
-              className="relative block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+              className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -122,7 +133,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
               type="password"
               autoComplete="new-password"
               required
-              className="relative block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+              className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -138,7 +149,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
               type="password"
               autoComplete="new-password"
               required
-              className="relative block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+              className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
               placeholder="Confirm Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -150,7 +161,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
           <button
             type="submit"
             disabled={isLoading || registerMutation.isPending}
-            className="group relative flex w-full justify-center rounded-md border border-transparent bg-primary py-2 px-4 text-sm font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md group bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading || registerMutation.isPending
               ? "Registering..."
@@ -160,7 +171,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
       </form>
 
       {!isFirstUser && (
-        <div className="mt-6 text-center text-sm">
+        <div className="mt-6 text-sm text-center">
           <p>
             Already have an account?{" "}
             <Link

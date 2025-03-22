@@ -27,24 +27,6 @@ export default async function Home() {
           </p>
         </section>
 
-        {userCount === 0 && (
-          <div className="max-w-xl p-6 mx-auto mb-12 border border-yellow-200 rounded-lg bg-yellow-50">
-            <h2 className="mb-2 text-lg font-semibold text-yellow-800">
-              No users found
-            </h2>
-            <p className="mb-4 text-yellow-700">
-              To get started with NextWiki, you need to create an admin user
-              first.
-            </p>
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md shadow hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
-            >
-              Create Admin Account
-            </Link>
-          </div>
-        )}
-
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-semibold text-foreground">
@@ -132,10 +114,10 @@ export default async function Home() {
                 Add new knowledge to your wiki and share with your team.
               </p>
               <Link
-                href="/login"
+                href="/create"
                 className="inline-flex items-center text-sm font-medium text-primary hover:underline"
               >
-                Sign In
+                Create Page
                 <svg
                   className="w-4 h-4 ml-1"
                   fill="none"

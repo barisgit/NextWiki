@@ -3,67 +3,7 @@ import { z } from "zod";
 import { desc, eq, like, gt, and, sql } from "drizzle-orm";
 import { db, wikiPages, wikiPageRevisions } from "~/lib/db";
 import { publicProcedure, protectedProcedure, router } from "..";
-
-// Lock duration in minutes
-const LOCK_DURATION_MINUTES = 1;
-
-// Helper function to check if a page is locked by someone else
-const isPageLockedByOther = (
-  page: typeof wikiPages.$inferSelect,
-  userId: number
-) => {
-  if (!page.lockedById || !page.lockExpiresAt) {
-    return false;
-  }
-
-  const now = new Date();
-  return page.lockedById !== userId && page.lockExpiresAt > now;
-};
-
-// Helper function to create a lock on a page
-const createLock = async (pageId: number, userId: number) => {
-  const now = new Date();
-  const lockExpiresAt = new Date(
-    now.getTime() + LOCK_DURATION_MINUTES * 60 * 1000
-  );
-
-  const [updatedPage] = await db
-    .update(wikiPages)
-    .set({
-      lockedById: userId,
-      lockedAt: now,
-      lockExpiresAt,
-    })
-    .where(eq(wikiPages.id, pageId))
-    .returning();
-
-  return updatedPage;
-};
-
-// Helper function to release a lock
-const releaseLock = async (pageId: number, userId: number) => {
-  // Only allow the lock owner to release the lock
-  const [page] = await db
-    .select()
-    .from(wikiPages)
-    .where(eq(wikiPages.id, pageId));
-
-  if (page && page.lockedById === userId) {
-    const [updatedPage] = await db
-      .update(wikiPages)
-      .set({
-        lockedById: null,
-        lockedAt: null,
-        lockExpiresAt: null,
-      })
-      .where(eq(wikiPages.id, pageId))
-      .returning();
-
-    return updatedPage;
-  }
-
-  return page;
-};
+import { dbService } from "~/lib/services";
 
 // Wiki page input validation schema
 const pageInputSchema = z.object({
@@ -131,58 +71,57 @@ export const wikiRouter = router({
       const { id } = input;
       const userId = parseInt(ctx.session.user.id);
 
-      // First, get the current page with lock information
-      const page = await db.query.wikiPages.findFirst({
-        where: eq(wikiPages.id, id),
-        with: {
-          lockedBy: true,
-        },
-      });
+      // Try to acquire a lock - this will use hardware locks briefly
+      // but will set up a software lock with timeout for the editing session
+      const { success, page } = await dbService.locks.acquireLock(id, userId);
 
-      if (!page) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Page not found",
-        });
+      if (!success) {
+        // If page is null, it doesn't exist
+        if (!page) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Page not found",
+          });
+        }
+
+        // Get current lock owner info from UI metadata
+        const lockedByUser = page.lockedById
+          ? await dbService.users.getById(page.lockedById)
+          : null;
+
+        // Instead of throwing an error, return the unsuccessful result with page info
+        // This allows the client to handle the case more gracefully
+        return {
+          success: false,
+          page,
+          lockOwner: lockedByUser?.name || "another user",
+        };
       }
 
-      // Check if the page is locked by someone else
-      if (isPageLockedByOther(page, userId)) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `Page is currently being edited by ${
-            page.lockedBy?.name || "another user"
-          } until ${page.lockExpiresAt?.toLocaleTimeString()}`,
-        });
-      }
-
-      // If the page is not locked, or locked by the current user
-      // or the lock has expired, acquire/refresh the lock
-      const updatedPage = await createLock(id, userId);
-
-      return updatedPage;
+      // Return the page with the software lock
+      return {
+        success: true,
+        page,
+      };
     }),
 
-  // Release a lock on a page
+  // Release a software lock on a page
   releaseLock: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
       const userId = parseInt(ctx.session.user.id);
 
-      const updatedPage = await releaseLock(id, userId);
+      // Release the software lock if owned by this user
+      const success = await dbService.locks.releaseLock(id, userId);
 
-      return updatedPage;
-    }),
+      if (!success) {
+        console.warn(
+          `Lock for page ${id} could not be released - may be held by a different user`
+        );
+      }
 
-  // Refresh a lock on a page
-  refreshLock: protectedProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      const { id } = input;
-      const userId = parseInt(ctx.session.user.id);
-
-      // First, get the current page with lock information
+      // Get the updated page
       const page = await db.query.wikiPages.findFirst({
         where: eq(wikiPages.id, id),
       });
@@ -194,18 +133,36 @@ export const wikiRouter = router({
         });
       }
 
-      // Check if the page is locked by someone else
-      if (isPageLockedByOther(page, userId)) {
+      return page;
+    }),
+
+  // Refresh a software lock to prevent timeout
+  refreshLock: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const { id } = input;
+      const userId = parseInt(ctx.session.user.id);
+
+      // Check if the lock is still valid and refresh it
+      const { success, page } = await dbService.locks.refreshLock(id, userId);
+
+      if (!success) {
+        if (!page) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Page not found",
+          });
+        }
+
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "You cannot refresh a lock owned by another user",
+          message: "You no longer hold the lock on this page",
         });
       }
 
-      // Refresh the lock
-      const updatedPage = await createLock(id, userId);
-
-      return updatedPage;
+      return {
+        page,
+      };
     }),
 
   // Update an existing page
@@ -219,58 +176,81 @@ export const wikiRouter = router({
       const { id, path, title, content, isPublished } = input;
       const userId = parseInt(ctx.session.user.id);
 
-      // First, get the current page with lock information
-      const page = await db.query.wikiPages.findFirst({
-        where: eq(wikiPages.id, id),
-      });
+      // First, check if the user has a valid software lock
+      const { isLocked, lockedByUserId } = await dbService.locks.isLocked(id);
 
-      if (!page) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Page not found",
-        });
-      }
-
-      // Check if the page is locked by someone else
-      if (isPageLockedByOther(page, userId)) {
+      if (isLocked && lockedByUserId !== userId) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "This page is currently being edited by another user",
         });
       }
 
-      // Create a page revision before updating
-      await db.insert(wikiPageRevisions).values({
-        pageId: id,
-        content: page.content || "",
-        createdById: userId,
-      });
+      // Use a transaction with a hardware lock for the update operation
+      try {
+        return await db.transaction(async (tx) => {
+          // Set a short timeout for the hardware lock operation
+          await tx.execute(sql`SET LOCAL statement_timeout = 3000`);
 
-      // Update the page and release the lock in one transaction
-      const [updatedPage] = await db
-        .update(wikiPages)
-        .set({
-          path,
-          title,
-          content,
-          isPublished,
-          updatedById: userId,
-          updatedAt: new Date(),
-          lockedById: null,
-          lockedAt: null,
-          lockExpiresAt: null,
-        })
-        .where(eq(wikiPages.id, id))
-        .returning();
+          // Acquire a hardware lock for the update
+          const result = await tx.execute(
+            sql`SELECT * FROM wiki_pages WHERE id = ${id} FOR UPDATE NOWAIT`
+          );
 
-      if (!updatedPage) {
+          if (result.rows.length === 0) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Page not found",
+            });
+          }
+
+          const page = result.rows[0] as typeof wikiPages.$inferSelect;
+
+          // Create a page revision
+          await tx.insert(wikiPageRevisions).values({
+            pageId: id,
+            content: page.content || "",
+            createdById: userId,
+          });
+
+          // Update the page and clear the software lock
+          const [updatedPage] = await tx
+            .update(wikiPages)
+            .set({
+              path,
+              title,
+              content,
+              isPublished,
+              updatedById: userId,
+              updatedAt: new Date(),
+              lockedById: null,
+              lockedAt: null,
+              lockExpiresAt: null,
+            })
+            .where(eq(wikiPages.id, id))
+            .returning();
+
+          return updatedPage;
+        });
+      } catch (error) {
+        console.error("Failed to update page:", error);
+
+        if (
+          error instanceof Error &&
+          error.message.includes("could not obtain lock")
+        ) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message:
+              "Could not update page because it's locked by another process",
+          });
+        }
+
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Page not found",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update page",
         });
       }
-
-      return updatedPage;
     }),
 
   // List pages (paginated) with lock information
@@ -305,14 +285,10 @@ export const wikiRouter = router({
           : searchCondition;
       }
 
-      // Handle locked pages filter
+      // Handle locked pages filter - note this will now just show UI locks
+      // not the actual advisory locks
       if (showLockedOnly) {
-        const now = new Date();
-        const lockCondition = and(
-          sql`${wikiPages.lockedById} IS NOT NULL`,
-          sql`${wikiPages.lockExpiresAt} > ${now}`
-        );
-
+        const lockCondition = sql`${wikiPages.lockedById} IS NOT NULL`;
         whereConditions = whereConditions
           ? and(whereConditions, lockCondition)
           : lockCondition;
@@ -361,38 +337,60 @@ export const wikiRouter = router({
       const { id } = input;
       const userId = parseInt(ctx.session.user.id);
 
-      // First, get the current page with lock information
-      const page = await db.query.wikiPages.findFirst({
-        where: eq(wikiPages.id, id),
-      });
+      // First, check if the user has a valid software lock
+      const { isLocked, lockedByUserId } = await dbService.locks.isLocked(id);
 
-      if (!page) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Page not found",
-        });
-      }
-
-      // Check if the page is locked by someone else
-      if (isPageLockedByOther(page, userId)) {
+      if (isLocked && lockedByUserId !== userId) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "This page is currently being edited by another user",
         });
       }
 
-      const [deleted] = await db
-        .delete(wikiPages)
-        .where(eq(wikiPages.id, id))
-        .returning();
+      // Use a transaction with a hardware lock for the delete operation
+      try {
+        return await db.transaction(async (tx) => {
+          // Set a short timeout for the hardware lock operation
+          await tx.execute(sql`SET LOCAL statement_timeout = 3000`);
 
-      if (!deleted) {
+          // Acquire a hardware lock for the deletion
+          const result = await tx.execute(
+            sql`SELECT * FROM wiki_pages WHERE id = ${id} FOR UPDATE NOWAIT`
+          );
+
+          if (result.rows.length === 0) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Page not found",
+            });
+          }
+
+          // Delete the page
+          const [deleted] = await tx
+            .delete(wikiPages)
+            .where(eq(wikiPages.id, id))
+            .returning();
+
+          return deleted;
+        });
+      } catch (error) {
+        console.error("Failed to delete page:", error);
+
+        if (
+          error instanceof Error &&
+          error.message.includes("could not obtain lock")
+        ) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message:
+              "Could not delete page because it's locked by another process",
+          });
+        }
+
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Page not found",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete page",
         });
       }
-
-      return deleted;
     }),
 });

@@ -2,6 +2,7 @@ import { userService } from "./users";
 import { wikiService } from "./wiki";
 import { tagService } from "./tags";
 import { searchService } from "./search";
+import { lockService } from "./locks";
 
 /**
  * Database Services
@@ -38,4 +39,9 @@ export const dbService = {
    * Search-related database operations
    */
   search: searchService,
+
+  /**
+   * Database locking operations
+   */
+  locks: lockService,
 };

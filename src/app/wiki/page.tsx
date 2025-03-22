@@ -9,12 +9,12 @@ export default function WikiPagesPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">All Wiki Pages</h1>
           <Link
-            href="/wiki/create"
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm flex items-center"
+            href="/create"
+            className="flex items-center px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-2"
+              className="w-4 h-4 mr-2"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"

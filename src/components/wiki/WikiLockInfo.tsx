@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "~/lib/trpc/client";
-import { toast } from "sonner";
+import { useNotification } from "~/lib/hooks/useNotification";
 
 interface WikiLockInfoProps {
   pageId: number;
   isLocked: boolean;
   lockedByName: string | null;
-  lockedUntil: string | null;
+  lockedUntil?: string | null;
   isCurrentUserLockOwner: boolean;
   editPath: string;
 }
@@ -23,45 +22,16 @@ export function WikiLockInfo({
   editPath,
 }: WikiLockInfoProps) {
   const router = useRouter();
-  const [timeLeft, setTimeLeft] = useState<string | null>(null);
-
-  // Format the time remaining until lock expiration
-  useEffect(() => {
-    if (!lockedUntil) return;
-
-    const calculateTimeLeft = () => {
-      const now = new Date();
-      const lockExpiration = new Date(lockedUntil);
-
-      if (lockExpiration <= now) {
-        setTimeLeft(null);
-        return;
-      }
-
-      const diffMs = lockExpiration.getTime() - now.getTime();
-      const diffMins = Math.floor(diffMs / 60000);
-      const diffSecs = Math.floor((diffMs % 60000) / 1000);
-
-      setTimeLeft(`${diffMins}m ${diffSecs}s`);
-    };
-
-    // Initial calculation
-    calculateTimeLeft();
-
-    // Update every second
-    const interval = setInterval(calculateTimeLeft, 1000);
-
-    return () => clearInterval(interval);
-  }, [lockedUntil]);
+  const notification = useNotification();
 
   // Force lock release mutation
   const releaseLockMutation = trpc.wiki.releaseLock.useMutation({
     onSuccess: () => {
-      toast.success("Lock released successfully");
+      notification.success("Lock released successfully");
       router.refresh();
     },
     onError: (error) => {
-      toast.error(`Failed to release lock: ${error.message}`);
+      notification.error(`Failed to release lock: ${error.message}`);
     },
   });
 
@@ -78,10 +48,10 @@ export function WikiLockInfo({
   if (!isLocked) {
     return (
       <div className="flex items-center space-x-2 text-sm">
-        <span className="text-green-600 flex items-center">
+        <span className="flex items-center text-green-600">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 mr-1"
+            className="w-4 h-4 mr-1"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -97,7 +67,7 @@ export function WikiLockInfo({
         </span>
         <button
           onClick={handleEdit}
-          className="bg-primary text-primary-foreground text-sm px-3 py-1 rounded hover:bg-primary/90"
+          className="px-3 py-1 text-sm rounded bg-primary text-primary-foreground hover:bg-primary/90"
         >
           Edit
         </button>
@@ -106,13 +76,13 @@ export function WikiLockInfo({
   }
 
   return (
-    <div className="border rounded p-3 bg-amber-50 text-amber-800 mb-4">
+    <div className="p-3 mb-4 border rounded bg-amber-50 text-amber-800">
       <div className="flex items-start justify-between">
         <div>
-          <h4 className="font-medium flex items-center">
+          <h4 className="flex items-center font-medium">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-1"
+              className="w-4 h-4 mr-1"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -131,8 +101,12 @@ export function WikiLockInfo({
                 }`}
           </h4>
 
-          {timeLeft && (
-            <p className="text-sm mt-1">Lock expires in: {timeLeft}</p>
+          <p className="mt-1 text-sm">Software lock with 30-minute timeout</p>
+
+          {lockedUntil && (
+            <p className="mt-1 text-xs text-amber-700">
+              Lock expires: {new Date(lockedUntil).toLocaleString()}
+            </p>
           )}
         </div>
 
@@ -141,13 +115,13 @@ export function WikiLockInfo({
             <>
               <button
                 onClick={handleEdit}
-                className="bg-primary text-primary-foreground text-sm px-3 py-1 rounded hover:bg-primary/90"
+                className="px-3 py-1 text-sm rounded bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 Continue Editing
               </button>
               <button
                 onClick={handleReleaseLock}
-                className="bg-destructive text-destructive-foreground text-sm px-3 py-1 rounded hover:bg-destructive/90"
+                className="px-3 py-1 text-sm rounded bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Release Lock
               </button>
