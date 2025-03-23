@@ -1,0 +1,105 @@
+/* External links */
+.external-link::after {
+  content: "↗";
+  @apply inline-block ml-1 text-xs;
+}
+
+/* Links list styling */
+ul.links-list {
+  @apply flex flex-col gap-2;
+}
+
+ul.links-list li {
+  @apply bg-background-level1 p-4 rounded-lg shadow-md dark:shadow-black dark:shadow-sm hover:border-primary/50 hover:bg-background-level2/80 border border-transparent transition-all duration-200 flex items-start;
+}
+
+/* Emoji styling */
+.emoji {
+  @apply inline-block mx-1 text-xl;
+}
+
+/* Specific styling for links with emojis */
+ul.links-list li a {
+  @apply flex items-center gap-8 no-underline text-text-primary hover:no-underline;
+}
+
+ul.links-list li .emoji {
+  @apply text-2xl mt-0.5 flex-shrink-0;
+}
+
+ul.links-list li a > :not(.emoji) {
+  @apply flex flex-col;
+}
+
+ul.links-list li em {
+  @apply text-sm text-text-secondary font-normal not-italic;
+}
+
+blockquote {
+  @apply border-l-2 pl-4 py-2 bg-background-level1 rounded-lg;
+}
+
+blockquote p {
+  @apply text-sm text-text-secondary font-normal not-italic;
+}
+
+blockquote p::before {
+  content: "";
+}
+
+blockquote p::after {
+  content: "";
+}
+
+blockquote.is-info {
+  @apply border-info bg-info/10;
+}
+
+blockquote.is-info::before {
+  content: "Info";
+  @apply text-info;
+}
+
+blockquote.is-warning {
+  @apply border-warning bg-warning/10;
+}
+
+blockquote.is-warning::before {
+  content: "Warning";
+  @apply text-warning;
+}
+
+blockquote.is-danger {
+  @apply border-error bg-error/10;
+}
+
+blockquote.is-danger::before {
+  content: "Danger";
+  @apply text-error;
+}
+
+blockquote.is-success {
+  @apply border-success bg-success/10;
+}
+
+blockquote.is-success::before {
+  content: "Success";
+  @apply text-success;
+}
+
+blockquote.is-quote {
+  @apply border-text-secondary bg-text-secondary/10;
+}
+
+blockquote.is-quote::before {
+  content: "Quote";
+  @apply text-text-secondary;
+}
+
+blockquote.is-quote p::before {
+  content: "“";
+}
+
+blockquote.is-quote p::after {
+  content: "”";
+}

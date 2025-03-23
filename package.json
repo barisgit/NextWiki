@@ -44,9 +44,13 @@
     "react-markdown": "^10.1.0",
     "rehype-highlight": "^7.0.2",
     "remark-breaks": "^4.0.0",
+    "remark-directive": "^4.0.0",
+    "remark-directive-rehype": "^0.4.2",
+    "remark-emoji": "^5.0.1",
     "remark-gfm": "^4.0.1",
     "sonner": "^2.0.1",
     "trpc": "^0.10.4",
+    "unist-util-visit": "^5.0.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {

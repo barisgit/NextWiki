@@ -13,7 +13,10 @@ function highlightText(text: string, query: string) {
 
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
-      <mark key={i} className="bg-primary-200 text-primary-700 px-0.5 rounded">
+      <mark
+        key={i}
+        className="bg-primary-200 text-primary-700 dark:text-primary-300 dark:bg-primary-800/50 px-0.5 rounded"
+      >
         {part}
       </mark>
     ) : (
