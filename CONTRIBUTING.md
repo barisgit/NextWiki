@@ -73,6 +73,7 @@ pnpm run dev
 - Always use tailwind classes over custom CSS
 - Use consistent naming conventions
 - Always include types
+- Use pnpm as the package manager
 
 ## Need Help?
 
