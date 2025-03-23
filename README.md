@@ -136,11 +136,10 @@ When a user clicks a search result, they'll be taken directly to the page with a
 ![NextWiki Browser](./public/assets/images/nextwiki-browser.png)
 ![NextWiki Move Page](./public/assets/images/nextwiki-move.png)
 
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. I would be grateful If anyone writes a guide on how to contribute to this project.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
