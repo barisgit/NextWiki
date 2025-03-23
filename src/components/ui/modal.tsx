@@ -4,7 +4,7 @@ import React, { useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "~/lib/utils";
 import { X } from "lucide-react";
-import { useScrollLock } from "~/hooks/useScrollLock";
+import { useScrollLock } from "~/lib/hooks/useScrollLock";
 
 interface ModalProps {
   children: React.ReactNode;

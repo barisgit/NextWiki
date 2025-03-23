@@ -9,9 +9,14 @@ import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "~/lib/auth";
 import { Suspense } from "react";
+import { PageLocationEditor } from "~/components/wiki/PageLocationEditor";
 
 async function getWikiPageByPath(path: string[]) {
-  const joinedPath = `${path.join("/")}`;
+  // Decode each path segment individually
+  const decodedPath = path.map((segment) => decodeURIComponent(segment));
+  const joinedPath = decodedPath.join("/").replace("%20", " ");
+
+  console.log("joinedPath", joinedPath);
 
   // FIXME: Use dbService to get the page
   const page = await db.query.wikiPages.findFirst({
@@ -33,7 +38,11 @@ async function getWikiPageByPath(path: string[]) {
 }
 
 type Params = Promise<{ path: string[] }>;
-type SearchParams = Promise<{ edit?: string; highlight?: string }>;
+type SearchParams = Promise<{
+  edit?: string;
+  move?: string;
+  highlight?: string;
+}>;
 
 export default async function WikiPageView({
   params,
@@ -55,11 +64,12 @@ export default async function WikiPageView({
     notFound();
   }
 
-  // Check if we're in edit mode
+  // Check operation modes
   const isEditMode = resolvedSearchParams.edit === "true";
+  const isMoveMode = resolvedSearchParams.move === "true";
 
+  // Edit mode
   if (isEditMode) {
-    // Return the editor directly without MainLayout wrapper
     return (
       <WikiEditor
         mode="edit"
@@ -69,6 +79,21 @@ export default async function WikiPageView({
         initialTags={page.tags?.map((relation) => relation.tag.name) || []}
         pagePath={page.path}
       />
+    );
+  }
+
+  // Move mode
+  if (isMoveMode) {
+    return (
+      <MainLayout>
+        <PageLocationEditor
+          mode="move"
+          initialPath={page.path.split("/").slice(0, -1).join("/")}
+          initialName={page.path.split("/").pop() || ""}
+          pageId={page.id}
+          pageTitle={page.title}
+        />
+      </MainLayout>
     );
   }
 

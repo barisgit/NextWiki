@@ -47,7 +47,6 @@ export function WikiEditor({
   const [content, setContent] = useState(initialContent);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(initialTags);
-  const [path, setPath] = useState(pagePath);
   const [isLocked, setIsLocked] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
@@ -230,13 +229,13 @@ export function WikiEditor({
       createPageMutation.mutate({
         title,
         content,
-        path: path || "root",
+        path: pagePath,
         isPublished: true,
       });
     } else if (mode === "edit" && pageId) {
       updatePageMutation.mutate({
         id: pageId,
-        path: pagePath || path,
+        path: pagePath,
         title,
         content,
         isPublished: true,
@@ -291,7 +290,6 @@ export function WikiEditor({
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Custom WikiJS-like header */}
       <div className="sticky top-0 z-10 flex items-center justify-between w-full px-4 border-b shadow-sm h-14 bg-slate-50 border-border">
         <div className="flex items-center space-x-2">
           <h2 className="text-xl font-medium truncate text-slate-800">
@@ -379,7 +377,7 @@ export function WikiEditor({
             <span className="text-xs font-medium text-slate-500">
               Editing in Markdown
             </span>
-            <span className="text-xs text-slate-400"># Test {title}</span>
+            <span className="text-xs text-slate-400">{title}</span>
           </div>
 
           {/* CodeMirror editor */}
@@ -446,28 +444,6 @@ export function WikiEditor({
                   placeholder="Page title"
                   required
                 />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="path"
-                  className="block mb-1 text-sm font-medium text-slate-700"
-                >
-                  Path
-                </label>
-                <input
-                  id="path"
-                  type="text"
-                  value={path}
-                  onChange={(e) => setPath(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="e.g., docs/getting-started"
-                  required
-                  disabled={mode === "edit"}
-                />
-                <p className="mt-1 text-xs text-slate-500">
-                  The URL path where this page will be accessible
-                </p>
               </div>
 
               <div>

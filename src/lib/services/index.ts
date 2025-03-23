@@ -45,3 +45,6 @@ export const dbService = {
    */
   locks: lockService,
 };
+
+// Export individual services for direct use
+export { wikiService, userService, tagService, searchService, lockService };

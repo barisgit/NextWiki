@@ -1,21 +1,42 @@
-import { MainLayout } from "~/components/layout/MainLayout";
+"use client";
+
 import { WikiEditor } from "~/components/wiki/WikiEditor";
+import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { PageLocationEditor } from "~/components/wiki/PageLocationEditor";
+import { useRouter } from "next/navigation";
 
 export default function CreateWikiPage() {
-  return (
-    <MainLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Create New Wiki Page</h1>
-          <p className="text-muted-foreground mt-1">
-            Add a new page to your wiki knowledge base.
-          </p>
-        </div>
+  const [showEditor, setShowEditor] = useState(false);
+  const [pagePath, setPagePath] = useState("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-        <div className="mt-6">
-          <WikiEditor mode="create" />
-        </div>
-      </div>
-    </MainLayout>
+  // Check if path was provided in URL (from the location editor)
+  useEffect(() => {
+    const pathParam = searchParams.get("path");
+    if (pathParam) {
+      setPagePath(decodeURIComponent(pathParam));
+      setShowEditor(true);
+    }
+  }, [searchParams]);
+
+  // // Render editor if path is set
+  // if (showEditor && pagePath) {
+  //   return <WikiEditor mode="create" pagePath={pagePath.toLowerCase()} />;
+  // }
+
+  // Otherwise show the location picker
+  return (
+    <>
+      <WikiEditor mode="create" pagePath={pagePath.toLowerCase()} />
+      <PageLocationEditor
+        mode="create"
+        isOpen={!(showEditor && pagePath)}
+        onClose={() => {
+          router.back();
+        }}
+      />
+    </>
   );
 }

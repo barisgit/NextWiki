@@ -55,7 +55,7 @@ export const wikiPages = pgTable(
   "wiki_pages",
   {
     id: serial("id").primaryKey(),
-    path: varchar("path", { length: 1000 }).notNull(),
+    path: varchar("path", { length: 1000 }).notNull().unique(),
     title: varchar("title", { length: 255 }).notNull(),
     content: text("content"),
     isPublished: boolean("is_published").default(false),
