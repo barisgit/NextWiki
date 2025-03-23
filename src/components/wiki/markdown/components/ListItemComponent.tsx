@@ -1,19 +1,16 @@
 import { cn } from "~/lib/utils";
+import type { Components } from "react-markdown";
 
-export const listItemComponent = ({ node, className, children, ...props }) => {
-  // Check if parent is a links-list
-  const parentIsList =
-    node.parent?.properties?.className?.includes("links-list");
+export const listItemComponent: Components["li"] = ({
+  node,
+  className,
+  children,
+  ...props
+}) => {
+  void node;
 
   return (
-    <li
-      className={cn(
-        className,
-        parentIsList && "links-list-item",
-        "group" // Add group class for nested styling
-      )}
-      {...props}
-    >
+    <li className={cn(className)} {...props}>
       {children}
     </li>
   );

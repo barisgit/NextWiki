@@ -1,11 +1,24 @@
 /**
  * Custom remark plugin to handle attributes like {.class-name}
  */
+import type { Node } from "unist";
+import { visit } from "unist-util-visit";
+
+interface NodeWithData extends Node {
+  data?: {
+    hProperties?: {
+      className?: string[];
+      id?: string;
+    };
+  };
+}
+
 function remarkAttrs() {
-  return (tree) => {
-    visit(tree, (node) => {
+  return (tree: Node) => {
+    visit(tree, (node: NodeWithData) => {
       // Look for text nodes containing {.class-name} pattern
-      if (node.type === "paragraph" && node.children) {
+      if (node.type === "paragraph" && "children" in node) {
+        if (!Array.isArray(node.children)) return;
         const lastChild = node.children[node.children.length - 1];
 
         if (lastChild && lastChild.type === "text") {
@@ -18,10 +31,10 @@ function remarkAttrs() {
 
             // Parse classes and IDs
             const attrs = match[1].split(/\s+/);
-            const classes = [];
-            let id = null;
+            const classes: string[] = [];
+            let id: string | null = null;
 
-            attrs.forEach((attr) => {
+            attrs.forEach((attr: string) => {
               if (attr.startsWith(".")) {
                 classes.push(attr.slice(1));
               } else if (attr.startsWith("#")) {
@@ -32,15 +45,17 @@ function remarkAttrs() {
             // Apply to previous element if it exists (typically for lists, headers, etc.)
             const prevNode = findPreviousBlockNode(tree, node);
             if (prevNode) {
-              if (!prevNode.data) prevNode.data = {};
-              if (!prevNode.data.hProperties) prevNode.data.hProperties = {};
+              const prevBlock = prevNode as NodeWithData;
+
+              if (!prevBlock.data) prevBlock.data = {};
+              if (!prevBlock.data.hProperties) prevBlock.data.hProperties = {};
 
               if (classes.length) {
-                prevNode.data.hProperties.className = classes;
+                prevBlock.data.hProperties.className = classes;
               }
 
               if (id) {
-                prevNode.data.hProperties.id = id;
+                prevBlock.data.hProperties.id = id;
               }
 
               // Remove the paragraph containing only the attributes
@@ -58,11 +73,11 @@ function remarkAttrs() {
 }
 
 // Helper function to find previous block level node
-function findPreviousBlockNode(tree, currentNode) {
+function findPreviousBlockNode(tree: Node, currentNode: Node): Node | null {
   let found = false;
-  let prevNode = null;
+  let prevNode: Node | null = null;
 
-  visit(tree, (node) => {
+  visit(tree, (node: Node) => {
     if (node === currentNode) {
       found = true;
       return false; // Stop traversal
@@ -79,11 +94,8 @@ function findPreviousBlockNode(tree, currentNode) {
 }
 
 // Helper function to identify block nodes
-function isBlockNode(node) {
+function isBlockNode(node: Node): boolean {
   return ["heading", "list", "table", "blockquote", "code"].includes(node.type);
 }
-
-// We need to import visit from unist-util-visit
-import { visit } from "unist-util-visit";
 
 export default remarkAttrs;

@@ -230,8 +230,8 @@ export function PageLocationEditor({
 
             {/* Folder options section - only shown when moving a page with children */}
             {mode === "move" && hasChildren && (
-              <div className="p-4 mb-6 ml-4 border rounded-md bg-warning-50 border-warning-200 dark:bg-warning-900 dark:border-warning-800">
-                <h3 className="mb-2 text-sm font-medium text-warning-800">
+              <div className="p-4 mb-6 ml-4 border rounded-md bg-warning-50 border-warning-200 dark:bg-warning-900/50 dark:border-warning-800">
+                <h3 className="mb-2 text-sm font-medium text-warning-800 dark:text-warning-200">
                   This page has child pages
                 </h3>
                 <div className="flex items-center mb-2">
@@ -243,7 +243,7 @@ export function PageLocationEditor({
                     color="warning"
                   />
                 </div>
-                <p className="text-xs text-amber-700">
+                <p className="text-xs text-error-800 dark:text-error-500">
                   {moveRecursively
                     ? "All child pages will be moved to maintain the hierarchy."
                     : "Only this page will be moved, which could create gaps in your wiki structure."}

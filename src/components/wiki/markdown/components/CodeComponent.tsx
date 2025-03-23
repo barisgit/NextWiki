@@ -1,6 +1,11 @@
 import { cn } from "~/lib/utils";
+import type { Components } from "react-markdown";
 
-export const codeComponent = ({ className, children, ...props }) => {
+export const codeComponent: Components["code"] = ({
+  className,
+  children,
+  ...props
+}) => {
   // Check if it's an inline code block by looking at the props
   const isInlineCodeBlock =
     !className?.includes("language-") &&
