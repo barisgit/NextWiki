@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - development
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
   lint:
@@ -14,6 +15,9 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - run: pnpm install
       - run: pnpm lint
 
@@ -26,5 +30,8 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - run: pnpm install
       - run: pnpm build 
