@@ -3,9 +3,11 @@
 ![NextWiki Main Page](./public/assets/images/nextwiki-home.png)
 ![NextWiki Main Page Dark](./public/assets/images/nextwiki-home-dark.png)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 An open-source wiki system built with modern web technologies, inspired by WikiJS. NextWiki provides a flexible, extensible platform for creating and managing knowledge bases.
 
-## Features
+## 🚀 Features
 
 - **Modern Stack**: Built with Next.js 15, React 19, Drizzle ORM, tRPC, NextAuth, Tailwind CSS, Codemirror, Shadcn UI, and more
 - **Version History**: Track changes (in progress)
@@ -17,7 +19,7 @@ An open-source wiki system built with modern web technologies, inspired by WikiJ
 - **Advanced Search**: Full-text and fuzzy search
 - **Tags & Categories**: Organize your content effectively (in progress)
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 - **Framework**: [Next.js](https://nextjs.org)
 - **Database**: PostgreSQL with [Drizzle ORM](https://orm.drizzle.team)
@@ -27,7 +29,7 @@ An open-source wiki system built with modern web technologies, inspired by WikiJ
 - **Styling**: Tailwind CSS
 - **Deployment**: Compatible with Vercel, Netlify, or self-hosted
 
-## Planned Features
+## 🔮 Planned Features
 
 - [ ] **Permissions**: Control who can view and edit content
 - [ ] **Centralized settings**: Manage your wiki from a central settings page, with everything stored in the database
@@ -40,7 +42,7 @@ An open-source wiki system built with modern web technologies, inspired by WikiJ
 - [ ] **Video Upload**: Upload videos to the wiki
 - [ ] **Audio Upload**: Upload audio to the wiki
 
-## Getting Started
+## 📦 Getting Started
 
 ### Prerequisites
 
@@ -136,10 +138,12 @@ When a user clicks a search result, they'll be taken directly to the page with a
 ![NextWiki Browser](./public/assets/images/nextwiki-browser.png)
 ![NextWiki Move Page](./public/assets/images/nextwiki-move.png)
 
-## Contributing
+## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request. I would be grateful If anyone writes a guide on how to contribute to this project.
+We welcome contributions! Please see our [CONTRIBUTING.md](./CONTRIBUTING.md) guide for details on how to get started. Even non-code contributions like documentation improvements, bug reports, and feature suggestions are appreciated!
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+[![Star History](https://api.star-history.com/svg?repos=barisgit/nextwiki&type=Date)](https://star-history.com/#barisgit/nextwiki&Date)
