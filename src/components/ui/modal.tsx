@@ -15,17 +15,21 @@ interface ModalProps {
   showCloseButton?: boolean;
   className?: string;
   overlayClassName?: string;
+  position?: "center" | "top" | "bottom";
+  animation?: "fade" | "slide" | "scale" | "none";
 }
 
 const Modal: React.FC<ModalProps> = ({
   children,
   onClose,
-  backgroundClass = "bg-background",
+  backgroundClass = "bg-background-paper",
   size = "md",
   closeOnEscape = true,
   showCloseButton = true,
   className,
   overlayClassName,
+  position = "center",
+  animation = "fade",
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -50,11 +54,24 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   const sizeClasses = {
-    sm: "max-w-md",
-    md: "max-w-lg",
-    lg: "max-w-2xl",
-    xl: "max-w-4xl",
-    full: "max-w-[90vw]",
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-xl",
+    xl: "max-w-3xl",
+    full: "max-w-[95vw] md:max-w-[90vw]",
+  };
+
+  const positionClasses = {
+    center: "items-center",
+    top: "items-start pt-20",
+    bottom: "items-end pb-20",
+  };
+
+  const animationClasses = {
+    fade: "animate-fadeIn",
+    slide: "animate-slideInUp",
+    scale: "animate-scaleIn",
+    none: "",
   };
 
   return typeof window === "undefined"
@@ -62,7 +79,8 @@ const Modal: React.FC<ModalProps> = ({
     : createPortal(
         <div
           className={cn(
-            "fixed inset-0 z-[60] flex min-h-screen items-center justify-center bg-black/50 backdrop-blur-sm",
+            "fixed inset-0 z-[60] flex min-h-screen justify-center bg-black/40 backdrop-blur-sm transition-opacity",
+            positionClasses[position],
             overlayClassName
           )}
           onClick={handleOverlayClick}
@@ -72,16 +90,17 @@ const Modal: React.FC<ModalProps> = ({
           <div
             ref={modalRef}
             className={cn(
-              "relative max-h-[85vh] overflow-y-auto rounded-lg border border-border shadow-lg",
+              "relative max-h-[90vh] overflow-y-auto rounded-lg border border-border-default shadow-xl",
               backgroundClass,
               sizeClasses[size],
-              "p-6",
+              "p-5",
+              animationClasses[animation],
               className
             )}
           >
             {showCloseButton && (
               <button
-                className="absolute inline-flex items-center justify-center w-8 h-8 border rounded-md right-4 top-4 border-input hover:bg-muted"
+                className="absolute flex items-center justify-center w-8 h-8 rounded-full bg-background-level1 text-text-secondary hover:bg-background-level2 hover:text-text-primary right-3 top-3"
                 onClick={onClose}
                 aria-label="Close modal"
               >

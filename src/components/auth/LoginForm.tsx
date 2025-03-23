@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { Alert, AlertDescription } from "~/components/ui/alert";
+import { Button } from "~/components/ui/button";
 
 export function LoginForm() {
   const router = useRouter();
@@ -45,15 +47,17 @@ export function LoginForm() {
   return (
     <>
       {justRegistered && (
-        <div className="p-4 mb-4 text-sm text-green-600 rounded-md bg-green-50">
-          Registration successful! Please sign in with your new account.
-        </div>
+        <Alert variant="success" className="mb-4">
+          <AlertDescription>
+            Registration successful! Please sign in with your new account.
+          </AlertDescription>
+        </Alert>
       )}
 
       {error && (
-        <div className="p-4 text-sm text-red-500 rounded-md bg-red-50">
-          {error}
-        </div>
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -93,13 +97,14 @@ export function LoginForm() {
         </div>
 
         <div>
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md group bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full"
+            size="default"
           >
             {isLoading ? "Signing in..." : "Sign in"}
-          </button>
+          </Button>
         </div>
       </form>
 
@@ -135,18 +140,20 @@ export function LoginForm() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 mt-6">
-          <button
+          <Button
             onClick={() => signIn("github", { callbackUrl: "/" })}
-            className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
+            variant="outlined"
+            color="neutral"
           >
             GitHub
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => signIn("google", { callbackUrl: "/" })}
-            className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
+            variant="outlined"
+            color="neutral"
           >
             Google
-          </button>
+          </Button>
         </div>
       </div>
     </>

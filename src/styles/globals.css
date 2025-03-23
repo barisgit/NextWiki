@@ -1,29 +1,86 @@
 @import "tailwindcss";
 @plugin '@tailwindcss/typography';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  /* Base colors - Light mode */
-  --color-background: #ffffff;
-  --color-background-darker: #f5f5f7;
-  --color-background-lighter: #fafafa;
-  --color-background-alt: #f7f7f9;
-  --color-background-elevated: #ffffff;
-  --color-foreground: #1a1a1a;
+  /* Theme variables */
+  --color-background-default: var(--color-light-background-default);
+  --color-background-paper: var(--color-light-background-paper);
+  --color-background-level1: var(--color-light-background-level1);
+  --color-background-level2: var(--color-light-background-level2);
+  --color-background-level3: var(--color-light-background-level3);
+  --color-background-light: var(--color-light-background-light);
+  --color-background-dark: var(--color-light-background-dark);
+  --color-text-primary: var(--color-light-text-primary);
+  --color-text-secondary: var(--color-light-text-secondary);
+  --color-text-accent: var(--color-light-text-accent);
+  --color-border-default: var(--color-light-border-default);
+  --color-border-light: var(--color-light-border-light);
+  --color-border-dark: var(--color-light-border-dark);
+  --color-border-accent: var(--color-light-border-accent);
+  --color-scrollbar-track: var(--color-light-scrollbar-track);
+  --color-scrollbar-thumb: var(--color-light-scrollbar-thumb);
+
+  /* Light mode theme variables */
+  --color-light-background-default: #ffffff;
+  --color-light-background-paper: #f7f7f7;
+  --color-light-background-level1: #f0f0f0;
+  --color-light-background-level2: #e8e8e8;
+  --color-light-background-level3: #e0e0e0;
+  --color-light-background-light: #f5f5f5;
+  --color-light-background-dark: #121212;
+  --color-light-text-primary: #1a1a1a;
+  --color-light-text-secondary: #616161;
+  --color-light-text-accent: var(--color-primary-600);
+  --color-light-border-default: #c0c0c0;
+  --color-light-border-light: #e0e0e0;
+  --color-light-border-dark: #a0a0a0;
+  --color-light-border-accent: var(--color-primary-500);
+  --color-light-scrollbar-track: #f0f0f0;
+  --color-light-scrollbar-thumb: #c0c0c0;
+
+  /* Dark mode theme variables */
+  --color-dark-background-default: #121212;
+  --color-dark-background-paper: #1e1e1e;
+  --color-dark-background-level1: #2c2c2c;
+  --color-dark-background-level2: #333333;
+  --color-dark-background-level3: #424242;
+  --color-dark-background-light: #1e1e1e;
+  --color-dark-background-dark: #000000;
+  --color-dark-text-primary: #ffffff;
+  --color-dark-text-secondary: #b0b0b0;
+  --color-dark-text-accent: var(--color-primary-400);
+  --color-dark-border-default: #424242;
+  --color-dark-border-light: #616161;
+  --color-dark-border-dark: #212121;
+  --color-dark-border-accent: var(--color-primary-400);
+  --color-dark-scrollbar-track: #333333;
+  --color-dark-scrollbar-thumb: #666666;
 
   /* Card colors */
-  --color-card: #f7f7f9;
-  --color-card-muted: #f0f0f2;
-  --color-card-hover: #e8e8ec;
-  --color-card-active: #e0e0e6;
-  --color-card-foreground: #1a1a1a;
+  --color-card: var(--color-background-level1);
+  --color-card-muted: var(--color-background-level2);
+  --color-card-hover: var(--color-background-level2);
+  --color-card-active: var(--color-background-level3);
+  --color-card-foreground: var(--color-text-primary);
 
   /* Code colors */
-  --color-code: #28282b;
-  --color-code-foreground: #c0c0c0;
+  --color-code: #333338;
+  --color-code-foreground: #dedede;
+  --color-inline-code: var(--color-primary-100);
+  --color-inline-code-foreground: var(--color-primary-1000);
+
+  /* Dark code colors */
+  --color-dark-code: #28282b;
+  --color-dark-code-foreground: #c0c0c0;
+  --color-dark-inline-code: var(--color-background-level2);
+  --color-dark-inline-code-foreground: var(--color-primary-300);
 
   /* Popover colors */
-  --color-popover: #ffffff;
-  --color-popover-foreground: #1a1a1a;
+  --color-popover: var(--color-background-default);
+  --color-popover-foreground: var(--color-text-primary);
+  --color-popover-border: var(--color-border-default);
 
   /* Font sizes */
   --font-size-xs: 0.75rem; /* 12px */
@@ -51,7 +108,7 @@
   --color-neon-glow-accent: 0 0 20px #00ffee, 0 0 40px #00ffee66;
   --color-neon-glow-complementary: 0 0 20px #ff2d2d, 0 0 40px #ff2d2d66;
 
-  /* Primary colors */
+  /* Primary colors - expanded with darker tones */
   --color-primary-50: #fff9e6;
   --color-primary-100: #fff3cc;
   --color-primary-200: #ffe899;
@@ -62,10 +119,13 @@
   --color-primary-700: #cc9621;
   --color-primary-800: #b38418;
   --color-primary-900: #99720f;
-  --color-primary: var(--color-primary-600);
+  --color-primary-1000: #7a5d0a;
+  --color-primary-1100: #5c4706;
+  --color-primary-1200: #3d3003;
+  --color-primary: var(--color-primary-500);
   --color-primary-foreground: #ffffff;
 
-  /* Secondary colors */
+  /* Secondary colors - expanded with darker tones */
   --color-secondary-50: #fff5ed;
   --color-secondary-100: #ffebdb;
   --color-secondary-200: #ffd7b7;
@@ -76,10 +136,13 @@
   --color-secondary-700: #b27a4a;
   --color-secondary-800: #7f5836;
   --color-secondary-900: #4c3622;
-  --color-secondary: var(--color-secondary-600);
+  --color-secondary-1000: #382715;
+  --color-secondary-1100: #24180c;
+  --color-secondary-1200: #100a03;
+  --color-secondary: var(--color-secondary-500);
   --color-secondary-foreground: #ffffff;
 
-  /* Accent colors */
+  /* Accent colors - expanded with darker tones */
   --color-accent-50: #e6f7f9;
   --color-accent-100: #cceff3;
   --color-accent-200: #99dfe7;
@@ -90,7 +153,10 @@
   --color-accent-700: #237f8b;
   --color-accent-800: #195761;
   --color-accent-900: #0f2f37;
-  --color-accent: var(--color-accent-600);
+  --color-accent-1000: #0a202a;
+  --color-accent-1100: #05121c;
+  --color-accent-1200: #00050f;
+  --color-accent: var(--color-accent-500);
   --color-accent-foreground: #ffffff;
 
   /* Muted colors */
@@ -101,7 +167,7 @@
   --color-muted-foreground-darker: #52525b;
   --color-muted-foreground-lighter: #a1a1aa;
 
-  /* Complementary colors */
+  /* Complementary colors - expanded with darker tones */
   --color-complementary-50: #fde6e8;
   --color-complementary-100: #fbcdd1;
   --color-complementary-200: #f79ba3;
@@ -112,10 +178,13 @@
   --color-complementary-700: #a82430;
   --color-complementary-800: #7a1923;
   --color-complementary-900: #4c0f16;
-  --color-complementary: var(--color-complementary-600);
+  --color-complementary-1000: #380a0f;
+  --color-complementary-1100: #240508;
+  --color-complementary-1200: #100001;
+  --color-complementary: var(--color-complementary-500);
   --color-complementary-foreground: #ffffff;
 
-  /* Success colors */
+  /* Success colors - expanded with darker tones */
   --color-success-50: #e6f7e6;
   --color-success-100: #d1efd1;
   --color-success-200: #a3dfa3;
@@ -126,10 +195,13 @@
   --color-success-700: #247624;
   --color-success-800: #1a571a;
   --color-success-900: #103810;
+  --color-success-1000: #0a290a;
+  --color-success-1100: #051a05;
+  --color-success-1200: #000b00;
   --color-success: var(--color-success-600);
   --color-success-foreground: #ffffff;
 
-  /* Warning colors */
+  /* Warning colors - expanded with darker tones */
   --color-warning-50: #fff8e6;
   --color-warning-100: #fff1cc;
   --color-warning-200: #ffe499;
@@ -140,10 +212,13 @@
   --color-warning-700: #b38300;
   --color-warning-800: #856200;
   --color-warning-900: #574100;
+  --color-warning-1000: #3a2c00;
+  --color-warning-1100: #1d1600;
+  --color-warning-1200: #0f0b00;
   --color-warning: var(--color-warning-600);
   --color-warning-foreground: #ffffff;
 
-  /* Destructive colors */
+  /* Destructive colors - expanded with darker tones */
   --color-destructive-50: #fdebeb;
   --color-destructive-100: #fad6d6;
   --color-destructive-200: #f5acad;
@@ -154,10 +229,13 @@
   --color-destructive-700: #a61f1f;
   --color-destructive-800: #771717;
   --color-destructive-900: #490e0e;
+  --color-destructive-1000: #380a0a;
+  --color-destructive-1100: #260505;
+  --color-destructive-1200: #130000;
   --color-destructive: var(--color-destructive-600);
   --color-destructive-foreground: #ffffff;
 
-  /* Info colors */
+  /* Info colors - expanded with darker tones */
   --color-info-50: #e6f1ff;
   --color-info-100: #cce3ff;
   --color-info-200: #99c8ff;
@@ -168,33 +246,80 @@
   --color-info-700: #0057ad;
   --color-info-800: #003f7a;
   --color-info-900: #002847;
+  --color-info-1000: #001c38;
+  --color-info-1100: #001129;
+  --color-info-1200: #00051a;
   --color-info: var(--color-info-600);
   --color-info-foreground: #ffffff;
+
+  /* Error colors (alias for destructive for consistency) */
+  --color-error-50: var(--color-destructive-50);
+  --color-error-100: var(--color-destructive-100);
+  --color-error-200: var(--color-destructive-200);
+  --color-error-300: var(--color-destructive-300);
+  --color-error-400: var(--color-destructive-400);
+  --color-error-500: var(--color-destructive-500);
+  --color-error-600: var(--color-destructive-600);
+  --color-error-700: var(--color-destructive-700);
+  --color-error-800: var(--color-destructive-800);
+  --color-error-900: var(--color-destructive-900);
+  --color-error-1000: var(--color-destructive-1000);
+  --color-error-1100: var(--color-destructive-1100);
+  --color-error-1200: var(--color-destructive-1200);
+  --color-error: var(--color-destructive);
+  --color-error-foreground: var(--color-destructive-foreground);
+
+  /* Neutral colors - expanded with darker tones */
+  --color-neutral-50: #f9f9f9;
+  --color-neutral-100: #f0f0f0;
+  --color-neutral-200: #e0e0e0;
+  --color-neutral-300: #d0d0d0;
+  --color-neutral-400: #b0b0b0;
+  --color-neutral-500: #909090;
+  --color-neutral-600: #707070;
+  --color-neutral-700: #505050;
+  --color-neutral-800: #303030;
+  --color-neutral-900: #202020;
+  --color-neutral-1000: #181818;
+  --color-neutral-1100: #101010;
+  --color-neutral-1200: #080808;
+  --color-neutral: var(--color-neutral-600);
+  --color-neutral-foreground: #ffffff;
 
   /* Markdown specific colors */
   --color-markdown-h1: var(--color-primary-400);
   --color-markdown-h2: var(--color-accent-400);
   --color-markdown-h3: var(--color-secondary-400);
-  --color-markdown-h4: var(--color-foreground);
-  --color-markdown-text: var(--color-muted-foreground);
+  --color-markdown-h4: var(--color-text-secondary);
+  --color-markdown-text: var(--color-text-primary);
   --color-markdown-link: var(--color-primary);
   --color-markdown-codebg: var(--color-code);
   --color-markdown-codetext: var(--color-code-foreground);
+  --color-markdown-inlinecodebg: var(--color-inline-code);
+  --color-markdown-inlinecodetext: var(--color-inline-code-foreground);
   --color-markdown-blockquote: var(--color-muted-foreground-lighter);
   --color-markdown-listmarker: var(--color-primary-400);
 
   /* Border and input colors */
-  --color-border: #e5e7eb;
-  --color-border-hover: #d1d5db;
-  --color-border-focus: #47a8bd;
-  --color-input: #f7f7f9;
-  --color-input-hover: #f0f0f2;
-  --color-input-focus: #e8e8ec;
-  --color-ring: #fab92e;
+  --color-border: var(--color-border-default);
+  --color-border-hover: var(--color-border-dark);
+  --color-border-focus: var(--color-primary-400);
+  --color-input: var(--color-background-level1);
+  --color-input-hover: var(--color-background-level2);
+  --color-input-focus: var(--color-background-level2);
+  --color-ring: var(--color-primary-500);
 
   /* Gradients */
-  --gradient-light-1: linear-gradient(to bottom right, #ffffff, #f5f5f7);
-  --gradient-light-2: linear-gradient(to bottom right, #f7f7f9, #f0f0f2);
+  --gradient-light-1: linear-gradient(
+    to bottom right,
+    var(--color-background-default),
+    var(--color-background-level1)
+  );
+  --gradient-light-2: linear-gradient(
+    to bottom right,
+    var(--color-background-level1),
+    var(--color-background-level2)
+  );
   --gradient-accent-1: linear-gradient(
     to bottom right,
     var(--color-accent-500),
@@ -226,4 +351,57 @@
   /* Font families */
   --font-sans: "Inter", "sans-serif";
   --font-mono: "JetBrains Mono", "monospace";
+}
+
+@layer base {
+  .dark {
+    --color-background-default: var(--color-dark-background-default);
+    --color-background-paper: var(--color-dark-background-paper);
+    --color-background-level1: var(--color-dark-background-level1);
+    --color-background-level2: var(--color-dark-background-level2);
+    --color-background-level3: var(--color-dark-background-level3);
+    --color-background-light: var(--color-dark-background-light);
+    --color-background-dark: var(--color-dark-background-dark);
+    --color-text-primary: var(--color-dark-text-primary);
+    --color-text-secondary: var(--color-dark-text-secondary);
+    --color-text-accent: var(--color-dark-text-accent);
+    --color-border-default: var(--color-dark-border-default);
+    --color-border-light: var(--color-dark-border-light);
+    --color-border-dark: var(--color-dark-border-dark);
+    --color-border-accent: var(--color-dark-border-accent);
+    --color-scrollbar-track: var(--color-dark-scrollbar-track);
+    --color-scrollbar-thumb: var(--color-dark-scrollbar-thumb);
+
+    /* Update card, popover, and code colors for dark mode */
+    --color-card: var(--color-background-level1);
+    --color-card-muted: var(--color-background-level2);
+    --color-card-hover: var(--color-background-level2);
+    --color-card-active: var(--color-background-level3);
+    --color-card-foreground: var(--color-text-primary);
+
+    --color-popover: var(--color-background-level1);
+    --color-popover-foreground: var(--color-text-primary);
+
+    --color-code: #1e1e1e;
+    --color-code-foreground: #e0e0e0;
+
+    /* Update markdown-specific colors for dark mode */
+    --color-markdown-h1: var(--color-primary-400);
+    --color-markdown-h2: var(--color-accent-400);
+    --color-markdown-h3: var(--color-secondary-400);
+    --color-markdown-h4: var(--color-dark-text-secondary);
+    --color-markdown-text: var(--color-dark-text-primary);
+    --color-markdown-link: var(--color-primary-400);
+    --color-markdown-codebg: var(--color-dark-code);
+    --color-markdown-codetext: var(--color-dark-code-foreground);
+    --color-markdown-inlinecodebg: var(--color-dark-inline-code);
+    --color-markdown-inlinecodetext: var(--color-dark-inline-code-foreground);
+    --color-markdown-blockquote: var(--color-muted-foreground);
+    --color-markdown-listmarker: var(--color-primary-400);
+
+    /* Update input colors for dark mode */
+    --color-input: var(--color-background-level1);
+    --color-input-hover: var(--color-background-level2);
+    --color-input-focus: var(--color-background-level2);
+  }
 }

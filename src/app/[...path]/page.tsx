@@ -16,8 +16,6 @@ async function getWikiPageByPath(path: string[]) {
   const decodedPath = path.map((segment) => decodeURIComponent(segment));
   const joinedPath = decodedPath.join("/").replace("%20", " ");
 
-  console.log("joinedPath", joinedPath);
-
   // FIXME: Use dbService to get the page
   const page = await db.query.wikiPages.findFirst({
     where: eq(wikiPages.path, joinedPath),
@@ -88,6 +86,8 @@ export default async function WikiPageView({
       <MainLayout>
         <PageLocationEditor
           mode="move"
+          isOpen={true}
+          onClose={() => {}}
           initialPath={page.path.split("/").slice(0, -1).join("/")}
           initialName={page.path.split("/").pop() || ""}
           pageId={page.id}

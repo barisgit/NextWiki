@@ -238,17 +238,16 @@ export function WikiPage({
         <Modal
           onClose={() => setShowRenameModal(false)}
           size="sm"
-          backgroundClass="bg-white"
           closeOnEscape={true}
           showCloseButton={true}
         >
           <div className="p-4">
             <h3 className="mb-4 text-lg font-medium">Rename Page</h3>
             <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium text-slate-700">
+              <label className="block mb-1 text-sm font-medium text-text-secondary">
                 Current Name
               </label>
-              <div className="px-3 py-2 text-sm border rounded-md bg-slate-50">
+              <div className="px-3 py-2 text-sm border rounded-md border-border-light bg-background-paper text-text-secondary/50">
                 {title}
               </div>
             </div>
@@ -256,7 +255,7 @@ export function WikiPage({
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="newName"
-                  className="block mb-1 text-sm font-medium text-slate-700"
+                  className="block mb-1 text-sm font-medium text-text-secondary"
                 >
                   New Name
                 </label>
@@ -274,7 +273,7 @@ export function WikiPage({
                   setNewName(e.target.value);
                   setRenameConflict(false);
                 }}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                className={`w-full px-3 py-2 text-sm border border-border-light rounded-md focus:outline-none focus:ring-1 bg-background-level1 ${
                   renameConflict
                     ? "border-red-500 focus:ring-red-200"
                     : "focus:ring-primary"
@@ -285,13 +284,13 @@ export function WikiPage({
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowRenameModal(false)}
-                className="px-3 py-1.5 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100 transition-colors border border-slate-200"
+                className="px-3 py-1.5 text-sm font-medium rounded-md text-text-secondary hover:bg-background-level2 transition-colors border border-border-light"
               >
                 Cancel
               </button>
               <button
                 onClick={renameNode}
-                className="px-3 py-1.5 text-sm font-medium rounded-md bg-primary text-white hover:bg-primary-dark transition-colors"
+                className="px-3 py-1.5 text-sm font-medium rounded-md bg-primary hover:bg-primary-600 text-primary-foreground hover:bg-primary-dark transition-colors"
                 disabled={!newName.trim() || renameConflict}
               >
                 Rename

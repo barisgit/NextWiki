@@ -13,7 +13,7 @@ function highlightText(text: string, query: string) {
 
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
-      <mark key={i} className="bg-yellow-200 text-black px-0.5 rounded">
+      <mark key={i} className="bg-primary-200 text-primary-700 px-0.5 rounded">
         {part}
       </mark>
     ) : (
@@ -85,7 +85,7 @@ export function SearchBar() {
     <div className="relative w-full max-w-5xl">
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-muted-foreground"
+        className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-text-secondary"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -97,7 +97,7 @@ export function SearchBar() {
       <input
         type="search"
         placeholder="Search wiki..."
-        className="w-full py-2 pl-10 pr-4 text-sm transition-colors border rounded-lg bg-input border-border hover:border-border-hover focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+        className="w-full py-2 pl-10 pr-4 text-sm transition-colors border rounded-lg bg-input border-border-default hover:border-border-dark dark:hover:border-border-light focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary text-text-primary"
         value={searchQuery}
         onChange={(e) => updateHighlightParam(e.target.value)}
         onFocus={() => setShowResults(true)}
@@ -106,10 +106,10 @@ export function SearchBar() {
       {showResults && searchQuery.length >= 2 && (
         <div
           ref={resultsRef}
-          className="absolute left-0 right-0 z-10 mt-1 overflow-y-auto border rounded-lg shadow-lg top-full max-h-96 bg-background border-border"
+          className="absolute left-0 right-0 z-10 mt-1 overflow-y-auto border rounded-lg shadow-lg top-full max-h-96 bg-background-paper border-border-default dark:border-border-light"
         >
           {isLoading ? (
-            <div className="p-4 text-center text-muted-foreground">
+            <div className="p-4 text-center text-text-secondary">
               <svg className="w-5 h-5 mx-auto animate-spin" viewBox="0 0 24 24">
                 <circle
                   className="opacity-25"
@@ -129,14 +129,17 @@ export function SearchBar() {
             </div>
           ) : searchResults && searchResults.length > 0 ? (
             <div>
-              <div className="px-4 py-2 border-b border-border">
-                <span className="text-sm text-muted-foreground">
+              <div className="px-4 py-2 border-b border-border-default dark:border-border-light">
+                <span className="text-sm text-text-secondary">
                   {searchResults.length} results found
                 </span>
               </div>
-              <ul className="divide-y divide-border">
+              <ul className="divide-y divide-border-default dark:divide-border-light">
                 {searchResults.map((result) => (
-                  <li key={result.id} className="p-4 hover:bg-muted">
+                  <li
+                    key={result.id}
+                    className="p-4 hover:bg-background-level1 dark:hover:bg-background-level2"
+                  >
                     <Link
                       href={`${result.path}?highlight=${encodeURIComponent(
                         searchQuery
@@ -147,13 +150,13 @@ export function SearchBar() {
                       <h3 className="mb-1 font-medium text-primary">
                         {highlightText(result.title, searchQuery)}
                       </h3>
-                      <p className="mb-2 text-sm text-muted-foreground">
-                        <span className="text-xs bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded-sm">
+                      <p className="mb-2 text-sm text-text-secondary">
+                        <span className="text-xs bg-background-level1 text-text-secondary px-1.5 py-0.5 rounded-md">
                           {result.updatedAt &&
                             new Date(result.updatedAt).toLocaleDateString()}
                         </span>
                       </p>
-                      <p className="text-sm text-foreground">
+                      <p className="text-sm text-text-primary">
                         {highlightText(result.excerpt, searchQuery)}...
                       </p>
                     </Link>

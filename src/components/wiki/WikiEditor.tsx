@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc } from "~/lib/trpc/client";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { MarkdownProse } from "./MarkdownProse";
@@ -9,7 +9,12 @@ import dynamic from "next/dynamic";
 import { HighlightedMarkdown } from "./HighlightedMarkdown";
 import Modal from "~/components/ui/modal";
 import { Extension } from "@codemirror/state";
-import type { ReactCodeMirrorProps } from "@uiw/react-codemirror";
+import type {
+  ReactCodeMirrorProps,
+  ReactCodeMirrorRef,
+} from "@uiw/react-codemirror";
+import { AssetManager } from "./AssetManager";
+import { Button } from "../ui/button";
 
 // Dynamically import CodeMirror to avoid SSR issues
 const CodeMirror = dynamic(
@@ -51,12 +56,14 @@ export function WikiEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [showMetaModal, setShowMetaModal] = useState(false);
-  // Using any[] for editor extensions since we don't have the proper type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [showAssetManager, setShowAssetManager] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [editorExtensions, setEditorExtensions] = useState<Extension[]>([]);
   const [extensionsLoaded, setExtensionsLoaded] = useState(false);
   const [darkTheme, setDarkTheme] =
     useState<ReactCodeMirrorProps["theme"]>(undefined);
+  const editorRef = useRef<ReactCodeMirrorRef>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load extensions and theme
   useEffect(() => {
@@ -279,7 +286,84 @@ export function WikiEditor({
     );
   }
 
-  // Function to render markdown preview
+  // Upload image to server
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      // Create form data
+      const formData = new FormData();
+      formData.append("file", file);
+      if (pageId) {
+        formData.append("pageId", pageId.toString());
+      }
+
+      // Upload to server
+      const response = await fetch("/api/assets/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.asset) {
+        // Insert markdown for image at cursor position
+        const imageMarkdown = `![${data.asset.fileName}](/api/assets/${data.asset.id})`;
+
+        // Insert at current cursor position or append to content
+        setContent((current) => current + "\n" + imageMarkdown + "\n");
+
+        notification.success("Image uploaded successfully");
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      notification.error("Failed to upload image");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Handle file input change
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      void handleImageUpload(files[0]);
+    }
+  };
+
+  // Trigger file input click
+  const triggerFileUpload = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const pastedImage = Array.from(e.clipboardData.items).find((item) =>
+      item.type.startsWith("image/")
+    );
+    if (pastedImage) {
+      const file = pastedImage.getAsFile();
+      if (file) {
+        handleImageUpload(file);
+      }
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleImageUpload(file);
+    }
+  };
+
+  // Render markdown preview
   const renderMarkdown = () => {
     return (
       <MarkdownProse className="px-6 py-4">
@@ -288,55 +372,181 @@ export function WikiEditor({
     );
   };
 
+  // Handle asset selection from asset manager
+  const handleAssetSelect = (assetUrl: string, assetName: string) => {
+    // Format for image vs other assets
+    const isImage = assetName.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+    const markdownLink = isImage
+      ? `![${assetName}](${assetUrl})`
+      : `[${assetName}](${assetUrl})`;
+
+    // Insert at cursor position or append to content
+    setContent((current) => current + "\n" + markdownLink + "\n");
+
+    // Close the asset manager
+    setShowAssetManager(false);
+  };
+
   return (
-    <div className="flex flex-col h-screen">
-      <div className="sticky top-0 z-10 flex items-center justify-between w-full px-4 border-b shadow-sm h-14 bg-slate-50 border-border">
-        <div className="flex items-center space-x-2">
-          <h2 className="text-xl font-medium truncate text-slate-800">
-            {title || "Untitled"}
-          </h2>
-          {mode === "edit" && isLocked && (
-            <span className="px-2 py-1 ml-2 text-xs font-medium text-green-800 bg-green-100 rounded-full">
-              Editing
+    <div className="flex flex-col h-screen bg-background">
+      {/* Header Bar */}
+      <header className="sticky top-0 z-10 border-b bg-card border-border">
+        <div className="flex items-center justify-between px-4 h-14">
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-medium truncate text-text-primary">
+              {title || "Untitled"}
+            </h2>
+            {mode === "edit" && isLocked && (
+              <span className="px-2 py-1 text-xs font-medium rounded-full text-success-50 bg-success-500">
+                Editing
+              </span>
+            )}
+            <span className="text-xs text-muted-foreground">
+              {pagePath && `Path: ${pagePath}`}
             </span>
-          )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="soft"
+              color="primary"
+              onClick={triggerFileUpload}
+              disabled={isUploading}
+            >
+              {isUploading ? "Uploading..." : "Upload Image"}
+            </Button>
+
+            <Button
+              size="sm"
+              variant="soft"
+              color="accent"
+              onClick={() => setShowAssetManager(true)}
+            >
+              Asset Manager
+            </Button>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileInputChange}
+              accept="image/*"
+              className="hidden"
+            />
+
+            <Button
+              size="sm"
+              variant="ghost"
+              color="secondary"
+              onClick={() => setShowMetaModal(true)}
+            >
+              Edit Metadata
+            </Button>
+
+            <Button
+              size="sm"
+              variant="outlined"
+              color="secondary"
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              {showPreview ? "Hide Preview" : "Show Preview"}
+            </Button>
+
+            <div className="h-6 mx-1 border-l border-border"></div>
+
+            <Button
+              size="sm"
+              variant="outlined"
+              color="error"
+              onClick={handleCancel}
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              size="sm"
+              variant="solid"
+              color="success"
+              type="submit"
+              onClick={handleSubmit}
+              disabled={isSaving}
+              className="min-w-20"
+            >
+              {isSaving ? (
+                <div className="flex items-center justify-center">
+                  <svg
+                    className="w-4 h-4 mr-2 animate-spin"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Saving
+                </div>
+              ) : (
+                "Save"
+              )}
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <button
-            type="button"
-            onClick={() => setShowMetaModal(true)}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors"
-          >
-            Edit Metadata
-          </button>
+      </header>
 
-          <button
-            type="button"
-            onClick={() => setShowPreview(!showPreview)}
-            className="px-3 py-1.5 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100 transition-colors border border-slate-200"
-          >
-            {showPreview ? "Hide Preview" : "Show Preview"}
-          </button>
+      {/* Editor and Preview Panels */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Editor Panel */}
+        <div
+          className={`${
+            showPreview ? "w-1/2" : "w-full"
+          } h-full flex flex-col overflow-hidden border-r border-border`}
+        >
+          {/* Editor Header */}
+          <div className="flex items-center justify-between px-4 py-2 border-b shadow-md bg-background-level1 border-border">
+            <span className="text-xs font-medium text-text-secondary">
+              Editing in Markdown
+            </span>
+            <div className="flex items-center gap-2">
+              {isUploading && (
+                <span className="text-xs font-medium text-warning-500">
+                  Uploading image...
+                </span>
+              )}
+            </div>
+          </div>
 
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="px-3 py-1.5 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100 transition-colors border border-slate-200"
-            disabled={isSaving}
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors"
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <>
+          {/* CodeMirror editor */}
+          {extensionsLoaded ? (
+            <CodeMirror
+              ref={editorRef}
+              value={content}
+              height="100%"
+              width="100%"
+              extensions={editorExtensions}
+              onChange={(value) => setContent(value)}
+              className="h-full overflow-hidden"
+              placeholder="Write your content using Markdown... Use the 'Upload Image' button to add images"
+              theme={darkTheme}
+              onPaste={handlePaste}
+              onDrop={handleDrop}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full bg-code-lighter">
+              <div className="flex flex-col items-center gap-2 p-4">
                 <svg
-                  className="w-4 h-4 mr-2 -ml-1 text-white animate-spin"
+                  className="w-6 h-6 animate-spin text-primary"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -355,75 +565,47 @@ export function WikiEditor({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Saving...
-              </>
-            ) : (
-              "Save"
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Editor and preview area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Editor side */}
-        <div
-          className={`${
-            showPreview ? "w-1/2" : "w-full"
-          } h-full flex flex-col overflow-hidden border-r border-slate-200`}
-        >
-          {/* Small info bar above editor */}
-          <div className="flex items-center justify-between px-4 py-2 border-b bg-slate-50 border-slate-200">
-            <span className="text-xs font-medium text-slate-500">
-              Editing in Markdown
-            </span>
-            <span className="text-xs text-slate-400">{title}</span>
-          </div>
-
-          {/* CodeMirror editor */}
-          {extensionsLoaded ? (
-            <CodeMirror
-              value={content}
-              height="100%"
-              width="100%"
-              extensions={editorExtensions}
-              onChange={(value) => setContent(value)}
-              className="h-full overflow-hidden"
-              placeholder="Write your content using Markdown..."
-              theme={darkTheme}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              Loading editor...
+                <span className="text-sm font-medium text-text-primary">
+                  Loading editor...
+                </span>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Preview side */}
+        {/* Preview Panel */}
         {showPreview && (
-          <div className="w-1/2 h-full overflow-auto bg-white">
+          <div className="w-1/2 h-full overflow-auto bg-background-level1">
             {/* Preview header */}
-            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 border-b bg-slate-50 border-slate-200">
-              <span className="text-xs font-medium text-slate-500">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 border-b shadow-md bg-background-level1 border-border">
+              <span className="text-xs font-medium text-text-secondary">
                 Preview
               </span>
             </div>
-            {renderMarkdown()}
+            <div className="overflow-auto">{renderMarkdown()}</div>
           </div>
         )}
       </div>
+
+      {/* Asset Manager Modal */}
+      <AssetManager
+        isOpen={showAssetManager}
+        onClose={() => setShowAssetManager(false)}
+        onAssetSelect={handleAssetSelect}
+        pageId={pageId}
+      />
 
       {/* Metadata Modal */}
       {showMetaModal && (
         <Modal
           onClose={() => setShowMetaModal(false)}
           size="lg"
-          backgroundClass="bg-white"
+          backgroundClass="bg-card dark:bg-card"
           closeOnEscape={true}
           showCloseButton={true}
         >
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-slate-800">
+            <h2 className="text-xl font-semibold text-text-primary">
               Edit Document Metadata
             </h2>
 
@@ -431,7 +613,7 @@ export function WikiEditor({
               <div>
                 <label
                   htmlFor="title"
-                  className="block mb-1 text-sm font-medium text-slate-700"
+                  className="block mb-1 text-sm font-medium text-text-primary"
                 >
                   Title
                 </label>
@@ -440,7 +622,7 @@ export function WikiEditor({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary border-input"
                   placeholder="Page title"
                   required
                 />
@@ -449,7 +631,7 @@ export function WikiEditor({
               <div>
                 <label
                   htmlFor="tags"
-                  className="block mb-1 text-sm font-medium text-slate-700"
+                  className="block mb-1 text-sm font-medium text-text-primary"
                 >
                   Tags
                 </label>
@@ -460,16 +642,19 @@ export function WikiEditor({
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="flex-1 px-3 py-2 border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary border-input"
                     placeholder="Add a tag and press Enter"
                   />
-                  <button
+                  <Button
                     type="button"
                     onClick={handleAddTag}
-                    className="px-3 py-2 ml-2 transition-colors rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    variant="soft"
+                    color="accent"
+                    size="sm"
+                    className="ml-2"
                   >
                     Add
-                  </button>
+                  </Button>
                 </div>
 
                 {tags.length > 0 && (
@@ -477,13 +662,13 @@ export function WikiEditor({
                     {tags.map((tag) => (
                       <div
                         key={tag}
-                        className="flex items-center px-2 py-1 text-sm text-blue-700 rounded-full bg-blue-50"
+                        className="flex items-center px-2 py-1 text-sm rounded-full bg-primary-100 text-primary-700"
                       >
                         {tag}
                         <button
                           type="button"
                           onClick={() => handleRemoveTag(tag)}
-                          className="ml-1 text-blue-400 hover:text-blue-600"
+                          className="ml-1 text-primary-400 hover:text-primary-600"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -504,14 +689,23 @@ export function WikiEditor({
               </div>
             </div>
 
-            <div className="flex justify-end pt-2">
-              <button
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
                 type="button"
+                variant="outlined"
+                color="secondary"
                 onClick={() => setShowMetaModal(false)}
-                className="px-4 py-2 text-sm font-medium text-white transition-colors rounded-md bg-slate-800 hover:bg-slate-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="solid"
+                color="primary"
+                onClick={() => setShowMetaModal(false)}
               >
                 Done
-              </button>
+              </Button>
             </div>
           </div>
         </Modal>

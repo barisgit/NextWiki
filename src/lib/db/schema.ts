@@ -83,9 +83,13 @@ export const wikiPages = pgTable(
     // Vector search index for tsvector column
     searchIdx: index("idx_search").using("gin", t.search),
     // Generate SQL to create the trigram indexes
-    // We need to use sql`` since Drizzle doesn't directly support gin_trgm_ops
     titleTrigramIdx: index("trgm_idx_title").on(t.title),
-    contentTrigramIdx: index("trgm_idx_content").on(t.content),
+    // Use a substring of the content for the trigram index to avoid btree size limitations
+    // This will use an expression rather than direct column
+    contentTrigramIdx: index("trgm_idx_content").using(
+      "gin",
+      sql`left(${t.content}, 2000)`
+    ),
   })
 );
 
@@ -108,6 +112,7 @@ export const wikiPagesRelations = relations(wikiPages, ({ one, many }) => ({
   }),
   revisions: many(wikiPageRevisions),
   tags: many(wikiPageToTag),
+  assets: many(assets),
 }));
 
 // Page revisions table
@@ -233,3 +238,29 @@ export const verificationTokens = pgTable(
     pk: primaryKey({ columns: [t.identifier, t.token] }),
   })
 );
+
+// Assets table for storing uploaded files
+export const assets = pgTable("assets", {
+  id: serial("id").primaryKey(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  fileType: varchar("file_type", { length: 100 }).notNull(),
+  fileSize: integer("file_size").notNull(),
+  data: text("data").notNull(), // Base64 encoded file data
+  uploadedById: integer("uploaded_by_id")
+    .references(() => users.id)
+    .notNull(),
+  pageId: integer("page_id").references(() => wikiPages.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Asset relations
+export const assetsRelations = relations(assets, ({ one }) => ({
+  uploadedBy: one(users, {
+    fields: [assets.uploadedById],
+    references: [users.id],
+  }),
+  page: one(wikiPages, {
+    fields: [assets.pageId],
+    references: [wikiPages.id],
+  }),
+}));

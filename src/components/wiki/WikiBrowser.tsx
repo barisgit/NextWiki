@@ -6,6 +6,8 @@ import { WikiFolderTree } from "./WikiFolderTree";
 import { SearchIcon, PlusIcon } from "lucide-react";
 import { trpc } from "~/lib/trpc/client";
 import { PageLocationEditor } from "./PageLocationEditor";
+import { Button } from "~/components/ui/button";
+import { SkeletonText } from "~/components/ui/skeleton";
 
 interface WikiBrowserProps {
   /**
@@ -60,13 +62,14 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
           />
         </div>
 
-        <button
+        <Button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center px-4 py-2 ml-4 text-sm font-medium rounded-md bg-primary text-primary-foreground"
+          className="ml-4"
+          size="default"
         >
           <PlusIcon className="w-4 h-4 mr-2" />
           New Page
-        </button>
+        </Button>
       </div>
 
       {/* Search results */}
@@ -75,7 +78,11 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
           <h2 className="mb-3 text-lg font-medium">Search Results</h2>
 
           {isSearching ? (
-            <div className="py-6 text-center text-slate-500">Searching...</div>
+            <div className="py-6">
+              <SkeletonText lines={3} className="mb-2" />
+              <SkeletonText lines={3} className="mb-2" />
+              <SkeletonText lines={3} className="mb-2" />
+            </div>
           ) : searchResults?.pages.length === 0 ? (
             <div className="py-6 text-center text-slate-500">
               No results found for &ldquo;{debouncedSearch}&rdquo;

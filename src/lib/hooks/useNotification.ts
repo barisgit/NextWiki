@@ -1,6 +1,6 @@
-import { toast } from "sonner";
+import { toast, ToasterProps } from "sonner";
 
-type NotificationType = "default" | "success" | "error" | "warning" | "info";
+// type NotificationType = "default" | "success" | "error" | "warning" | "info";
 
 export function useNotification() {
   const defaultOptions = {
@@ -9,21 +9,27 @@ export function useNotification() {
     duration: 4000,
   };
 
-  const success = (message: string | React.ReactNode, options?: any) => {
+  const success = (
+    message: string | React.ReactNode,
+    options?: ToasterProps
+  ) => {
     return toast.success(message, {
       ...defaultOptions,
       ...options,
     });
   };
 
-  const error = (message: string | React.ReactNode, options?: any) => {
+  const error = (message: string | React.ReactNode, options?: ToasterProps) => {
     return toast.error(message, {
       ...defaultOptions,
       ...options,
     });
   };
 
-  const warning = (message: string | React.ReactNode, options?: any) => {
+  const warning = (
+    message: string | React.ReactNode,
+    options?: ToasterProps
+  ) => {
     return toast(message, {
       ...defaultOptions,
       icon: "⚠️",
@@ -31,14 +37,17 @@ export function useNotification() {
     });
   };
 
-  const info = (message: string | React.ReactNode, options?: any) => {
+  const info = (message: string | React.ReactNode, options?: ToasterProps) => {
     return toast.info(message, {
       ...defaultOptions,
       ...options,
     });
   };
 
-  const loading = (message: string | React.ReactNode, options?: any) => {
+  const loading = (
+    message: string | React.ReactNode,
+    options?: ToasterProps
+  ) => {
     return toast.loading(message, {
       ...defaultOptions,
       ...options,

@@ -18,7 +18,7 @@ export function MarkdownProse({
     <div
       className={cn(
         // Base prose styling
-        "prose max-w-none",
+        "prose max-w-none dark:prose-invert",
 
         // Heading styles - using theme variables and more specific selectors
         "prose-h1:!text-markdown-h1 prose-h1:!font-bold prose-h1:!text-2xl prose-h1:!mt-spacing-lg prose-h1:!mb-spacing-md",
@@ -46,13 +46,13 @@ export function MarkdownProse({
         "[&_.prose-li_p]:my-0",
 
         // Code and pre styling
-        "prose-code:!text-markdown-codetext prose-code:px-spacing-xs prose-code:py-0.5 prose-code:rounded prose-code:!bg-markdown-codebg",
+        "prose-code:text-markdown-inlinecodetext prose-code:bg-markdown-inlinecodebg prose-code:px-spacing-xs prose-code:py-0.5 prose-code:rounded prose-code:text-sm",
         "prose-pre:bg-markdown-codebg prose-pre:rounded-md prose-pre:p-spacing-sm prose-pre:my-spacing-md",
         "[&_pre_code]:text-markdown-codetext [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:m-0",
         "[&_pre]:!overflow-x-auto",
 
         // Blockquote styling
-        "prose-blockquote:text-markdown-blockquote prose-blockquote:border-l-4 prose-blockquote:border-primary-300 prose-blockquote:pl-spacing-sm",
+        "prose-blockquote:text-markdown-blockquote prose-blockquote:border-l-4 prose-blockquote:border-primary-300 prose-blockquote:pl-spacing-sm dark:prose-blockquote:border-primary-600",
 
         // Add any custom className passed as prop
         className

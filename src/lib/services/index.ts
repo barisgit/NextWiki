@@ -3,6 +3,7 @@ import { wikiService } from "./wiki";
 import { tagService } from "./tags";
 import { searchService } from "./search";
 import { lockService } from "./locks";
+import { assetService } from "./assets";
 
 /**
  * Database Services
@@ -44,7 +45,19 @@ export const dbService = {
    * Database locking operations
    */
   locks: lockService,
+
+  /**
+   * Asset management operations
+   */
+  assets: assetService,
 };
 
 // Export individual services for direct use
-export { wikiService, userService, tagService, searchService, lockService };
+export {
+  wikiService,
+  userService,
+  tagService,
+  searchService,
+  lockService,
+  assetService,
+};

@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { WikiFolderTree } from "./WikiFolderTree";
 import { trpc } from "~/lib/trpc/client";
 import { useNotification } from "~/lib/hooks/useNotification";
 import Modal from "~/components/ui/modal";
+import Radio, { RadioGroup } from "~/components/ui/radio";
+import { Checkbox } from "~/components/ui/checkbox";
+import { Button } from "~/components/ui/button";
 
 interface PageLocationEditorProps {
   mode: "create" | "move";
@@ -38,6 +41,7 @@ export function PageLocationEditor({
   const [creationType, setCreationType] = useState<"page" | "folder">("page");
   const router = useRouter();
   const notification = useNotification();
+  const pathname = usePathname();
 
   // For checking name conflicts
   const subpagesList = trpc.wiki.getSubfolders.useQuery({ path: selectedPath });
@@ -101,8 +105,6 @@ export function PageLocationEditor({
   }, [childrenQuery.data, mode]);
 
   useEffect(() => {
-    console.log("subpages", subpages);
-    console.log("pageName", pageName);
     if (subpages.includes(pageName.toLowerCase())) {
       setConflict(true);
     } else {
@@ -121,7 +123,12 @@ export function PageLocationEditor({
         const fullPath = selectedPath
           ? `${selectedPath}/${encodeURIComponent(pageName)}`
           : encodeURIComponent(pageName);
-        onClose();
+
+        // We don't want to trigger navigate back
+        if (pathname !== "/create") {
+          onClose();
+        }
+
         router.push(`/create?path=${encodeURIComponent(fullPath)}`);
       } else {
         // Create folder directly
@@ -165,20 +172,20 @@ export function PageLocationEditor({
   return (
     <Modal onClose={onClose} className="w-full max-w-6xl">
       <div className="">
-        <h1 className="text-2xl font-bold text-gray-800">
+        <h1 className="text-2xl font-bold text-text-primary">
           {mode === "create" ? "Create New Wiki Page" : `Move: ${pageTitle}`}
         </h1>
 
-        <div className="p-2 mb-6 bg-white rounded-lg">
+        <div className="p-2 mb-6 rounded-lg bg-background-paper">
           <div className="grid grid-cols-[3fr_2fr] gap-6">
             <div className="pr-6">
               {mode === "move" && (
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-text-secondary">
                   Current path: {initialPath}
                 </div>
               )}
 
-              <h2 className="mb-4 text-lg font-medium text-gray-700">
+              <h2 className="mb-4 text-lg font-medium text-text-primary">
                 {mode === "create"
                   ? "Select Location"
                   : "Select Destination Folder"}
@@ -188,12 +195,12 @@ export function PageLocationEditor({
                 <div className="relative">
                   <label
                     htmlFor="pageName"
-                    className="block mb-2 text-sm font-medium text-gray-700"
+                    className="block mb-2 text-sm font-medium text-text-primary"
                   >
                     {mode === "create" ? "Page Name" : "New Name"}
                   </label>
                   {conflict && (
-                    <div className="absolute top-0 right-0 text-sm text-red-500">
+                    <div className="absolute top-0 right-0 text-sm text-error">
                       A page already exists at this location. Please choose a
                       different name.
                     </div>
@@ -201,7 +208,7 @@ export function PageLocationEditor({
                 </div>
                 <div className="flex items-center">
                   {selectedPath && (
-                    <span className="inline-flex items-center px-3 py-2 text-sm text-gray-500 border border-r-0 border-gray-300 rounded-l-md bg-gray-50">
+                    <span className="inline-flex items-center px-3 py-2 text-sm border border-r-0 text-text-secondary border-border-default rounded-l-md bg-background-level2">
                       {selectedPath}/
                     </span>
                   )}
@@ -210,7 +217,7 @@ export function PageLocationEditor({
                     id="pageName"
                     value={pageName}
                     onChange={(e) => setPageName(e.target.value.toLowerCase())}
-                    className={`flex-1 min-w-0 block w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-primary focus:border-primary ${
+                    className={`flex-1 min-w-0 block w-full px-3 py-2 rounded-md border border-border-default focus:outline-none focus:ring-primary focus:border-primary ${
                       selectedPath ? "rounded-l-none" : ""
                     }`}
                     placeholder={
@@ -223,24 +230,18 @@ export function PageLocationEditor({
 
             {/* Folder options section - only shown when moving a page with children */}
             {mode === "move" && hasChildren && (
-              <div className="p-4 mb-6 ml-4 border rounded-md bg-amber-50 border-amber-200">
-                <h3 className="mb-2 text-sm font-medium text-amber-800">
+              <div className="p-4 mb-6 ml-4 border rounded-md bg-warning-50 border-warning-200 dark:bg-warning-900 dark:border-warning-800">
+                <h3 className="mb-2 text-sm font-medium text-warning-800">
                   This page has child pages
                 </h3>
                 <div className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     id="moveRecursively"
                     checked={moveRecursively}
                     onChange={(e) => setMoveRecursively(e.target.checked)}
-                    className="w-4 h-4 mr-2 border-gray-300 rounded text-primary focus:ring-primary"
+                    label="Move all child pages recursively"
+                    color="warning"
                   />
-                  <label
-                    htmlFor="moveRecursively"
-                    className="text-sm text-gray-700"
-                  >
-                    Move all child pages recursively
-                  </label>
                 </div>
                 <p className="text-xs text-amber-700">
                   {moveRecursively
@@ -252,39 +253,26 @@ export function PageLocationEditor({
 
             {mode === "create" && (
               <div className="mb-6">
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-2 text-sm font-medium text-text-primary">
                   Create Type
                 </label>
-                <div className="flex space-x-4">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      className="w-4 h-4 border-gray-300 text-primary focus:ring-primary"
-                      name="creationType"
-                      value="page"
-                      checked={creationType === "page"}
-                      onChange={() => setCreationType("page")}
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Page</span>
-                  </label>
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      className="w-4 h-4 border-gray-300 text-primary focus:ring-primary"
-                      name="creationType"
-                      value="folder"
-                      checked={creationType === "folder"}
-                      onChange={() => setCreationType("folder")}
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Folder</span>
-                  </label>
-                </div>
+                <RadioGroup
+                  orientation="horizontal"
+                  value={creationType}
+                  onChange={(value) =>
+                    setCreationType(value as "page" | "folder")
+                  }
+                  name="creationType"
+                >
+                  <Radio value="page" label="Page" color="primary" />
+                  <Radio value="folder" label="Folder" color="primary" />
+                </RadioGroup>
               </div>
             )}
           </div>
 
           <div className="mb-6">
-            <label className="block mb-2 text-sm font-medium text-gray-700">
+            <label className="block mb-2 text-sm font-medium text-text-primary">
               Parent Folder
             </label>
             <WikiFolderTree
@@ -301,18 +289,20 @@ export function PageLocationEditor({
           </div>
 
           <div className="flex items-center justify-end">
-            <button
-              type="button"
+            <Button
+              variant="outlined_simple"
+              size="default"
               onClick={handleCancel}
-              className="px-4 py-2 mr-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="mr-2"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={handleSubmit}
               disabled={!pageName.trim() || conflict || isProcessing}
-              className="px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="solid"
+              size="default"
             >
               {isProcessing
                 ? mode === "create"
@@ -325,7 +315,7 @@ export function PageLocationEditor({
                   ? "Continue to Editor"
                   : "Create Folder"
                 : "Move Page"}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

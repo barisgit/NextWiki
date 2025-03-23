@@ -7,7 +7,7 @@ export default function GettingStartedPage() {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Getting Started with NextWiki</h1>
 
-        <section className="p-6 border rounded-lg bg-background border-border">
+        <section className="p-6 border rounded-lg bg-background-default border-border">
           <h2 className="mb-4 text-xl font-semibold">Installation</h2>
           <div className="space-y-4">
             <div className="space-y-2">

@@ -54,7 +54,7 @@ export function WikiPageList({
         <div className="relative flex-1 max-w-md">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+            className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-text-secondary"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -66,19 +66,19 @@ export function WikiPageList({
           <input
             type="search"
             placeholder="Search pages..."
-            className="w-full py-2 pl-10 pr-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full py-2 pl-10 pr-4 border rounded-md border-border focus:outline-none focus:ring-2 focus:ring-primary"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="rounded-md border overflow-hidden">
+      <div className="overflow-hidden border rounded-md border-border-dark dark:border-border-light">
         <table className="w-full">
           <thead>
-            <tr className="bg-muted border-b">
+            <tr className="border-b bg-card">
               <th
-                className="text-left py-3 px-4 font-medium text-muted-foreground text-sm cursor-pointer"
+                className="px-4 py-3 text-sm font-medium text-left cursor-pointer text-text-primary"
                 onClick={() => handleSort("title")}
               >
                 <div className="flex items-center">
@@ -100,7 +100,7 @@ export function WikiPageList({
                 </div>
               </th>
               <th
-                className="text-left py-3 px-4 font-medium text-muted-foreground text-sm cursor-pointer"
+                className="px-4 py-3 text-sm font-medium text-left cursor-pointer text-text-primary"
                 onClick={() => handleSort("updatedAt")}
               >
                 <div className="flex items-center">
@@ -130,13 +130,13 @@ export function WikiPageList({
                 .map((_, index) => (
                   <tr
                     key={`skeleton-${index}`}
-                    className="border-b last:border-0"
+                    className="border-b border-border last:border-0"
                   >
-                    <td className="py-3 px-4">
-                      <Skeleton className="h-6 w-40" />
+                    <td className="px-4 py-3">
+                      <Skeleton className="w-40 h-6" />
                     </td>
-                    <td className="py-3 px-4">
-                      <Skeleton className="h-4 w-24" />
+                    <td className="px-4 py-3">
+                      <Skeleton className="w-24 h-4" />
                     </td>
                   </tr>
                 ))
@@ -144,7 +144,7 @@ export function WikiPageList({
               <tr>
                 <td
                   colSpan={2}
-                  className="py-8 px-4 text-center text-muted-foreground"
+                  className="px-4 py-8 text-center text-text-secondary"
                 >
                   No pages found.
                 </td>
@@ -153,9 +153,9 @@ export function WikiPageList({
               data?.pages.map((page) => (
                 <tr
                   key={page.id}
-                  className="border-b last:border-0 hover:bg-muted/50"
+                  className="border-b last:border-0 hover:bg-card-hover"
                 >
-                  <td className="py-3 px-4">
+                  <td className="px-4 py-3">
                     <Link
                       href={`/${page.path}`}
                       className="text-primary hover:underline"
@@ -168,7 +168,7 @@ export function WikiPageList({
                           <Link
                             key={tagItem.tag.id}
                             href={`/tags/${tagItem.tag.name}`}
-                            className="text-xs px-1.5 py-0.5 bg-muted rounded-full hover:bg-muted/80"
+                            className="text-xs px-1.5 py-0.5 bg-card rounded-full hover:bg-card-hover"
                           >
                             {tagItem.tag.name}
                           </Link>
@@ -176,7 +176,7 @@ export function WikiPageList({
                       </div>
                     )}
                   </td>
-                  <td className="py-3 px-4 text-sm text-muted-foreground">
+                  <td className="px-4 py-3 text-sm text-text-secondary">
                     {page.updatedAt
                       ? formatDistanceToNow(new Date(page.updatedAt), {
                           addSuffix: true,
