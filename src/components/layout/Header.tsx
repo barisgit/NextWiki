@@ -2,6 +2,7 @@ import { UserMenu } from "../auth/UserMenu";
 import { SearchBar } from "~/components/layout/SearchBar";
 import { Suspense } from "react";
 import { ThemeToggle } from "~/components/layout/theme-toggle";
+import { AdminButton } from "~/components/layout/AdminButton";
 
 export function Header() {
   return (
@@ -13,6 +14,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center space-x-4">
+        <AdminButton />
         <ThemeToggle />
         <UserMenu />
       </div>

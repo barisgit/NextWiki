@@ -1,22 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
+import { Input } from "../ui/input";
+
+// Create a separate component to read searchParams to work with Suspense
+function RegistrationSuccessMessage() {
+  const searchParams = useSearchParams();
+  const justRegistered = searchParams.get("registered") === "true";
+
+  if (!justRegistered) {
+    return null;
+  }
+
+  return (
+    <Alert variant="success" className="mb-4">
+      <AlertDescription>
+        Registration successful! Please sign in with your new account.
+      </AlertDescription>
+    </Alert>
+  );
+}
 
 export function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  // Check if user just registered, wrap in suspense boundary
-  const justRegistered = searchParams.get("registered") === "true";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,13 +61,10 @@ export function LoginForm() {
 
   return (
     <>
-      {justRegistered && (
-        <Alert variant="success" className="mb-4">
-          <AlertDescription>
-            Registration successful! Please sign in with your new account.
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* Wrap the message component in Suspense */}
+      <Suspense fallback={<div>Loading message...</div>}>
+        <RegistrationSuccessMessage />
+      </Suspense>
 
       {error && (
         <Alert variant="destructive" className="mb-4">
@@ -66,13 +78,12 @@ export function LoginForm() {
             <label htmlFor="email-address" className="sr-only">
               Email address
             </label>
-            <input
+            <Input
               id="email-address"
               name="email"
               type="email"
               autoComplete="email"
               required
-              className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -82,13 +93,12 @@ export function LoginForm() {
             <label htmlFor="password" className="sr-only">
               Password
             </label>
-            <input
+            <Input
               id="password"
               name="password"
               type="password"
               autoComplete="current-password"
               required
-              className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -130,10 +140,10 @@ export function LoginForm() {
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
+            <div className="w-full border-t border-border-default" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 text-gray-500 bg-white">
+            <span className="px-2 text-text-secondary bg-background-paper">
               Or continue with
             </span>
           </div>

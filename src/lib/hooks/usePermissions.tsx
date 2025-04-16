@@ -1,0 +1,145 @@
+"use client";
+
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useEffect,
+} from "react";
+import { api } from "~/lib/trpc/providers";
+import { PermissionIdentifier } from "~/lib/permissions";
+import { isValidPermissionId, checkPermission } from "~/lib/permissions/client";
+
+// Define permission type with typed identifier
+interface Permission {
+  id: number;
+  name: PermissionIdentifier;
+  module: string;
+  resource: string;
+  action: string;
+  description: string | null;
+}
+
+// Define the permissions data structure returned by the API
+interface PermissionsData {
+  permissions: Permission[];
+  permissionNames: PermissionIdentifier[];
+  permissionMap: Record<PermissionIdentifier, boolean>;
+}
+
+// Define the shape of the permission context
+interface PermissionContextType {
+  // Raw permissions data
+  permissions: Permission[];
+
+  // Array of permission names
+  permissionNames: PermissionIdentifier[];
+
+  // Map for easy lookup
+  permissionMap: Record<PermissionIdentifier, boolean>;
+
+  // Loading state
+  isLoading: boolean;
+
+  // Helper functions
+  hasPermission: (permission: PermissionIdentifier) => boolean;
+
+  // Optional reload function
+  reloadPermissions: () => Promise<void>;
+}
+
+// Create the context with a default empty state
+const PermissionContext = createContext<PermissionContextType>({
+  permissions: [],
+  permissionNames: [],
+  permissionMap: {} as Record<PermissionIdentifier, boolean>,
+  isLoading: true,
+  hasPermission: () => false,
+  reloadPermissions: async () => {},
+});
+
+// Provider component
+export function PermissionProvider({ children }: { children: ReactNode }) {
+  const [permissionsData, setPermissionsData] = useState<PermissionsData>({
+    permissions: [],
+    permissionNames: [],
+    permissionMap: {} as Record<PermissionIdentifier, boolean>,
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Query user permissions using tRPC
+  const { data, refetch } = api.auth.getMyPermissions.useQuery();
+
+  // Update state when data changes
+  useEffect(() => {
+    if (data) {
+      setPermissionsData(data as unknown as PermissionsData);
+      setIsLoading(false);
+    }
+  }, [data]);
+
+  // Reload function
+  const reloadPermissions = async () => {
+    setIsLoading(true);
+    await refetch();
+  };
+
+  // Helper function to check if user has a permission
+  const hasPermission = (permission: PermissionIdentifier) => {
+    // Handle loading state - if permissions haven't loaded, assume no permission
+    if (isLoading) return false;
+
+    // Use the client-side utility
+    return checkPermission(permissionsData.permissionMap, permission);
+  };
+
+  // Value to provide
+  const value = {
+    ...permissionsData,
+    isLoading,
+    hasPermission,
+    reloadPermissions,
+  };
+
+  return (
+    <PermissionContext.Provider value={value}>
+      {children}
+    </PermissionContext.Provider>
+  );
+}
+
+// Custom hook to use the context
+export function usePermissions() {
+  const context = useContext(PermissionContext);
+
+  if (context === undefined) {
+    throw new Error("usePermissions must be used within a PermissionProvider");
+  }
+
+  return context;
+}
+
+// Helper component for conditional rendering based on permissions
+interface RequirePermissionProps {
+  permission: PermissionIdentifier;
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+export function RequirePermission({
+  permission,
+  children,
+  fallback = null,
+}: RequirePermissionProps) {
+  const { hasPermission } = usePermissions();
+
+  // Validate the permission using client-safe utility
+  if (!isValidPermissionId(permission)) {
+    console.warn(`Invalid permission identifier: ${permission}`);
+    return <>{fallback}</>;
+  }
+
+  return hasPermission(permission) ? <>{children}</> : <>{fallback}</>;
+}
