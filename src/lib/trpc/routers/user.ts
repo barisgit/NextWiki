@@ -1,4 +1,9 @@
-import { publicProcedure, router, protectedProcedure } from "..";
+import {
+  publicProcedure,
+  protectedProcedure,
+  permissionProtectedProcedure,
+  router,
+} from "..";
 import { dbService } from "~/lib/services";
 import { hash } from "bcrypt";
 import { z } from "zod";
@@ -17,7 +22,7 @@ const registerSchema = z.object({
 
 export const userRouter = router({
   // Get the total count of users
-  count: publicProcedure.query(async () => {
+  count: permissionProtectedProcedure("system:users:read").query(async () => {
     return await dbService.users.count();
   }),
 

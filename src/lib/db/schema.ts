@@ -103,9 +103,9 @@ export const groupPermissions = pgTable(
   ]
 );
 
-// Group module restrictions - defines which modules a group can access
-export const groupModuleRestrictions = pgTable(
-  "group_module_restrictions",
+// Group module permissions - defines which modules a group can access
+export const groupModulePermissions = pgTable(
+  "group_module_permissions",
   {
     groupId: integer("group_id")
       .references(() => groups.id)
@@ -115,13 +115,13 @@ export const groupModuleRestrictions = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.groupId, t.module] }),
-    index("group_module_idx").on(t.groupId, t.module),
+    index("group_module_permissions_idx").on(t.groupId, t.module),
   ]
 );
 
-// Group action restrictions - defines which actions a group can perform
-export const groupActionRestrictions = pgTable(
-  "group_action_restrictions",
+// Group action permissions - defines which actions a group can perform
+export const groupActionPermissions = pgTable(
+  "group_action_permissions",
   {
     groupId: integer("group_id")
       .references(() => groups.id)
@@ -131,7 +131,7 @@ export const groupActionRestrictions = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.groupId, t.action] }),
-    index("group_action_idx").on(t.groupId, t.action),
+    index("group_action_permissions_idx").on(t.groupId, t.action),
   ]
 );
 
@@ -176,8 +176,8 @@ export const groupsRelations = relations(groups, ({ many }) => ({
   userGroups: many(userGroups),
   groupPermissions: many(groupPermissions),
   pagePermissions: many(pagePermissions),
-  groupModuleRestrictions: many(groupModuleRestrictions),
-  groupActionRestrictions: many(groupActionRestrictions),
+  groupModulePermissions: many(groupModulePermissions),
+  groupActionPermissions: many(groupActionPermissions),
 }));
 
 // Permission relations
@@ -232,21 +232,21 @@ export const pagePermissionsRelations = relations(
   })
 );
 
-export const groupModuleRestrictionsRelations = relations(
-  groupModuleRestrictions,
+export const groupModulePermissionsRelations = relations(
+  groupModulePermissions,
   ({ one }) => ({
     group: one(groups, {
-      fields: [groupModuleRestrictions.groupId],
+      fields: [groupModulePermissions.groupId],
       references: [groups.id],
     }),
   })
 );
 
-export const groupActionRestrictionsRelations = relations(
-  groupActionRestrictions,
+export const groupActionPermissionsRelations = relations(
+  groupActionPermissions,
   ({ one }) => ({
     group: one(groups, {
-      fields: [groupActionRestrictions.groupId],
+      fields: [groupActionPermissions.groupId],
       references: [groups.id],
     }),
   })

@@ -46,17 +46,17 @@ export default async function EditGroupPage({ params }: EditGroupPageProps) {
   const groupPermissions = await dbService.groups.getGroupPermissions(group.id);
   const groupPermissionIds = groupPermissions.map((p) => p.id);
 
-  // Get module restrictions
-  const moduleRestrictions = await dbService.groups.getModuleRestrictions(
+  // Get module permissions
+  const modulePermissions = await dbService.groups.getModulePermissions(
     group.id
   );
-  const moduleRestrictionModules = moduleRestrictions.map((r) => r.module);
+  const modulePermissionModules = modulePermissions.map((p) => p.module);
 
-  // Get action restrictions
-  const actionRestrictions = await dbService.groups.getActionRestrictions(
+  // Get action permissions
+  const actionPermissions = await dbService.groups.getActionPermissions(
     group.id
   );
-  const actionRestrictionActions = actionRestrictions.map((r) => r.action);
+  const actionPermissionActions = actionPermissions.map((p) => p.action);
 
   return (
     <div className="container p-6 mx-auto">
@@ -72,8 +72,8 @@ export default async function EditGroupPage({ params }: EditGroupPageProps) {
           group={group}
           permissions={permissions}
           groupPermissions={groupPermissionIds}
-          groupModuleRestrictions={moduleRestrictionModules}
-          groupActionRestrictions={actionRestrictionActions}
+          groupModulePermissions={modulePermissionModules}
+          groupActionPermissions={actionPermissionActions}
         />
       </div>
     </div>

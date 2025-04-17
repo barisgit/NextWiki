@@ -3,8 +3,8 @@ import {
   groups,
   userGroups,
   groupPermissions,
-  groupModuleRestrictions,
-  groupActionRestrictions,
+  groupModulePermissions,
+  groupActionPermissions,
 } from "~/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import type { groups as groupsTable } from "~/lib/db/schema";
@@ -182,36 +182,41 @@ export const groupService = {
       throw new Error(`Group with id ${groupId} not found`);
     }
 
-    // Get existing group-permission associations
-    const existingAssociations = await db.query.groupPermissions.findMany({
-      where: and(
-        eq(groupPermissions.groupId, groupId),
-        inArray(groupPermissions.permissionId, permissionIds)
-      ),
-    });
+    // Get all existing permissions for this group
+    const existingPermissions = await this.getGroupPermissions(groupId);
+    const existingPermissionIds = existingPermissions.map((p) => p.id);
 
-    const existingPermissionIds = existingAssociations.map(
-      (assoc) => assoc.permissionId
+    // Identify permissions to remove (permissions that exist but aren't in the new list)
+    const permissionIdsToRemove = existingPermissionIds.filter(
+      (id) => !permissionIds.includes(id)
     );
 
-    // Filter out permissions already assigned to the group
-    const newPermissionIds = permissionIds.filter(
-      (permissionId) => !existingPermissionIds.includes(permissionId)
-    );
-
-    if (newPermissionIds.length === 0) {
-      return { added: 0 };
+    // Remove permissions that were unchecked
+    if (permissionIdsToRemove.length > 0) {
+      await this.removePermissions(groupId, permissionIdsToRemove);
     }
 
-    // Add permissions to the group
+    // Identify new permissions to add
+    const permissionIdsToAdd = permissionIds.filter(
+      (id) => !existingPermissionIds.includes(id)
+    );
+
+    if (permissionIdsToAdd.length === 0) {
+      return { added: 0, removed: permissionIdsToRemove.length };
+    }
+
+    // Add new permissions to the group
     await db.insert(groupPermissions).values(
-      newPermissionIds.map((permissionId) => ({
+      permissionIdsToAdd.map((permissionId) => ({
         permissionId,
         groupId,
       }))
     );
 
-    return { added: newPermissionIds.length };
+    return {
+      added: permissionIdsToAdd.length,
+      removed: permissionIdsToRemove.length,
+    };
   },
 
   /**
@@ -303,75 +308,117 @@ export const groupService = {
   },
 
   /**
-   * Add module restrictions to a group
+   * Add module permissions to a group
    */
-  async addModuleRestrictions(groupId: number, modules: string[]) {
+  async addModulePermissions(groupId: number, modules: string[]) {
     // Ensure the group exists
     const group = await this.getById(groupId);
     if (!group) {
       throw new Error(`Group with id ${groupId} not found`);
     }
 
-    // Add module restrictions
-    await db.insert(groupModuleRestrictions).values(
-      modules.map((module) => ({
+    // Get existing module permissions
+    const existingModulePermissions = await this.getModulePermissions(groupId);
+    const existingModules = existingModulePermissions.map((p) => p.module);
+
+    // Remove modules that are not in the new list
+    const modulesToRemove = existingModules.filter(
+      (module) => !modules.includes(module)
+    );
+    if (modulesToRemove.length > 0) {
+      await this.removeModulePermissions(groupId, modulesToRemove);
+    }
+
+    // Find modules that need to be added (not already existing)
+    const modulesToAdd = modules.filter(
+      (module) => !existingModules.includes(module)
+    );
+
+    if (modulesToAdd.length === 0) {
+      return { added: 0, removed: modulesToRemove.length };
+    }
+
+    // Add new module permissions
+    await db.insert(groupModulePermissions).values(
+      modulesToAdd.map((module) => ({
         groupId,
         module,
       }))
     );
 
-    return { added: modules.length };
+    return { added: modulesToAdd.length, removed: modulesToRemove.length };
   },
 
   /**
-   * Add action restrictions to a group
+   * Add action permissions to a group
    */
-  async addActionRestrictions(groupId: number, actions: string[]) {
+  async addActionPermissions(groupId: number, actions: string[]) {
     // Ensure the group exists
     const group = await this.getById(groupId);
     if (!group) {
       throw new Error(`Group with id ${groupId} not found`);
     }
 
-    // Add action restrictions
-    await db.insert(groupActionRestrictions).values(
-      actions.map((action) => ({
+    // Get existing action permissions
+    const existingActionPermissions = await this.getActionPermissions(groupId);
+    const existingActions = existingActionPermissions.map((p) => p.action);
+
+    // Remove actions that are not in the new list
+    const actionsToRemove = existingActions.filter(
+      (action) => !actions.includes(action)
+    );
+    if (actionsToRemove.length > 0) {
+      await this.removeActionPermissions(groupId, actionsToRemove);
+    }
+
+    // Find actions that need to be added (not already existing)
+    const actionsToAdd = actions.filter(
+      (action) => !existingActions.includes(action)
+    );
+
+    if (actionsToAdd.length === 0) {
+      return { added: 0, removed: actionsToRemove.length };
+    }
+
+    // Add new action permissions
+    await db.insert(groupActionPermissions).values(
+      actionsToAdd.map((action) => ({
         groupId,
         action,
       }))
     );
 
-    return { added: actions.length };
+    return { added: actionsToAdd.length, removed: actionsToRemove.length };
   },
 
   /**
-   * Get module restrictions for a group
+   * Get module permissions for a group
    */
-  async getModuleRestrictions(groupId: number) {
-    return db.query.groupModuleRestrictions.findMany({
-      where: eq(groupModuleRestrictions.groupId, groupId),
+  async getModulePermissions(groupId: number) {
+    return db.query.groupModulePermissions.findMany({
+      where: eq(groupModulePermissions.groupId, groupId),
     });
   },
 
   /**
-   * Get action restrictions for a group
+   * Get action permissions for a group
    */
-  async getActionRestrictions(groupId: number) {
-    return db.query.groupActionRestrictions.findMany({
-      where: eq(groupActionRestrictions.groupId, groupId),
+  async getActionPermissions(groupId: number) {
+    return db.query.groupActionPermissions.findMany({
+      where: eq(groupActionPermissions.groupId, groupId),
     });
   },
 
   /**
-   * Remove module restrictions from a group
+   * Remove module permissions from a group
    */
-  async removeModuleRestrictions(groupId: number, modules: string[]) {
+  async removeModulePermissions(groupId: number, modules: string[]) {
     await db
-      .delete(groupModuleRestrictions)
+      .delete(groupModulePermissions)
       .where(
         and(
-          eq(groupModuleRestrictions.groupId, groupId),
-          inArray(groupModuleRestrictions.module, modules)
+          eq(groupModulePermissions.groupId, groupId),
+          inArray(groupModulePermissions.module, modules)
         )
       );
 
@@ -379,15 +426,15 @@ export const groupService = {
   },
 
   /**
-   * Remove action restrictions from a group
+   * Remove action permissions from a group
    */
-  async removeActionRestrictions(groupId: number, actions: string[]) {
+  async removeActionPermissions(groupId: number, actions: string[]) {
     await db
-      .delete(groupActionRestrictions)
+      .delete(groupActionPermissions)
       .where(
         and(
-          eq(groupActionRestrictions.groupId, groupId),
-          inArray(groupActionRestrictions.action, actions)
+          eq(groupActionPermissions.groupId, groupId),
+          inArray(groupActionPermissions.action, actions)
         )
       );
 

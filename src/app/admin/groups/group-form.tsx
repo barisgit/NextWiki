@@ -21,6 +21,7 @@ interface GroupFormProps {
     id: number;
     name: string;
     description: string | null;
+    isLocked?: boolean;
   };
   permissions: {
     id: number;
@@ -31,16 +32,16 @@ interface GroupFormProps {
     action: string;
   }[];
   groupPermissions?: number[];
-  groupModuleRestrictions?: string[];
-  groupActionRestrictions?: string[];
+  groupModulePermissions?: string[];
+  groupActionPermissions?: string[];
 }
 
 export default function GroupForm({
   group,
   permissions,
   groupPermissions = [],
-  groupModuleRestrictions = [],
-  groupActionRestrictions = [],
+  groupModulePermissions = [],
+  groupActionPermissions = [],
 }: GroupFormProps) {
   const router = useRouter();
   const [name, setName] = useState(group?.name ?? "");
@@ -48,11 +49,13 @@ export default function GroupForm({
   const [selectedPermissions, setSelectedPermissions] =
     useState<number[]>(groupPermissions);
   const [selectedModules, setSelectedModules] = useState<string[]>(
-    groupModuleRestrictions
+    groupModulePermissions
   );
   const [selectedActions, setSelectedActions] = useState<string[]>(
-    groupActionRestrictions
+    groupActionPermissions
   );
+
+  const isLocked = group?.isLocked ?? false;
 
   // Fetch available modules and actions
   const { data: availableModules = [] } = api.permissions.getModules.useQuery();
@@ -84,13 +87,13 @@ export default function GroupForm({
     },
   });
 
-  const addModuleRestrictions = api.groups.addModuleRestrictions.useMutation({
+  const addModulePermissions = api.groups.addModulePermissions.useMutation({
     onError: (error) => {
       toast.error(error.message);
     },
   });
 
-  const addActionRestrictions = api.groups.addActionRestrictions.useMutation({
+  const addActionPermissions = api.groups.addActionPermissions.useMutation({
     onError: (error) => {
       toast.error(error.message);
     },
@@ -114,19 +117,19 @@ export default function GroupForm({
           permissionIds: selectedPermissions,
         });
 
-        // Update module restrictions
-        await addModuleRestrictions.mutateAsync({
+        // Update module permissions
+        await addModulePermissions.mutateAsync({
           groupId: updatedGroup.id,
-          restrictions: selectedModules.map((module) => ({
+          permissions: selectedModules.map((module) => ({
             module,
             isAllowed: true,
           })),
         });
 
-        // Update action restrictions
-        await addActionRestrictions.mutateAsync({
+        // Update action permissions
+        await addActionPermissions.mutateAsync({
           groupId: updatedGroup.id,
-          restrictions: selectedActions.map((action) => ({
+          permissions: selectedActions.map((action) => ({
             action,
             isAllowed: true,
           })),
@@ -144,19 +147,19 @@ export default function GroupForm({
           permissionIds: selectedPermissions,
         });
 
-        // Add module restrictions
-        await addModuleRestrictions.mutateAsync({
+        // Add module permissions
+        await addModulePermissions.mutateAsync({
           groupId: newGroup.id,
-          restrictions: selectedModules.map((module) => ({
+          permissions: selectedModules.map((module) => ({
             module,
             isAllowed: true,
           })),
         });
 
-        // Add action restrictions
-        await addActionRestrictions.mutateAsync({
+        // Add action permissions
+        await addActionPermissions.mutateAsync({
           groupId: newGroup.id,
-          restrictions: selectedActions.map((action) => ({
+          permissions: selectedActions.map((action) => ({
             action,
             isAllowed: true,
           })),
@@ -176,7 +179,7 @@ export default function GroupForm({
     return acc;
   }, {} as Record<string, typeof permissions>);
 
-  // Check if a permission is allowed based on module and action restrictions
+  // Check if a permission is allowed based on module and action permissions
   const isPermissionAllowed = (permission: (typeof permissions)[0]) => {
     // If no modules are selected, all modules are allowed
     if (selectedModules.length === 0) {
@@ -206,6 +209,7 @@ export default function GroupForm({
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            disabled={isLocked}
           />
         </div>
         <div>
@@ -214,8 +218,27 @@ export default function GroupForm({
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            disabled={isLocked}
           />
         </div>
+        {isLocked && (
+          <div className="p-4 text-sm border rounded-lg bg-muted">
+            <p className="font-medium">This is a system group</p>
+            <p>
+              You can manage permissions for this group, but the name and
+              description cannot be modified.
+            </p>
+          </div>
+        )}
+        {name === "Administrators" && (
+          <div className="p-4 text-sm border rounded-lg bg-muted border-amber-200">
+            <p className="font-medium">Administrator Group</p>
+            <p>
+              The Administrators group has full access to all system features by
+              default. You are viewing this group for reference only.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-12 gap-6">
@@ -243,7 +266,9 @@ export default function GroupForm({
                                   <Checkbox
                                     id={`permission-${permission.id}`}
                                     checked={isSelected}
-                                    disabled={!isAllowed}
+                                    disabled={
+                                      !isAllowed || name === "Administrators"
+                                    }
                                     onChange={(e) => {
                                       if (e.target.checked) {
                                         setSelectedPermissions([
@@ -302,11 +327,11 @@ export default function GroupForm({
           </div>
         </div>
 
-        {/* Restrictions sidebar */}
+        {/* Permissions sidebar */}
         <div className="col-span-4 space-y-6">
           {/* Modules */}
           <div className="p-4 border rounded-lg bg-card">
-            <h2 className="mb-4 text-lg font-semibold">Module Restrictions</h2>
+            <h2 className="mb-4 text-lg font-semibold">Module Permissions</h2>
             <p className="mb-4 text-sm text-muted-foreground">
               Select which modules this group can access. If no modules are
               selected, all modules are allowed.
@@ -335,6 +360,7 @@ export default function GroupForm({
                         );
                       }
                     }}
+                    disabled={name === "Administrators"}
                   />
                   <Label htmlFor={`module-${module}`}>{module}</Label>
                 </div>
@@ -344,7 +370,7 @@ export default function GroupForm({
 
           {/* Actions */}
           <div className="p-4 border rounded-lg bg-card">
-            <h2 className="mb-4 text-lg font-semibold">Action Restrictions</h2>
+            <h2 className="mb-4 text-lg font-semibold">Action Permissions</h2>
             <p className="mb-4 text-sm text-muted-foreground">
               Select which actions this group can perform. If no actions are
               selected, all actions are allowed.
@@ -373,6 +399,7 @@ export default function GroupForm({
                         );
                       }
                     }}
+                    disabled={name === "Administrators"}
                   />
                   <Label htmlFor={`action-${action}`}>{action}</Label>
                 </div>
@@ -390,7 +417,11 @@ export default function GroupForm({
         >
           Cancel
         </Button>
-        <Button type="submit">{group ? "Update Group" : "Create Group"}</Button>
+        {name !== "Administrators" && (
+          <Button type="submit">
+            {group ? "Update Group" : "Create Group"}
+          </Button>
+        )}
       </div>
     </form>
   );

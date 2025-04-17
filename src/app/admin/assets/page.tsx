@@ -4,6 +4,7 @@ import { useState } from "react";
 import { trpc } from "~/lib/trpc/client";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { Input } from "~/components/ui/input";
+import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -77,7 +78,6 @@ export default function AssetsAdminPage() {
           <Select
             value={selectedFileType}
             onValueChange={(value) => setSelectedFileType(value)}
-            className="w-full"
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="All file types" />
@@ -151,9 +151,11 @@ export default function AssetsAdminPage() {
                 <tr key={asset.id} className="hover:bg-background-level2">
                   <td className="px-4 py-2">
                     {asset.fileType.startsWith("image/") ? (
-                      <img
+                      <Image
                         src={`/api/assets/${asset.id}`}
                         alt={asset.fileName}
+                        width={48}
+                        height={48}
                         className="object-cover w-12 h-12 border rounded border-border-default"
                       />
                     ) : (

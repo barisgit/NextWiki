@@ -109,7 +109,7 @@ export default function AdminDashboardPage() {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, []);
+  });
 
   return (
     <div className="space-y-6">

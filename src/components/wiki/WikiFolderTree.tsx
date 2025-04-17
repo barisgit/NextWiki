@@ -185,7 +185,7 @@ export function WikiFolderTree({
 
       setExpandedFolders(newExpandedFolders);
     }
-  }, [currentPath]);
+  }, [currentPath, expandedFolders]);
 
   // Toggle folder expansion
   const toggleFolder = (path: string, e: React.MouseEvent) => {

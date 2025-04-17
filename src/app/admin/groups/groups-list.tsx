@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { Pencil, Trash2, Users } from "lucide-react";
+import { Eye, Pencil, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { api } from "~/lib/trpc/providers";
@@ -58,16 +58,25 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {/* TODO: Later when we have a way to update the groups list, we can use the useState hook to update the groups list */}
           {initialGroups.map((group) => (
             <TableRow key={group.id}>
               <TableCell className="font-medium">{group.name}</TableCell>
               <TableCell>{group.description}</TableCell>
               <TableCell>
                 {group.isLocked ? (
-                  <Badge variant="secondary">System Group</Badge>
+                  <Badge
+                    variant="outline"
+                    color={group.name === "Administrators" ? "primary" : "info"}
+                  >
+                    System Group
+                  </Badge>
                 ) : (
-                  <Badge variant="outline">Custom Group</Badge>
+                  <Badge
+                    variant="outline"
+                    color={group.name === "Viewers" ? "accent" : undefined}
+                  >
+                    Custom Group
+                  </Badge>
                 )}
               </TableCell>
               <TableCell className="text-right">
@@ -77,21 +86,23 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
                       <Users className="w-4 h-4" />
                     </Button>
                   </Link>
+                  <Link href={`/admin/groups/${group.id}/edit`}>
+                    <Button variant="ghost" size="icon">
+                      {group.name === "Administrators" ? (
+                        <Eye className="w-4 h-4" />
+                      ) : (
+                        <Pencil className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </Link>
                   {!group.isLocked && (
-                    <>
-                      <Link href={`/admin/groups/${group.id}/edit`}>
-                        <Button variant="ghost" size="icon">
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(group.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(group.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   )}
                 </div>
               </TableCell>

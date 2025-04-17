@@ -208,7 +208,7 @@ export function WikiEditor({
         clearInterval(refreshInterval);
       }
     };
-  }, [mode, isLocked, pageId]);
+  }, [mode, isLocked, pageId, refreshLockMutation]);
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {

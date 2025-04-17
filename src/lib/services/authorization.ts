@@ -1,4 +1,3 @@
-import "server-only";
 import { db } from "~/lib/db";
 import {
   userGroups,
@@ -31,7 +30,7 @@ export const authorizationService = {
 
   /**
    * Get all permission IDs for a user based on their group memberships
-   * Note: This only considers direct group permissions, not module/action restrictions.
+   * Note: This only considers direct group permissions, not module/action permissions.
    * For comprehensive checks, use hasPermission.
    */
   async getUserPermissionIds(userId: number) {
@@ -59,7 +58,7 @@ export const authorizationService = {
 
   /**
    * Get all permissions for a user based on their group memberships
-   * Note: This only considers direct group permissions, not module/action restrictions.
+   * Note: This only considers direct group permissions, not module/action permissions.
    * For comprehensive checks, use hasPermission.
    */
   async getUserPermissions(userId: number) {
@@ -78,9 +77,9 @@ export const authorizationService = {
   /**
    * Check if a user has a specific permission.
    * This function considers group memberships, specific permissions assigned
-   * to those groups, and any module/action restrictions applied to those groups.
+   * to those groups, and any module/action permissions applied to those groups.
    * Permission is granted if *at least one* of the user's groups grants the
-   * permission AND does not have a relevant module or action restriction.
+   * permission AND does not have a relevant module or action permission.
    */
   async hasPermission(
     userId: number,
@@ -114,7 +113,7 @@ export const authorizationService = {
     }
     const permissionId = permission.id;
 
-    // 2. Get all groups the user belongs to, including their permissions and restrictions
+    // 2. Get all groups the user belongs to, including their permissions and permissions
     const userGroupsData = await db.query.userGroups.findMany({
       where: eq(userGroups.userId, userId),
       with: {
@@ -126,15 +125,15 @@ export const authorizationService = {
               // Optimization: Could filter here if DB supports it well
               // where: eq(groupPermissions.permissionId, permissionId)
             },
-            groupModuleRestrictions: {
+            groupModulePermissions: {
               columns: { module: true }, // Only need module name
               // Optimization: Could filter here
-              // where: eq(groupModuleRestrictions.module, module)
+              // where: eq(groupModulePermissions.module, module)
             },
-            groupActionRestrictions: {
+            groupActionPermissions: {
               columns: { action: true }, // Only need action name
               // Optimization: Could filter here
-              // where: eq(groupActionRestrictions.action, action)
+              // where: eq(groupActionPermissions.action, action)
             },
           },
         },
@@ -161,31 +160,33 @@ export const authorizationService = {
       }
 
       // Is this group restricted for the required module?
-      const hasModuleRestriction = group.groupModuleRestrictions.some(
-        (mr) => mr.module === module
+      // If the group has no module permissions, it is unrestricted
+      const hasModulePermission = group.groupModulePermissions.some(
+        (mp) => mp.module === module
       );
-      if (hasModuleRestriction) {
+      if (!hasModulePermission && group.groupModulePermissions.length > 0) {
         continue; // Module restricted for this group, try next group
       }
 
       // Is this group restricted for the required action?
-      const hasActionRestriction = group.groupActionRestrictions.some(
-        (ar) => ar.action === action
+      // If the group has no action permissions, it is unrestricted
+      const hasActionPermission = group.groupActionPermissions.some(
+        (ap) => ap.action === action
       );
-      if (hasActionRestriction) {
+      if (!hasActionPermission && group.groupActionPermissions.length > 0) {
         continue; // Action restricted for this group, try next group
       }
 
       // If we reach here:
       // - The user is in this group.
       // - This group has the required permission.
-      // - This group does NOT have a module restriction for the required module.
-      // - This group does NOT have an action restriction for the required action.
+      // - This group does have a module permission for the required module or no module permissions.
+      // - This group does have an action permission for the required action or no action permissions.
       // Therefore, the user has the permission via this group.
       return true;
     }
 
-    // 4. If loop completes, no group grants the permission without restrictions
+    // 4. If loop completes, no group grants the permission without permissions
     return false;
   },
 

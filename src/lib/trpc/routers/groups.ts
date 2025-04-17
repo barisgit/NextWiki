@@ -87,6 +87,16 @@ export const groupsRouter = router({
           message: "Group not found",
         });
       }
+
+      // Check if this is the Viewers group (non-deletable but not locked)
+      if (groupToCheck.name === "Viewers") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "The Viewers group cannot be deleted as it is required by the system.",
+        });
+      }
+
       if (groupToCheck.isLocked) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -176,12 +186,12 @@ export const groupsRouter = router({
       return result;
     }),
 
-  // Add module restrictions to a group
-  addModuleRestrictions: permissionProtectedProcedure("system:groups:update")
+  // Add module permissions to a group
+  addModulePermissions: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
         groupId: z.number(),
-        restrictions: z.array(
+        permissions: z.array(
           z.object({
             module: z.string(),
             isAllowed: z.boolean(),
@@ -190,19 +200,19 @@ export const groupsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const result = await dbService.groups.addModuleRestrictions(
+      const result = await dbService.groups.addModulePermissions(
         input.groupId,
-        input.restrictions.map((r) => r.module)
+        input.permissions.map((p) => p.module)
       );
       return result;
     }),
 
-  // Add action restrictions to a group
-  addActionRestrictions: permissionProtectedProcedure("system:groups:update")
+  // Add action permissions to a group
+  addActionPermissions: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
         groupId: z.number(),
-        restrictions: z.array(
+        permissions: z.array(
           z.object({
             action: z.string(),
             isAllowed: z.boolean(),
@@ -211,35 +221,35 @@ export const groupsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const result = await dbService.groups.addActionRestrictions(
+      const result = await dbService.groups.addActionPermissions(
         input.groupId,
-        input.restrictions.map((r) => r.action)
+        input.permissions.map((p) => p.action)
       );
       return result;
     }),
 
-  // Get module restrictions for a group
-  getModuleRestrictions: permissionProtectedProcedure("system:groups:read")
+  // Get module permissions for a group
+  getModulePermissions: permissionProtectedProcedure("system:groups:read")
     .input(z.object({ groupId: z.number() }))
     .query(async ({ input }) => {
-      const restrictions = await dbService.groups.getModuleRestrictions(
+      const permissions = await dbService.groups.getModulePermissions(
         input.groupId
       );
-      return restrictions;
+      return permissions;
     }),
 
-  // Get action restrictions for a group
-  getActionRestrictions: permissionProtectedProcedure("system:groups:read")
+  // Get action permissions for a group
+  getActionPermissions: permissionProtectedProcedure("system:groups:read")
     .input(z.object({ groupId: z.number() }))
     .query(async ({ input }) => {
-      const restrictions = await dbService.groups.getActionRestrictions(
+      const permissions = await dbService.groups.getActionPermissions(
         input.groupId
       );
-      return restrictions;
+      return permissions;
     }),
 
-  // Remove module restrictions from a group
-  removeModuleRestrictions: permissionProtectedProcedure("system:groups:update")
+  // Remove module permissions from a group
+  removeModulePermissions: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
         groupId: z.number(),
@@ -247,15 +257,15 @@ export const groupsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const result = await dbService.groups.removeModuleRestrictions(
+      const result = await dbService.groups.removeModulePermissions(
         input.groupId,
         input.modules
       );
       return result;
     }),
 
-  // Remove action restrictions from a group
-  removeActionRestrictions: permissionProtectedProcedure("system:groups:update")
+  // Remove action permissions from a group
+  removeActionPermissions: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
         groupId: z.number(),
@@ -263,7 +273,7 @@ export const groupsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const result = await dbService.groups.removeActionRestrictions(
+      const result = await dbService.groups.removeActionPermissions(
         input.groupId,
         input.actions
       );

@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { desc, eq, like, gt, and, sql } from "drizzle-orm";
 import { db, wikiPages, wikiPageRevisions } from "~/lib/db";
-import { publicProcedure, protectedProcedure, router } from "..";
+import { permissionProtectedProcedure, router } from "..";
 import { dbService, wikiService } from "~/lib/services";
 
 // Wiki page input validation schema
@@ -15,7 +15,7 @@ const pageInputSchema = z.object({
 
 export const wikiRouter = router({
   // Get a page by path
-  getByPath: publicProcedure
+  getByPath: permissionProtectedProcedure("wiki:page:read")
     .input(z.object({ path: z.string() }))
     .query(async ({ input }) => {
       const page = await db.query.wikiPages.findFirst({
@@ -43,7 +43,7 @@ export const wikiRouter = router({
     }),
 
   // Check if a page exists at a path without throwing an error
-  pageExists: publicProcedure
+  pageExists: permissionProtectedProcedure("wiki:page:read")
     .input(z.object({ path: z.string() }))
     .query(async ({ input }) => {
       const page = await db.query.wikiPages.findFirst({
@@ -55,7 +55,7 @@ export const wikiRouter = router({
     }),
 
   // Create a new page
-  create: protectedProcedure
+  create: permissionProtectedProcedure("wiki:page:create")
     .input(pageInputSchema)
     .mutation(async ({ input, ctx }) => {
       const { path, title, content, isPublished } = input;
@@ -77,7 +77,7 @@ export const wikiRouter = router({
     }),
 
   // Acquire a lock on a page for editing
-  acquireLock: protectedProcedure
+  acquireLock: permissionProtectedProcedure("wiki:page:update")
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
@@ -118,7 +118,7 @@ export const wikiRouter = router({
     }),
 
   // Release a software lock on a page
-  releaseLock: protectedProcedure
+  releaseLock: permissionProtectedProcedure("wiki:page:update")
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
@@ -149,7 +149,7 @@ export const wikiRouter = router({
     }),
 
   // Refresh a software lock to prevent timeout
-  refreshLock: protectedProcedure
+  refreshLock: permissionProtectedProcedure("wiki:page:update")
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
@@ -178,7 +178,7 @@ export const wikiRouter = router({
     }),
 
   // Update an existing page
-  update: protectedProcedure
+  update: permissionProtectedProcedure("wiki:page:update")
     .input(
       pageInputSchema.extend({
         id: z.number(),
@@ -266,7 +266,7 @@ export const wikiRouter = router({
     }),
 
   // List pages (paginated) with lock information
-  list: publicProcedure
+  list: permissionProtectedProcedure("wiki:page:read")
     .input(
       z.object({
         limit: z.number().min(1).max(100).default(10),
@@ -343,7 +343,7 @@ export const wikiRouter = router({
     }),
 
   // Delete a page
-  delete: protectedProcedure
+  delete: permissionProtectedProcedure("wiki:page:delete")
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
@@ -407,26 +407,28 @@ export const wikiRouter = router({
     }),
 
   // Get folder structure
-  getFolderStructure: publicProcedure.query(async () => {
-    // Get all pages from database
-    const pages = await db.query.wikiPages.findMany({
-      orderBy: [wikiPages.path],
-      columns: {
-        id: true,
-        path: true,
-        title: true,
-        updatedAt: true,
-        isPublished: true,
-      },
-    });
+  getFolderStructure: permissionProtectedProcedure("wiki:page:read").query(
+    async () => {
+      // Get all pages from database
+      const pages = await db.query.wikiPages.findMany({
+        orderBy: [wikiPages.path],
+        columns: {
+          id: true,
+          path: true,
+          title: true,
+          updatedAt: true,
+          isPublished: true,
+        },
+      });
 
-    // Build folder structure
-    const folderStructure = buildFolderStructure(pages);
-    return folderStructure;
-  }),
+      // Build folder structure
+      const folderStructure = buildFolderStructure(pages);
+      return folderStructure;
+    }
+  ),
 
   // Get subfolders for a specific path
-  getSubfolders: publicProcedure
+  getSubfolders: permissionProtectedProcedure("wiki:page:read")
     .input(
       z.object({
         path: z.string().optional(),
@@ -453,7 +455,7 @@ export const wikiRouter = router({
     }),
 
   // Move or rename pages
-  movePages: protectedProcedure
+  movePages: permissionProtectedProcedure("wiki:page:move")
     .input(
       z.object({
         pageIds: z.array(z.number()),
@@ -515,7 +517,7 @@ export const wikiRouter = router({
     }),
 
   // Create a new folder (this actually creates an empty index page in the folder)
-  createFolder: protectedProcedure
+  createFolder: permissionProtectedProcedure("wiki:page:create")
     .input(
       z.object({
         path: z.string().min(1),

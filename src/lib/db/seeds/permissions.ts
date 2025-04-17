@@ -3,8 +3,8 @@ import {
   permissions,
   groups,
   groupPermissions,
-  groupModuleRestrictions,
-  groupActionRestrictions,
+  groupModulePermissions,
+  groupActionPermissions,
 } from "~/lib/db/schema";
 import { getAllPermissions } from "~/lib/permissions";
 import {
@@ -105,13 +105,13 @@ export async function createDefaultGroups() {
       .values({
         name: "Viewers",
         description: "Can only view wiki content",
-        isLocked: true,
+        isLocked: false,
       })
       .onConflictDoUpdate({
         target: groups.name,
         set: {
           description: "Can only view wiki content",
-          isLocked: true,
+          isLocked: false,
         },
       })
       .returning();
@@ -184,9 +184,9 @@ export async function createDefaultGroups() {
         ])
         .onConflictDoNothing();
 
-      // Add module restrictions - allow wiki and assets
+      // Add module permissions - allow wiki and assets
       await db
-        .insert(groupModuleRestrictions)
+        .insert(groupModulePermissions)
         .values([
           {
             groupId: viewerGroup[0].id,
@@ -199,16 +199,16 @@ export async function createDefaultGroups() {
         ])
         .onConflictDoNothing();
 
-      // Add action restrictions - only allow read action
+      // Add action permissions - only allow read action
       await db
-        .insert(groupActionRestrictions)
+        .insert(groupActionPermissions)
         .values({
           groupId: viewerGroup[0].id,
           action: "read",
         })
         .onConflictDoNothing();
 
-      console.log("Added read permission and restrictions to Viewers group");
+      console.log("Added read permission and permissions to Viewers group");
     }
 
     console.log("Default groups created successfully!");

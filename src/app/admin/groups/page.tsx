@@ -25,6 +25,12 @@ export default async function GroupsPage() {
 
   const groups = await dbService.groups.getAll();
 
+  // Ensure isLocked is always a boolean
+  const formattedGroups = groups.map((group) => ({
+    ...group,
+    isLocked: group.isLocked ?? false,
+  }));
+
   return (
     <div className="container p-6 mx-auto">
       <h1 className="mb-6 text-3xl font-bold">Groups Management</h1>
@@ -45,7 +51,7 @@ export default async function GroupsPage() {
           belong to multiple groups.
         </p>
 
-        <GroupsList groups={groups} />
+        <GroupsList groups={formattedGroups} />
       </div>
     </div>
   );

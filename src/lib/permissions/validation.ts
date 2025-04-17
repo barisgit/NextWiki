@@ -3,7 +3,6 @@
  * This file should never be imported directly from client components
  * Only import from server components or API routes
  */
-import "server-only";
 import { db } from "~/lib/db";
 import { permissions } from "~/lib/db/schema";
 import { eq } from "drizzle-orm";
