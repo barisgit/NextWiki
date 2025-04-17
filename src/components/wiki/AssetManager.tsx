@@ -5,6 +5,7 @@ import { useNotification } from "~/lib/hooks/useNotification";
 import { useTRPC } from "~/lib/trpc/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Modal from "~/components/ui/modal";
+import Image from "next/image";
 
 interface AssetManagerProps {
   onAssetSelect?: (assetUrl: string, assetName: string) => void;
@@ -231,7 +232,7 @@ export function AssetManager({
                         className="relative overflow-hidden border rounded-md group"
                       >
                         <div className="relative pt-[75%]">
-                          <img
+                          <Image
                             src={`/api/assets/${asset.id}`}
                             alt={asset.fileName}
                             className="absolute inset-0 object-cover w-full h-full bg-gray-50"

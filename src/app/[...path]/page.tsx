@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { MainLayout } from "~/components/layout/MainLayout";
 import { WikiPage } from "~/components/wiki/WikiPage";
 import { WikiEditor } from "~/components/wiki/WikiEditor";
-import { HighlightedMarkdown } from "~/components/wiki/HighlightedMarkdown";
+import { HighlightedContent } from "~/lib/markdown/client";
 import { db } from "~/lib/db/index";
 import { wikiPages } from "~/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -35,14 +35,29 @@ async function getWikiPageByPath(path: string[]) {
     },
   });
 
+  if (
+    page?.renderedHtml &&
+    page?.renderedHtmlUpdatedAt &&
+    page?.renderedHtmlUpdatedAt > (page?.updatedAt ?? new Date())
+  ) {
+    return page;
+  }
+
   // If page is found and has content, pre-render the markdown to HTML
   let renderedHtml: string | null = null;
   if (page && page.content) {
-    renderedHtml = await renderMarkdownToHtml(page.content);
+    renderedHtml = renderMarkdownToHtml(page.content);
+    page.renderedHtml = renderedHtml;
+    page.renderedHtmlUpdatedAt = new Date();
+    db.update(wikiPages)
+      .set({ renderedHtml, renderedHtmlUpdatedAt: new Date() })
+      .where(eq(wikiPages.id, page.id))
+      .then(() => {
+        console.log("Rendered HTML updated asynchronously");
+      });
   }
 
-  // Return the page with the pre-rendered HTML
-  return page ? { ...page, renderedHtml } : null;
+  return page;
 }
 
 type Params = Promise<{ path: string[] }>;
@@ -122,14 +137,10 @@ export default async function WikiPageView({
         title={page.title}
         content={
           <Suspense fallback={<div>Loading...</div>}>
-            {page.renderedHtml ? (
-              <div
-                className="prose max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: page.renderedHtml }}
-              />
-            ) : (
-              <HighlightedMarkdown content={page.content || ""} />
-            )}
+            <HighlightedContent
+              content={page.content || ""}
+              renderedHtml={page.renderedHtml}
+            />
           </Suspense>
         }
         createdAt={new Date(page.createdAt ?? new Date())}

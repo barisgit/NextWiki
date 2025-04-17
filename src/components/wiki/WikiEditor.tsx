@@ -9,7 +9,7 @@ import { MarkdownProse } from "./MarkdownProse";
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
 import { tokyoNightStorm } from "@uiw/codemirror-theme-tokyo-night-storm";
-import { HighlightedMarkdown } from "./HighlightedMarkdown";
+import { HighlightedMarkdown } from "~/lib/markdown/client";
 import Modal from "~/components/ui/modal";
 import { AssetManager } from "./AssetManager";
 import { Button } from "../ui/button";

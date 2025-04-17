@@ -146,7 +146,7 @@ export function SearchBar() {
                     className="p-4 hover:bg-background-level1 dark:hover:bg-background-level2"
                   >
                     <Link
-                      href={`${result.path}?highlight=${encodeURIComponent(
+                      href={`/${result.path}?highlight=${encodeURIComponent(
                         searchQuery
                       )}`}
                       className="block"

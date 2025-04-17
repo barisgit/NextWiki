@@ -15,6 +15,7 @@
     "db:migrate": "tsx src/lib/db/migrate.ts",
     "db:setup": "tsx scripts/setup-db.ts",
     "db:seed": "env-cmd -f .env tsx src/lib/db/seed.ts",
+    "db:studio": "drizzle-kit studio",
     "watch-css": "tailwindcss -i ./src/styles/globals.css -o ./public/output.css --watch"
   },
   "dependencies": {

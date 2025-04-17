@@ -1,8 +1,21 @@
-// Utility to highlight occurrences of a text
-export function highlightTextInDOM(rootNode: HTMLElement, searchText: string) {
-  if (!searchText || searchText.trim() === "") return;
+/**
+ * Utilities for text highlighting in the DOM
+ */
+
+/**
+ * Highlights occurrences of a text within a DOM node
+ * @param rootNode The root DOM node to search within
+ * @param searchText The text to highlight
+ * @returns The first highlighted element or null if none were created
+ */
+export function highlightTextInDOM(
+  rootNode: HTMLElement,
+  searchText: string
+): HTMLElement | null {
+  if (!searchText || searchText.trim() === "") return null;
 
   const searchTextLower = searchText.toLowerCase();
+  let firstHighlight: HTMLElement | null = null;
 
   // Create a TreeWalker to iterate through all text nodes
   const walker = document.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT, {
@@ -43,6 +56,11 @@ export function highlightTextInDOM(rootNode: HTMLElement, searchText: string) {
             "rounded-sm bg-accent text-accent-foreground highlight-flash";
           mark.textContent = part;
           replacements.push(mark);
+
+          // Store the first highlight we create
+          if (!firstHighlight) {
+            firstHighlight = mark;
+          }
         } else if (part) {
           // Keep non-matching parts as text nodes
           replacements.push(document.createTextNode(part));
@@ -56,27 +74,25 @@ export function highlightTextInDOM(rootNode: HTMLElement, searchText: string) {
     }
   }
 
-  // Replace identified nodes with highlighted versions
-  for (const { node, replacements } of nodesToReplace) {
-    const parent = node.parentNode;
-    if (parent) {
-      const fragment = document.createDocumentFragment();
-      replacements.forEach((replacement) => fragment.appendChild(replacement));
-      parent.replaceChild(fragment, node);
+  // Replace nodes with their highlighted versions
+  nodesToReplace.forEach(({ node, replacements }) => {
+    if (node.parentNode) {
+      // Insert all replacement nodes
+      replacements.forEach((replacement) => {
+        node.parentNode!.insertBefore(replacement, node);
+      });
+      // Remove the original node
+      node.parentNode.removeChild(node);
     }
-  }
+  });
 
-  // Scroll to first highlight if exists
-  const firstHighlight = rootNode.querySelector("mark");
-  if (firstHighlight) {
-    // Slight delay to ensure DOM is updated
-    setTimeout(() => {
-      firstHighlight.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 100);
-  }
+  return firstHighlight;
 }
 
-// Helper function to clear highlight marks from DOM
+/**
+ * Clears all highlight marks from a DOM node
+ * @param rootNode The root DOM node to clear highlights from
+ */
 export function clearHighlightsFromDOM(rootNode: HTMLElement) {
   // Find all mark elements
   const marks = rootNode.querySelectorAll("mark.highlight-flash");
