@@ -4,7 +4,8 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { WikiFolderTree } from "./WikiFolderTree";
 import { SearchIcon, PlusIcon } from "lucide-react";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useQuery } from "@tanstack/react-query";
 import { PageLocationEditor } from "./PageLocationEditor";
 import { Button } from "~/components/ui/button";
 import { SkeletonText } from "~/components/ui/skeleton";
@@ -33,9 +34,11 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
     }, 300);
   };
 
+  const trpc = useTRPC();
+
   // Fetch search results if search is active
-  const { data: searchResults, isLoading: isSearching } =
-    trpc.wiki.list.useQuery(
+  const { data: searchResults, isLoading: isSearching } = useQuery(
+    trpc.wiki.list.queryOptions(
       {
         limit: 20,
         search: debouncedSearch,
@@ -45,7 +48,8 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
       {
         enabled: debouncedSearch.length > 0,
       }
-    );
+    )
+  );
 
   return (
     <div className="space-y-6">

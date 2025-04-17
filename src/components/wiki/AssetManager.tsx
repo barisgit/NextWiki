@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useNotification } from "~/lib/hooks/useNotification";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import Modal from "~/components/ui/modal";
 
 interface AssetManagerProps {
@@ -38,20 +39,23 @@ export function AssetManager({
   const [filter, setFilter] = useState<"all" | "page">("all");
   const [search, setSearch] = useState("");
 
+  const trpc = useTRPC();
+
   // Get assets for the current page
-  const pageAssetsQuery = trpc.assets.getByPageId.useQuery(
-    { pageId: pageId || 0 },
-    {
-      enabled: Boolean(pageId) && filter === "page" && isOpen,
-    }
+  const pageAssetsQuery = useQuery(
+    trpc.assets.getByPageId.queryOptions(
+      { pageId: pageId || 0 },
+      {
+        enabled: Boolean(pageId) && filter === "page" && isOpen,
+      }
+    )
   );
 
   // Get all assets
-  const allAssetsQuery = trpc.assets.getAll.useQuery(
-    {},
-    {
+  const allAssetsQuery = useQuery(
+    trpc.assets.getAll.queryOptions({
       enabled: filter === "all" && isOpen,
-    }
+    })
   );
 
   useEffect(() => {
@@ -59,20 +63,22 @@ export function AssetManager({
   }, [pageAssetsQuery.data, allAssetsQuery.data]);
 
   // Delete asset mutation
-  const deleteAssetMutation = trpc.assets.delete.useMutation({
-    onSuccess: () => {
-      notification.success("Asset deleted successfully");
-      // Refresh the queries
-      if (filter === "all") {
-        void allAssetsQuery.refetch();
-      } else {
-        void pageAssetsQuery.refetch();
-      }
-    },
-    onError: (error) => {
-      notification.error(`Failed to delete asset: ${error.message}`);
-    },
-  });
+  const deleteAssetMutation = useMutation(
+    trpc.assets.delete.mutationOptions({
+      onSuccess: () => {
+        notification.success("Asset deleted successfully");
+        // Refresh the queries
+        if (filter === "all") {
+          void allAssetsQuery.refetch();
+        } else {
+          void pageAssetsQuery.refetch();
+        }
+      },
+      onError: (error) => {
+        notification.error(`Failed to delete asset: ${error.message}`);
+      },
+    })
+  );
 
   // Update assets when queries complete
   useEffect(() => {

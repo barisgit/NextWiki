@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 
@@ -43,11 +44,12 @@ export function SearchBar() {
     }
   }, [searchParams]);
 
-  const { data: searchResults, isLoading } = trpc.search.search.useQuery(
-    searchQuery,
-    {
+  const trpc = useTRPC();
+
+  const { data: searchResults, isLoading } = useQuery(
+    trpc.search.search.queryOptions(searchQuery, {
       enabled: !!searchQuery && searchQuery.length >= 2,
-    }
+    })
   );
 
   // Update URL when search query changes

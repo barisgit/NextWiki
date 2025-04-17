@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { TRPCProvider } from "~/lib/trpc/providers";
+import { TRPCClientProvider } from "~/lib/trpc/providers";
 import { ThemeProvider } from "~/providers/theme-provider";
 import { ModalProvider } from "~/components/ui/modal-provider";
 import { PermissionProvider } from "~/lib/hooks/usePermissions";
@@ -14,7 +14,7 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider>
-      <TRPCProvider>
+      <TRPCClientProvider>
         <PermissionProvider>
           <ModalProvider>
             {children}
@@ -33,7 +33,7 @@ export function Providers({ children }: ProvidersProps) {
             />
           </ModalProvider>
         </PermissionProvider>
-      </TRPCProvider>
+      </TRPCClientProvider>
     </ThemeProvider>
   );
 }

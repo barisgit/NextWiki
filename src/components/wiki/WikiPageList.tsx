@@ -3,7 +3,8 @@
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "~/components/ui/skeleton";
 
 interface WikiPageListProps {
@@ -31,13 +32,17 @@ export function WikiPageList({
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const trpc = useTRPC();
+
   // Fetch pages with server-side filtering and sorting
-  const { data, isLoading } = trpc.wiki.list.useQuery({
-    limit: 50,
-    search: debouncedSearch,
-    sortBy,
-    sortOrder,
-  });
+  const { data, isLoading } = useQuery(
+    trpc.wiki.list.queryOptions({
+      limit: 50,
+      search: debouncedSearch,
+      sortBy,
+      sortOrder,
+    })
+  );
 
   const handleSort = (field: "title" | "updatedAt") => {
     if (sortBy === field) {

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useQuery } from "@tanstack/react-query";
 import { Folder, File, Loader2, ChevronRight, ChevronDown } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -338,8 +339,12 @@ export function Sidebar() {
     ? pathname.substring(1)
     : pathname;
 
+  const trpc = useTRPC();
+
   // Fetch top-level folder structure
-  const { data: folderStructure } = trpc.wiki.getFolderStructure.useQuery();
+  const { data: folderStructure } = useQuery(
+    trpc.wiki.getFolderStructure.queryOptions()
+  );
 
   useEffect(() => {
     if (folderStructure) {

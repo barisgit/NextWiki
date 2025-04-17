@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { Input } from "~/components/ui/input";
 import Image from "next/image";
@@ -18,19 +19,23 @@ export default function AssetsAdminPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFileType, setSelectedFileType] = useState<string>("all");
 
+  const trpc = useTRPC();
+
   // Get all assets
-  const assetsQuery = trpc.assets.getAll.useQuery({});
+  const assetsQuery = useQuery(trpc.assets.getAll.queryOptions({}));
 
   // Delete asset mutation
-  const deleteAssetMutation = trpc.assets.delete.useMutation({
-    onSuccess: () => {
-      notification.success("Asset deleted successfully");
-      assetsQuery.refetch();
-    },
-    onError: (error) => {
-      notification.error(`Failed to delete asset: ${error.message}`);
-    },
-  });
+  const deleteAssetMutation = useMutation(
+    trpc.assets.delete.mutationOptions({
+      onSuccess: () => {
+        notification.success("Asset deleted successfully");
+        assetsQuery.refetch();
+      },
+      onError: (error) => {
+        notification.error(`Failed to delete asset: ${error.message}`);
+      },
+    })
+  );
 
   // Handle asset deletion
   const handleDeleteAsset = (assetId: number) => {
