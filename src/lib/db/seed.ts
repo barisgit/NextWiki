@@ -14,32 +14,10 @@ async function seed() {
 
     // Run custom seeds defined by the developer
     // This file (custom-seeds.ts) is ignored by git, allowing local overrides.
-    try {
-      // Dynamically import custom seeds only if the file exists
-      const { runCustomSeeds } = await import("./seeds/custom-seeds");
-      await runCustomSeeds();
-    } catch (error: unknown) {
-      // Handle both module not found errors (e.g., code: 'MODULE_NOT_FOUND')
-      // and runtime errors from within runCustomSeeds
-      // Use a type guard to safely access error.code
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        (error as { code: unknown }).code === "MODULE_NOT_FOUND"
-      ) {
-        console.log(
-          "ℹ️ Custom seeds file not found, skipping. This is expected in CI."
-        );
-      } else {
-        // Log other errors encountered during custom seed execution but don't stop the main seed process
-        // as custom seeds might be optional or broken locally.
-        console.warn(
-          "⚠️ Error encountered during custom seed execution:",
-          error
-        );
-      }
-    }
+    // Since CI now ensures this file exists, we don't need special MODULE_NOT_FOUND handling.
+    // Errors *within* runCustomSeeds itself will be caught by the outer try...catch.
+    const { runCustomSeeds } = await import("./seeds/custom-seeds");
+    await runCustomSeeds();
 
     console.log("✅ All seed operations completed successfully!");
   } catch (error) {

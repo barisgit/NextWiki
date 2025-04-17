@@ -37,6 +37,9 @@ jobs:
         with:
           node-version: 20
       - run: pnpm install
+      # Copy the example custom-seeds file to satisfy TypeScript during CI
+      - name: Create custom-seeds.ts from example for typecheck
+        run: cp src/lib/db/seeds/custom-seeds.example.ts src/lib/db/seeds/custom-seeds.ts
       - run: pnpm typecheck
 
   build:
