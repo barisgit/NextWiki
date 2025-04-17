@@ -14,6 +14,9 @@ import type { PluggableList } from "unified";
 // Import custom plugins
 import { customPlugins } from "../plugins";
 
+// Conditional server imports - only load if not in browser
+const isServer = typeof window === "undefined";
+
 /**
  * Remark plugins to be applied during markdown processing
  */
@@ -27,6 +30,45 @@ export const remarkPlugins: PluggableList = [
 ];
 
 /**
- * Rehype plugins to be applied during HTML processing
+ * Dynamically load server-only rehype plugins
+ * This is properly handled in an async context
  */
-export const rehypePlugins: PluggableList = [rehypeHighlight];
+export async function loadServerRehypePlugins(): Promise<PluggableList> {
+  if (!isServer) return [];
+
+  try {
+    // Dynamic import for server-only code (ESM compatible)
+    const wikiLinksModule = await import("../plugins/rehypeWikiLinks.server");
+    return [wikiLinksModule.default];
+  } catch (error) {
+    console.error("Failed to load server-only plugins:", error);
+    return [];
+  }
+}
+
+/**
+ * Rehype plugins to be applied during HTML processing
+ * Basic plugins that work in both client and server
+ */
+export const baseRehypePlugins: PluggableList = [rehypeHighlight];
+
+/**
+ * Get rehype plugins for the target environment
+ * For server, this will dynamically load additional plugins
+ *
+ * @param target Whether this is for "client" or "server" rendering
+ */
+export async function getRehypePlugins(
+  target: "client" | "server"
+): Promise<PluggableList> {
+  // Always include base plugins
+  const plugins = [...baseRehypePlugins];
+
+  // Add server-only plugins when on the server
+  if (target === "server" && isServer) {
+    const serverPlugins = await loadServerRehypePlugins();
+    plugins.push(...serverPlugins);
+  }
+
+  return plugins;
+}

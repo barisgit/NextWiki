@@ -10,7 +10,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "~/lib/auth";
 import { Suspense } from "react";
 import { PageLocationEditor } from "~/components/wiki/PageLocationEditor";
-import { renderMarkdownToHtml } from "~/lib/markdown";
+import { renderWikiMarkdownToHtml } from "~/lib/services/markdown";
 
 export const dynamic = "auto";
 export const revalidate = 300; // 5 minutes
@@ -43,18 +43,11 @@ async function getWikiPageByPath(path: string[]) {
     return page;
   }
 
-  // If page is found and has content, pre-render the markdown to HTML
-  let renderedHtml: string | null = null;
+  // If page is found and has content, pre-render the markdown to HTML with wiki link validation
   if (page && page.content) {
-    renderedHtml = renderMarkdownToHtml(page.content);
+    const renderedHtml = await renderWikiMarkdownToHtml(page.content, page.id);
     page.renderedHtml = renderedHtml;
     page.renderedHtmlUpdatedAt = new Date();
-    db.update(wikiPages)
-      .set({ renderedHtml, renderedHtmlUpdatedAt: new Date() })
-      .where(eq(wikiPages.id, page.id))
-      .then(() => {
-        console.log("Rendered HTML updated asynchronously");
-      });
   }
 
   return page;

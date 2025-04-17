@@ -7,6 +7,7 @@ import { assetService } from "./assets";
 import { permissionService } from "./permissions";
 import { groupService } from "./groups";
 import { authorizationService } from "./authorization";
+import { markdownService } from "./markdown";
 
 /**
  * Database Services
@@ -68,6 +69,11 @@ export const dbService = {
    * Authorization operations
    */
   auth: authorizationService,
+
+  /**
+   * Markdown processing operations
+   */
+  markdown: markdownService,
 };
 
 // Export individual services for direct use
@@ -81,4 +87,5 @@ export {
   permissionService,
   groupService,
   authorizationService,
+  markdownService,
 };

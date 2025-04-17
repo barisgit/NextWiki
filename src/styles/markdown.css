@@ -20,7 +20,11 @@ ul.links-list li {
 
 /* Specific styling for links with emojis */
 ul.links-list li a {
-  @apply flex items-center gap-8 no-underline text-text-primary hover:no-underline;
+  @apply flex items-center gap-8 no-underline text-primary hover:no-underline font-bold;
+}
+
+ul.links-list li a em {
+  @apply border-l border-border pl-2 -ml-6;
 }
 
 ul.links-list li .emoji {
@@ -33,6 +37,18 @@ ul.links-list li a > :not(.emoji) {
 
 ul.links-list li em {
   @apply text-sm text-text-secondary font-normal not-italic;
+}
+
+a.wiki-link-exists {
+  @apply text-primary no-underline hover:underline;
+}
+
+a.wiki-link-missing {
+  @apply !text-error;
+}
+
+ul.links-list li:has(a.wiki-link-missing) {
+  @apply hover:border-error/50 border;
 }
 
 blockquote {
