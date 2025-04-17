@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-// Import React Markdown using require syntax, or dynamic import if needed
-import ReactMarkdown, { type Options } from "react-markdown";
-// Handle ESM modules
-// Instead of static imports, we'll use these modules dynamically
+import { useEffect, useRef } from "react";
+import ReactMarkdown from "react-markdown";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
+import rehypeHighlight from "rehype-highlight";
+import remarkEmoji from "remark-emoji";
+import remarkDirective from "remark-directive";
+import remarkDirectiveRehype from "remark-directive-rehype";
 import { MarkdownProse } from "./MarkdownProse";
-import { markdownPlugins } from "./markdown/plugins";
+import { markdownPlugins as customMarkdownPlugins } from "./markdown/plugins";
 import { markdownComponents } from "./markdown/components";
 import {
   highlightTextInDOM,
@@ -18,72 +21,24 @@ interface HighlightedMarkdownProps {
   content: string;
 }
 
+// Define plugin arrays directly
+const remarkPlugins = [
+  remarkGfm,
+  remarkBreaks,
+  remarkEmoji,
+  remarkDirective,
+  remarkDirectiveRehype,
+  ...customMarkdownPlugins,
+];
+
+const rehypePlugins = [rehypeHighlight];
+
 export function HighlightedMarkdown({ content }: HighlightedMarkdownProps) {
-  // Add state for dynamic imports
-  const [plugins, setPlugins] = useState<Options["remarkPlugins"]>([]);
-  const [rehypePlugins, setRehypePlugins] = useState<Options["rehypePlugins"]>(
-    []
-  );
   const contentRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const highlightTerm = searchParams.get("highlight");
   const router = useRouter();
-
-  // Load the plugins dynamically
-  useEffect(() => {
-    async function loadPlugins() {
-      // Import all plugins dynamically
-      const [
-        remarkGfm,
-        remarkBreaks,
-        rehypeHighlight,
-        remarkEmoji,
-        remarkDirective,
-        remarkDirectiveRehype,
-      ] = await Promise.all([
-        import("remark-gfm").then((m) => m.default),
-        import("remark-breaks").then((m) => m.default),
-        import("rehype-highlight").then((m) => m.default),
-        import("remark-emoji").then((m) => m.default),
-        import("remark-directive").then((m) => m.default),
-        import("remark-directive-rehype").then((m) => m.default),
-      ]);
-
-      setPlugins([
-        remarkGfm,
-        remarkBreaks,
-        remarkEmoji,
-        remarkDirective,
-        remarkDirectiveRehype,
-        ...markdownPlugins,
-      ]);
-
-      setRehypePlugins([rehypeHighlight]);
-    }
-
-    loadPlugins();
-  }, []);
-
-  // Add CSS for the flashing highlight
-  useEffect(() => {
-    const style = document.createElement("style");
-    style.textContent = `
-      @keyframes highlightFlash {
-        0% { background-color: var(--color-accent-500); }
-        50% { background-color: var(--color-accent-200); }
-        100% { background-color: var(--color-accent-500); }
-      }
-      .highlight-flash {
-        animation: highlightFlash 2s ease-in-out;
-      }
-    `;
-    document.head.appendChild(style);
-
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -134,7 +89,7 @@ export function HighlightedMarkdown({ content }: HighlightedMarkdownProps) {
       <MarkdownProse>
         <div ref={contentRef}>
           <ReactMarkdown
-            remarkPlugins={plugins}
+            remarkPlugins={remarkPlugins}
             rehypePlugins={rehypePlugins}
             components={markdownComponents}
           >

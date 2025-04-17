@@ -3,7 +3,7 @@ import { MainLayout } from "~/components/layout/MainLayout";
 import { WikiPage } from "~/components/wiki/WikiPage";
 import { WikiEditor } from "~/components/wiki/WikiEditor";
 import { HighlightedMarkdown } from "~/components/wiki/HighlightedMarkdown";
-import { db } from "~/lib/db";
+import { db } from "~/lib/db/index";
 import { wikiPages } from "~/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";

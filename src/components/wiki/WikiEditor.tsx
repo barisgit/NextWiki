@@ -6,29 +6,17 @@ import { useTRPC } from "~/lib/trpc/client";
 import { useMutation } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { MarkdownProse } from "./MarkdownProse";
-import dynamic from "next/dynamic";
+import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
+import { markdown } from "@codemirror/lang-markdown";
+import { tokyoNightStorm } from "@uiw/codemirror-theme-tokyo-night-storm";
 import { HighlightedMarkdown } from "./HighlightedMarkdown";
 import Modal from "~/components/ui/modal";
-import { Extension } from "@codemirror/state";
-import type {
-  ReactCodeMirrorProps,
-  ReactCodeMirrorRef,
-} from "@uiw/react-codemirror";
 import { AssetManager } from "./AssetManager";
 import { Button } from "../ui/button";
 
-// Dynamically import CodeMirror to avoid SSR issues
-const CodeMirror = dynamic(
-  () => import("@uiw/react-codemirror").then((mod) => mod.default),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center w-full h-full p-4 border rounded">
-        Loading editor...
-      </div>
-    ),
-  }
-);
+// Define extensions and theme statically
+const editorExtensions = [markdown()];
+const editorTheme = tokyoNightStorm;
 
 interface WikiEditorProps {
   mode: "create" | "edit";
@@ -59,38 +47,9 @@ export function WikiEditor({
   const [showMetaModal, setShowMetaModal] = useState(false);
   const [showAssetManager, setShowAssetManager] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [editorExtensions, setEditorExtensions] = useState<Extension[]>([]);
-  const [extensionsLoaded, setExtensionsLoaded] = useState(false);
-  const [darkTheme, setDarkTheme] =
-    useState<ReactCodeMirrorProps["theme"]>(undefined);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const trpc = useTRPC();
-  // Load extensions and theme
-  useEffect(() => {
-    let mounted = true;
-    async function loadExtensionsAndTheme() {
-      try {
-        const markdown = await import("@codemirror/lang-markdown");
-        const { tokyoNightStorm } = await import(
-          "@uiw/codemirror-theme-tokyo-night-storm"
-        );
-        if (mounted) {
-          setEditorExtensions([markdown.markdown()]);
-          setDarkTheme(tokyoNightStorm);
-          setExtensionsLoaded(true);
-        }
-      } catch (err) {
-        console.error("Failed to load CodeMirror extensions or theme:", err);
-      }
-    }
-
-    loadExtensionsAndTheme();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   // Create page mutation
   const createPageMutation = useMutation(
@@ -539,49 +498,19 @@ export function WikiEditor({
           </div>
 
           {/* CodeMirror editor */}
-          {extensionsLoaded ? (
-            <CodeMirror
-              ref={editorRef}
-              value={content}
-              height="100%"
-              width="100%"
-              extensions={editorExtensions}
-              onChange={(value) => setContent(value)}
-              className="h-full overflow-hidden"
-              placeholder="Write your content using Markdown... Use the 'Upload Image' button to add images"
-              theme={darkTheme}
-              onPaste={handlePaste}
-              onDrop={handleDrop}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full bg-code-lighter">
-              <div className="flex flex-col items-center gap-2 p-4">
-                <svg
-                  className="w-6 h-6 animate-spin text-primary"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                <span className="text-sm font-medium text-text-primary">
-                  Loading editor...
-                </span>
-              </div>
-            </div>
-          )}
+          <CodeMirror
+            ref={editorRef}
+            value={content}
+            height="100%"
+            width="100%"
+            extensions={editorExtensions}
+            onChange={(value) => setContent(value)}
+            className="h-full overflow-hidden"
+            placeholder="Write your content using Markdown... Use the 'Upload Image' button to add images"
+            theme={editorTheme}
+            onPaste={handlePaste}
+            onDrop={handleDrop}
+          />
         </div>
 
         {/* Preview Panel */}
