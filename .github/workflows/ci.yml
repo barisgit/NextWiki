@@ -25,9 +25,23 @@ jobs:
       - run: pnpm install
       - run: pnpm lint
 
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pnpm install
+      - run: pnpm typecheck
+
   build:
     name: Build
-    needs: lint
+    needs: [lint, typecheck]
     if: github.ref == 'refs/heads/main' || github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
     steps:
@@ -39,4 +53,4 @@ jobs:
         with:
           node-version: 20
       - run: pnpm install
-      - run: pnpm build 
+      - run: pnpm build
