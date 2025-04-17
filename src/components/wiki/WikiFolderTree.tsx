@@ -11,7 +11,8 @@ import {
   PencilIcon,
   MoveIcon,
 } from "lucide-react";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Modal from "~/components/ui/modal";
 import { PageLocationEditor } from "./PageLocationEditor";
 
@@ -134,11 +135,13 @@ export function WikiFolderTree({
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [renameConflict, setRenameConflict] = useState(false);
 
-  const utils = trpc.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   // Fetch the complete folder structure
-  const { data: folderStructure, isLoading } =
-    trpc.wiki.getFolderStructure.useQuery();
+  const { data: folderStructure, isLoading } = useQuery(
+    trpc.wiki.getFolderStructure.queryOptions()
+  );
 
   // Helper function to get parent path
   const getParentPath = (path: string): string => {
@@ -151,17 +154,25 @@ export function WikiFolderTree({
     ? getParentPath(renamingNode.path)
     : "";
 
-  const getSubfoldersForRenameQuery = trpc.wiki.getSubfolders.useQuery(
-    { path: parentPathForRename },
-    { enabled: showRenameModal && renamingNode !== null }
+  const getSubfoldersForRenameQuery = useQuery(
+    trpc.wiki.getSubfolders.queryOptions(
+      { path: parentPathForRename },
+      { enabled: showRenameModal && renamingNode !== null }
+    )
   );
 
+  const folderStructureQueryKey = trpc.wiki.getFolderStructure.queryKey();
+
   // Create a mutation for updating a wiki page
-  const updateMutation = trpc.wiki.update.useMutation({
-    onSuccess: () => {
-      utils.wiki.getFolderStructure.invalidate();
-    },
-  });
+  const updateMutation = useMutation(
+    trpc.wiki.update.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: folderStructureQueryKey,
+        });
+      },
+    })
+  );
 
   // Auto-expand folders in the current path
   useEffect(() => {
@@ -185,7 +196,7 @@ export function WikiFolderTree({
 
       setExpandedFolders(newExpandedFolders);
     }
-  }, [currentPath, expandedFolders]);
+  }, [currentPath]);
 
   // Toggle folder expansion
   const toggleFolder = (path: string, e: React.MouseEvent) => {
@@ -557,7 +568,9 @@ export function WikiFolderTree({
             }));
           }
           // Refresh the folder structure after creation
-          utils.wiki.getFolderStructure.invalidate();
+          queryClient.invalidateQueries({
+            queryKey: folderStructureQueryKey,
+          });
         }}
         initialPath={newFolderPath}
       />

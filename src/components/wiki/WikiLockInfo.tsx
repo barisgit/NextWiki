@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 
 interface WikiLockInfoProps {
@@ -23,17 +24,20 @@ export function WikiLockInfo({
 }: WikiLockInfoProps) {
   const router = useRouter();
   const notification = useNotification();
+  const trpc = useTRPC();
 
   // Force lock release mutation
-  const releaseLockMutation = trpc.wiki.releaseLock.useMutation({
-    onSuccess: () => {
-      notification.success("Lock released successfully");
-      router.refresh();
-    },
-    onError: (error) => {
-      notification.error(`Failed to release lock: ${error.message}`);
-    },
-  });
+  const releaseLockMutation = useMutation(
+    trpc.wiki.releaseLock.mutationOptions({
+      onSuccess: () => {
+        notification.success("Lock released successfully");
+        router.refresh();
+      },
+      onError: (error) => {
+        notification.error(`Failed to release lock: ${error.message}`);
+      },
+    })
+  );
 
   // Handle edit button click
   const handleEdit = () => {

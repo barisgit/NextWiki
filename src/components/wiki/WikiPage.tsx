@@ -8,7 +8,8 @@ import { MoveIcon, PencilIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { WikiSubfolders } from "./WikiSubfolders";
 import { Breadcrumbs } from "./Breadcrumbs";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import Modal from "~/components/ui/modal";
 import { PageLocationEditor } from "./PageLocationEditor";
 import { RequirePermission } from "~/lib/hooks/usePermissions";
@@ -49,24 +50,28 @@ export function WikiPage({
   const [newName, setNewName] = useState("");
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [renameConflict, setRenameConflict] = useState(false);
+  const trpc = useTRPC();
 
   // Check specific page permissions if needed
-  const { data: hasPageUpdatePermission } =
-    trpc.auth.hasPagePermission.useQuery(
+  const { data: hasPageUpdatePermission } = useQuery(
+    trpc.auth.hasPagePermission.queryOptions(
       { pageId: id, permission: "wiki:page:update" },
       { enabled: !!id }
-    );
+    )
+  );
 
   // Get utility functions for trpc
-  const utils = trpc.useUtils();
+  // const utils = trpc.useUtils();
 
   // Create a mutation for updating a wiki page
-  const updateMutation = trpc.wiki.update.useMutation({
-    onSuccess: () => {
-      utils.wiki.getFolderStructure.invalidate();
-      router.refresh();
-    },
-  });
+  const updateMutation = useMutation(
+    trpc.wiki.update.mutationOptions({
+      onSuccess: () => {
+        // utils.wiki.getFolderStructure.invalidate();
+        router.refresh();
+      },
+    })
+  );
 
   // Determine if the page is currently locked
   const isLocked = Boolean(
@@ -114,7 +119,9 @@ export function WikiPage({
   };
 
   // Check if the current page has subpages
-  const { data: folderStructure } = trpc.wiki.getFolderStructure.useQuery();
+  const { data: folderStructure } = useQuery(
+    trpc.wiki.getFolderStructure.queryOptions()
+  );
 
   useEffect(() => {
     // Define the FolderNode interface to match the server type

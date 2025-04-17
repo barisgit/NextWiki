@@ -5,13 +5,17 @@ import { Card } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   // Fetch users
-  const { data: users, isLoading: usersLoading } = trpc.users.getAll.useQuery();
+  const trpc = useTRPC();
+  const { data: users, isLoading: usersLoading } = useQuery(
+    trpc.users.getAll.queryOptions()
+  );
 
   // Infer user type from the fetched data
   type FetchedUser = NonNullable<typeof users>[number];
@@ -20,29 +24,34 @@ export default function AdminUsersPage() {
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
 
   // Fetch all groups
-  const { data: groups, isLoading: groupsLoading } =
-    trpc.groups.getAll.useQuery();
+  const { data: groups, isLoading: groupsLoading } = useQuery(
+    trpc.groups.getAll.queryOptions()
+  );
 
   // Mutations
-  const addToGroupMutation = trpc.groups.addUsers.useMutation({
-    onSuccess: () => {
-      toast.success("User groups updated successfully");
-      //   refetchUserGroups(); // Consider refetching user data here if needed
-    },
-    onError: (error) => {
-      toast.error(`Failed to update groups: ${error.message}`);
-    },
-  });
+  const addToGroupMutation = useMutation(
+    trpc.groups.addUsers.mutationOptions({
+      onSuccess: () => {
+        toast.success("User groups updated successfully");
+        //   refetchUserGroups(); // Consider refetching user data here if needed
+      },
+      onError: (error) => {
+        toast.error(`Failed to update groups: ${error.message}`);
+      },
+    })
+  );
 
-  const removeFromGroupMutation = trpc.groups.removeUsers.useMutation({
-    onSuccess: () => {
-      toast.success("User removed from group successfully");
-      //   refetchUserGroups(); // Consider refetching user data here if needed
-    },
-    onError: (error) => {
-      toast.error(`Failed to remove from group: ${error.message}`);
-    },
-  });
+  const removeFromGroupMutation = useMutation(
+    trpc.groups.removeUsers.mutationOptions({
+      onSuccess: () => {
+        toast.success("User removed from group successfully");
+        //   refetchUserGroups(); // Consider refetching user data here if needed
+      },
+      onError: (error) => {
+        toast.error(`Failed to remove from group: ${error.message}`);
+      },
+    })
+  );
 
   // Set initial selected groups when user is selected
   useEffect(() => {

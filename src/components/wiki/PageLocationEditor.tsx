@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { WikiFolderTree } from "./WikiFolderTree";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import Modal from "~/components/ui/modal";
 import Radio, { RadioGroup } from "~/components/ui/radio";
@@ -43,45 +44,57 @@ export function PageLocationEditor({
   const notification = useNotification();
   const pathname = usePathname();
 
+  const trpc = useTRPC();
+
   // For checking name conflicts
-  const subpagesList = trpc.wiki.getSubfolders.useQuery({ path: selectedPath });
+  const subpagesList = useQuery(
+    trpc.wiki.getSubfolders.queryOptions({ path: selectedPath })
+  );
 
   // For checking if page has children (is a folder)
-  const childrenQuery = trpc.wiki.getSubfolders.useQuery(
-    { path: initialPath },
-    { enabled: mode === "move" && !!initialPath }
+  const childrenQuery = useQuery(
+    trpc.wiki.getSubfolders.queryOptions(
+      { path: initialPath },
+      {
+        enabled: mode === "move" && !!initialPath,
+      }
+    )
   );
 
   // Create folder mutation
-  const createFolderMutation = trpc.wiki.createFolder.useMutation({
-    onSuccess: (data) => {
-      notification.success("Folder created successfully");
-      onClose();
-      router.push(`/${data.path}`);
-    },
-    onError: (error) => {
-      setIsProcessing(false);
-      notification.error(`Failed to create folder: ${error.message}`);
-    },
-  });
+  const createFolderMutation = useMutation(
+    trpc.wiki.createFolder.mutationOptions({
+      onSuccess: (data) => {
+        notification.success("Folder created successfully");
+        onClose();
+        router.push(`/${data.path}`);
+      },
+      onError: (error) => {
+        setIsProcessing(false);
+        notification.error(`Failed to create folder: ${error.message}`);
+      },
+    })
+  );
 
   // Move page mutation
-  const movePageMutation = trpc.wiki.movePages.useMutation({
-    onSuccess: () => {
-      notification.success("Page moved successfully");
-      onClose();
-      const newPath = pageName
-        ? selectedPath
-          ? `${selectedPath}/${pageName}`
-          : pageName
-        : selectedPath;
-      router.push(`/${newPath}`);
-    },
-    onError: (error) => {
-      setIsProcessing(false);
-      notification.error(`Failed to move page: ${error.message}`);
-    },
-  });
+  const movePageMutation = useMutation(
+    trpc.wiki.movePages.mutationOptions({
+      onSuccess: () => {
+        notification.success("Page moved successfully");
+        onClose();
+        const newPath = pageName
+          ? selectedPath
+            ? `${selectedPath}/${pageName}`
+            : pageName
+          : selectedPath;
+        router.push(`/${newPath}`);
+      },
+      onError: (error) => {
+        setIsProcessing(false);
+        notification.error(`Failed to move page: ${error.message}`);
+      },
+    })
+  );
 
   useEffect(() => {
     if (isOpen) {

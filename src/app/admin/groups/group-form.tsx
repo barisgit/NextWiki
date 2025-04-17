@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "~/lib/trpc/providers";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
@@ -15,6 +14,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { useTRPC } from "~/lib/trpc/client";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 interface GroupFormProps {
   group?: {
@@ -56,48 +57,83 @@ export default function GroupForm({
   );
 
   const isLocked = group?.isLocked ?? false;
+  const trpc = useTRPC();
 
   // Fetch available modules and actions
-  const { data: availableModules = [] } = api.permissions.getModules.useQuery();
-  const { data: availableActions = [] } = api.permissions.getActions.useQuery();
+  const { data: availableModules = [] } = useQuery(
+    trpc.permissions.getModules.queryOptions()
+  );
+  const { data: availableActions = [] } = useQuery(
+    trpc.permissions.getActions.queryOptions()
+  );
 
-  const createGroup = api.groups.create.useMutation({
-    onSuccess: () => {
-      toast.success("Group created successfully");
-      router.push("/admin/groups");
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const createGroup = useMutation(
+    trpc.groups.create.mutationOptions({
+      onSuccess: () => {
+        toast.success("Group created successfully");
+        router.push("/admin/groups");
+      },
+      onError: (error: unknown) => {
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("An unknown error occurred");
+        }
+      },
+    })
+  );
 
-  const updateGroup = api.groups.update.useMutation({
-    onSuccess: () => {
-      toast.success("Group updated successfully");
-      router.push("/admin/groups");
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const updateGroup = useMutation(
+    trpc.groups.update.mutationOptions({
+      onSuccess: () => {
+        toast.success("Group updated successfully");
+        router.push("/admin/groups");
+      },
+      onError: (error: unknown) => {
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("An unknown error occurred");
+        }
+      },
+    })
+  );
 
-  const addPermissions = api.groups.addPermissions.useMutation({
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const addPermissions = useMutation(
+    trpc.groups.addPermissions.mutationOptions({
+      onError: (error: unknown) => {
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("An unknown error occurred");
+        }
+      },
+    })
+  );
 
-  const addModulePermissions = api.groups.addModulePermissions.useMutation({
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const addModulePermissions = useMutation(
+    trpc.groups.addModulePermissions.mutationOptions({
+      onError: (error: unknown) => {
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("An unknown error occurred");
+        }
+      },
+    })
+  );
 
-  const addActionPermissions = api.groups.addActionPermissions.useMutation({
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const addActionPermissions = useMutation(
+    trpc.groups.addActionPermissions.mutationOptions({
+      onError: (error: unknown) => {
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("An unknown error occurred");
+        }
+      },
+    })
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -337,7 +373,7 @@ export default function GroupForm({
               selected, all modules are allowed.
             </p>
             <div className="grid gap-2">
-              {availableModules.map((module) => (
+              {availableModules.map((module: string) => (
                 <div key={module} className="flex items-center space-x-2">
                   <Checkbox
                     id={`module-${module}`}
@@ -376,7 +412,7 @@ export default function GroupForm({
               selected, all actions are allowed.
             </p>
             <div className="grid gap-2">
-              {availableActions.map((action) => (
+              {availableActions.map((action: string) => (
                 <div key={action} className="flex items-center space-x-2">
                   <Checkbox
                     id={`action-${action}`}

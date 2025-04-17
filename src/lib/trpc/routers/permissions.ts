@@ -55,7 +55,10 @@ export const permissionsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const newPermission = await dbService.permissions.create(input);
+      const newPermission = await dbService.permissions.create({
+        ...input,
+        resource: input.name,
+      });
       return newPermission;
     }),
 

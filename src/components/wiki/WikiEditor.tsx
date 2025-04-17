@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { MarkdownProse } from "./MarkdownProse";
 import dynamic from "next/dynamic";
@@ -64,7 +65,7 @@ export function WikiEditor({
     useState<ReactCodeMirrorProps["theme"]>(undefined);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const trpc = useTRPC();
   // Load extensions and theme
   useEffect(() => {
     let mounted = true;
@@ -92,91 +93,101 @@ export function WikiEditor({
   }, []);
 
   // Create page mutation
-  const createPageMutation = trpc.wiki.create.useMutation({
-    onSuccess: (data) => {
-      notification.success("Page created successfully");
-      // Navigate to new page
-      router.push(`/${data.path}`);
-    },
-    onError: (error) => {
-      setIsSaving(false);
-      notification.error(`Failed to create page: ${error.message}`);
-    },
-  });
+  const createPageMutation = useMutation(
+    trpc.wiki.create.mutationOptions({
+      onSuccess: (data) => {
+        notification.success("Page created successfully");
+        // Navigate to new page
+        router.push(`/${data.path}`);
+      },
+      onError: (error) => {
+        setIsSaving(false);
+        notification.error(`Failed to create page: ${error.message}`);
+      },
+    })
+  );
 
   // Update page mutation
-  const updatePageMutation = trpc.wiki.update.useMutation({
-    onSuccess: () => {
-      notification.success("Page updated successfully");
-      if (pagePath) {
-        router.push(`/${pagePath}`);
-      } else {
-        router.push("/wiki");
-      }
-    },
-    onError: (error) => {
-      setIsSaving(false);
-      notification.error(`Failed to update page: ${error.message}`);
-    },
-  });
+  const updatePageMutation = useMutation(
+    trpc.wiki.update.mutationOptions({
+      onSuccess: () => {
+        notification.success("Page updated successfully");
+        if (pagePath) {
+          router.push(`/${pagePath}`);
+        } else {
+          router.push("/wiki");
+        }
+      },
+      onError: (error) => {
+        setIsSaving(false);
+        notification.error(`Failed to update page: ${error.message}`);
+      },
+    })
+  );
 
   // Lock management (only for edit mode)
-  const acquireLockMutation = trpc.wiki.acquireLock.useMutation({
-    onSuccess: (data) => {
-      if (data && "success" in data && data.success) {
-        setIsLocked(true);
-        notification.success("You have acquired the edit lock for this page");
-      } else if (data && "page" in data && data.page?.lockedById) {
-        // Lock acquisition failed because someone else has the lock
-        notification.error("This page is being edited by another user");
-        // Navigate back
+  const acquireLockMutation = useMutation(
+    trpc.wiki.acquireLock.mutationOptions({
+      onSuccess: (data) => {
+        if (data && "success" in data && data.success) {
+          setIsLocked(true);
+          notification.success("You have acquired the edit lock for this page");
+        } else if (data && "page" in data && data.page?.lockedById) {
+          // Lock acquisition failed because someone else has the lock
+          notification.error("This page is being edited by another user");
+          // Navigate back
+          if (pagePath) {
+            router.push(`/${pagePath}`);
+          } else {
+            router.push("/wiki");
+          }
+        } else {
+          // Generic failure
+          notification.error(
+            "Could not acquire edit lock. Please try again later."
+          );
+          // Navigate back
+          if (pagePath) {
+            router.push(`/${pagePath}`);
+          } else {
+            router.push("/wiki");
+          }
+        }
+      },
+      onError: (error) => {
+        notification.error(`Failed to acquire edit lock: ${error.message}`);
+        // If we can't get the lock, go back to the page
         if (pagePath) {
           router.push(`/${pagePath}`);
         } else {
           router.push("/wiki");
         }
-      } else {
-        // Generic failure
-        notification.error(
-          "Could not acquire edit lock. Please try again later."
-        );
-        // Navigate back
-        if (pagePath) {
-          router.push(`/${pagePath}`);
-        } else {
-          router.push("/wiki");
-        }
-      }
-    },
-    onError: (error) => {
-      notification.error(`Failed to acquire edit lock: ${error.message}`);
-      // If we can't get the lock, go back to the page
-      if (pagePath) {
-        router.push(`/${pagePath}`);
-      } else {
-        router.push("/wiki");
-      }
-    },
-  });
+      },
+    })
+  );
 
-  const releaseLockMutation = trpc.wiki.releaseLock.useMutation({
-    onSuccess: () => {
-      notification.success("Lock released successfully");
-    },
-  });
+  const releaseLockMutation = useMutation(
+    trpc.wiki.releaseLock.mutationOptions({
+      onSuccess: () => {
+        notification.success("Lock released successfully");
+      },
+    })
+  );
 
   // Add refresh lock mutation
-  const refreshLockMutation = trpc.wiki.refreshLock.useMutation({
-    onError: (error) => {
-      notification.error(`Lock expired: ${error.message}`);
-      // Lock expired, go back to the wiki page
-      if (pagePath) {
-        router.push(`/${pagePath}`);
-      } else {
-        router.push("/wiki");
-      }
-    },
-  });
+  const refreshLockMutation = useMutation(
+    trpc.wiki.refreshLock.mutationOptions({
+      onError: (error) => {
+        notification.error(`Lock expired: ${error.message}`);
+        // Lock expired, go back to the wiki page
+        if (pagePath) {
+          router.push(`/${pagePath}`);
+        } else {
+          router.push("/wiki");
+        }
+      },
+    })
+  );
 
   // Acquire lock on component mount (only in edit mode)
   useEffect(() => {

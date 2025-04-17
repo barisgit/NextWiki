@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
 import { signIn } from "next-auth/react";
 import { Input } from "../ui/input";
+import { useMutation } from "@tanstack/react-query";
 
 interface RegisterFormProps {
   isFirstUser: boolean;
@@ -20,6 +21,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const pathname = usePathname();
+  const trpc = useTRPC();
 
   useEffect(() => {
     if (isFirstUser && pathname !== "/") {
@@ -31,36 +33,38 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
     }
   }, [isFirstUser, pathname, router]);
 
-  const registerMutation = trpc.user.register.useMutation({
-    onSuccess: async () => {
-      try {
-        // After successful registration, sign in the user
-        const result = await signIn("credentials", {
-          email: email,
-          password: password,
-          redirect: false,
-        });
+  const registerMutation = useMutation(
+    trpc.user.register.mutationOptions({
+      onSuccess: async () => {
+        try {
+          // After successful registration, sign in the user
+          const result = await signIn("credentials", {
+            email: email,
+            password: password,
+            redirect: false,
+          });
 
-        if (result?.error) {
-          // Handle sign in error
-          setError(result.error);
+          if (result?.error) {
+            // Handle sign in error
+            setError(result.error);
+            setIsLoading(false);
+          } else {
+            // Redirect on successful login
+            router.push("/");
+            router.refresh();
+          }
+        } catch {
+          // Just catch any errors without using the parameter
+          setError("Failed to sign in after registration");
           setIsLoading(false);
-        } else {
-          // Redirect on successful login
-          router.push("/");
-          router.refresh();
         }
-      } catch {
-        // Just catch any errors without using the parameter
-        setError("Failed to sign in after registration");
+      },
+      onError: (error) => {
+        setError(error.message);
         setIsLoading(false);
-      }
-    },
-    onError: (error) => {
-      setError(error.message);
-      setIsLoading(false);
-    },
-  });
+      },
+    })
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

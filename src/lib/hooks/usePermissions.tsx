@@ -7,7 +7,8 @@ import {
   useState,
   useEffect,
 } from "react";
-import { api } from "~/lib/trpc/providers";
+import { useTRPC } from "~/lib/trpc/client";
+import { useQuery } from "@tanstack/react-query";
 import { PermissionIdentifier } from "~/lib/permissions";
 import { isValidPermissionId, checkPermission } from "~/lib/permissions/client";
 
@@ -69,8 +70,10 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
 
   const [isLoading, setIsLoading] = useState(true);
 
+  const trpc = useTRPC();
+
   // Query user permissions using tRPC
-  const { data, refetch } = api.auth.getMyPermissions.useQuery();
+  const { data, refetch } = useQuery(trpc.auth.getMyPermissions.queryOptions());
 
   // Update state when data changes
   useEffect(() => {

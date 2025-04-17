@@ -410,3 +410,27 @@
     --color-input-focus: var(--color-background-level2);
   }
 }
+
+/* Style for the scroll indicator container */
+.scroll-indicator-container::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 10rem; /* Adjust height as needed */
+  background: linear-gradient(
+    to top,
+    var(--color-background-paper),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0.4s ease-in-out;
+}
+
+/* Show the indicator only when scrollable AND not at the bottom */
+.scroll-indicator-container.is-scrollable[data-scroll-bottom="false"]::after {
+  opacity: 1;
+}
