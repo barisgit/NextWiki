@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Trash2, Loader2 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import Modal from "~/components/ui/modal";
-import { api } from "~/lib/trpc/providers";
+import { useTRPC } from "~/lib/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface RemoveUserModalProps {
@@ -21,18 +22,22 @@ export default function RemoveUserModal({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
-  const removeUserMutation = api.groups.removeUsers.useMutation({
-    onSuccess: () => {
-      toast.success("User removed from group successfully");
-      setIsModalOpen(false);
-      // Refresh the page to update the user list
-      window.location.reload();
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to remove user from group");
-      setIsRemoving(false);
-    },
-  });
+  const trpc = useTRPC();
+
+  const removeUserMutation = useMutation(
+    trpc.groups.removeUsers.mutationOptions({
+      onSuccess: () => {
+        toast.success("User removed from group successfully");
+        setIsModalOpen(false);
+        // Refresh the page to update the user list
+        window.location.reload();
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to remove user from group");
+        setIsRemoving(false);
+      },
+    })
+  );
 
   const handleRemove = async () => {
     setIsRemoving(true);

@@ -1,11 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTRPC } from "~/lib/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 import { Folder, File, Loader2, ChevronRight, ChevronDown } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { ScrollArea } from "~/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+import { Button } from "~/components/ui/button";
 
 interface FolderNode {
   name: string;
@@ -20,9 +28,10 @@ interface FolderNode {
 // TODO: Fix vertical lines not being connected and one depth missing from compressed layout
 
 // Constants for depth control
+// FIXME: This compression is not working as expected (doesnt show right compressed folders)
 const MAX_VISIBLE_DEPTH = 4; // Maximum levels to show in normal view
 const COMPRESS_THRESHOLD = 3; // Min number of hidden levels to enable compression
-const INDENTATION_WIDTH = 8; // Width of each indentation level
+const INDENTATION_WIDTH = 4; // Width of each indentation level
 
 // Recursive component for tree items
 function WikiTreeItem({
@@ -130,18 +139,27 @@ function WikiTreeItem({
             </div>
 
             {/* Render the next visible ancestor */}
-            <WikiTreeItem
-              item={nextVisibleAncestor}
-              activeItemPath={activeItemPath}
-              expandedFolders={expandedFolders}
-              toggleFolder={toggleFolder}
-              allNodes={allNodes}
-              depth={calculateRelativeDepth(
-                item.path,
-                nextVisibleAncestor.path,
-                depth
-              )}
-            />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center flex-1 min-w-0">
+                  <WikiTreeItem
+                    item={nextVisibleAncestor}
+                    activeItemPath={activeItemPath}
+                    expandedFolders={expandedFolders}
+                    toggleFolder={toggleFolder}
+                    allNodes={allNodes}
+                    depth={calculateRelativeDepth(
+                      item.path,
+                      nextVisibleAncestor.path,
+                      depth
+                    )}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>{nextVisibleAncestor.title || nextVisibleAncestor.name}</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         );
       }
@@ -149,9 +167,8 @@ function WikiTreeItem({
   }
 
   return (
-    <div className="space-y-0.5 relative">
-      <div className="flex">
-        {/* Indentation based on depth with connecting lines */}
+    <div className="relative space-y-1">
+      <div className="flex items-center">
         <div
           className="relative flex-shrink-0"
           style={{ width: `${depth * INDENTATION_WIDTH}px` }}
@@ -169,36 +186,46 @@ function WikiTreeItem({
           ))}
         </div>
 
-        {/* Chevron for folders with children */}
-        {item.type === "folder" && hasChildren ? (
-          <button
-            onClick={(e) => toggleFolder(e, item)}
-            className="flex items-center px-0.5 pt-1.5 pb-1.5 mr-0 focus:outline-none"
-          >
-            {isExpanded ? (
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            )}
-          </button>
-        ) : (
-          <div className="w-4 mr-0.5"></div>
-        )}
+        <Tooltip delayDuration={1000}>
+          <TooltipTrigger asChild>
+            <div className="flex items-center flex-1 min-w-0">
+              {item.type === "folder" && hasChildren ? (
+                <button
+                  onClick={(e) => toggleFolder(e, item)}
+                  className="flex items-center justify-center px-0.5 py-1.5 mr-0.5 focus:outline-none flex-shrink-0"
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </button>
+              ) : (
+                <div className="w-4 mr-0.5 flex-shrink-0"></div>
+              )}
 
-        {/* Link to the page/folder */}
-        <Link
-          href={`/${item.path}`}
-          className={`flex flex-1 items-center px-2 py-1.5 text-sm rounded hover:bg-card-hover text-text-primary font-medium transition-colors ${
-            isActive ? "bg-primary/10 text-primary font-semibold" : ""
-          }`}
-        >
-          {item.type === "folder" ? (
-            <Folder className="w-4 h-4 mr-2 text-primary" />
-          ) : (
-            <File className="w-4 h-4 mr-2 text-accent-600" />
-          )}
-          <span className="truncate">{item.title || item.name}</span>
-        </Link>
+              <Link
+                href={`/${item.path}`}
+                className={`flex flex-1 items-center px-2 py-1.5 text-sm rounded hover:bg-card-hover text-text-primary font-medium transition-colors min-w-0 ${
+                  isActive ? "bg-primary/10 text-primary font-semibold" : ""
+                }`}
+              >
+                {item.type === "folder" ? (
+                  <Folder className="flex-shrink-0 w-4 h-4 mr-2 text-primary" />
+                ) : (
+                  <File className="flex-shrink-0 w-4 h-4 mr-2 text-accent-600" />
+                )}
+                <span className="truncate">{item.title || item.name}</span>
+              </Link>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            className="text-xs font-bold border shadow-lg bg-background-level1 text-accent-900 dark:text-accent-50 border-border-default"
+          >
+            <p>{item.title || item.name}</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Recursively render children if expanded */}
@@ -329,6 +356,10 @@ export function Sidebar() {
     new Set()
   );
   const [allNodes, setAllNodes] = useState<Map<string, FolderNode>>(new Map());
+  const [isScrollable, setIsScrollable] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(false);
+  const scrollAreaContainerRef = useRef<HTMLDivElement>(null);
+  const scrollViewportRef = useRef<HTMLDivElement>(null);
 
   // Get current pathname and router
   const pathname = usePathname();
@@ -366,6 +397,55 @@ export function Sidebar() {
       }
     }
   }, [folderStructure, currentPath]);
+
+  // Effect to check scrollability and attach scroll listener
+  useEffect(() => {
+    const container = scrollAreaContainerRef.current;
+    if (!container) return;
+
+    // Find the actual viewport element within the ScrollArea component
+    const viewport = container.querySelector<HTMLDivElement>(
+      "[data-radix-scroll-area-viewport]"
+    );
+
+    if (!viewport) {
+      setIsScrollable(false);
+      setIsAtBottom(true); // If no viewport, assume we are at the bottom
+      return;
+    }
+
+    // Assign viewport to ref for listener attachment
+    scrollViewportRef.current = viewport;
+
+    const handleScroll = () => {
+      if (!scrollViewportRef.current) return;
+      const { scrollTop, scrollHeight, clientHeight } =
+        scrollViewportRef.current;
+
+      // Check if scrollable (with tolerance)
+      const canScroll = scrollHeight > clientHeight + 1;
+      setIsScrollable(canScroll);
+
+      // Check if scrolled to bottom (with tolerance)
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+      setIsAtBottom(atBottom);
+    };
+
+    // Initial check
+    handleScroll();
+
+    // Add scroll listener to the viewport
+    viewport.addEventListener("scroll", handleScroll);
+    // Also check on window resize as it might change scrollability/position
+    window.addEventListener("resize", handleScroll);
+
+    // Cleanup listeners
+    return () => {
+      viewport.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+    // Rerun when items load or change, as this affects scrollHeight
+  }, [rootItems, isLoading]);
 
   // Build a map of all nodes for quick access
   const populateNodeMap = (node: FolderNode, map: Map<string, FolderNode>) => {
@@ -451,136 +531,145 @@ export function Sidebar() {
   };
 
   return (
-    <div className="flex flex-col w-64 h-screen p-6 border-r shadow-sm bg-background-paper border-border text-text-primary">
-      <div className="mb-8">
-        <Link href="/" className="text-2xl font-bold text-primary">
-          NextWiki
-        </Link>
-      </div>
+    <TooltipProvider>
+      <div className="flex flex-col h-screen p-1 border-r shadow-sm w-72 bg-background-paper border-border text-text-primary">
+        <div className="p-3 mb-2">
+          <Link href="/" className="text-2xl font-bold text-primary">
+            NextWiki
+          </Link>
+        </div>
 
-      <nav className="space-y-1">
-        <Link
-          href="/"
-          className={`flex items-center px-4 py-2 text-sm rounded-lg hover:bg-card-hover text-text-primary font-medium transition-colors ${
-            pathname === "/" ? "bg-primary/10 text-primary" : ""
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-4 h-4 mr-3 text-primary"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
+        <nav className="space-y-1">
+          <Link
+            href="/"
+            className={`flex items-center px-4 py-2 text-sm rounded-lg hover:bg-card-hover text-text-primary font-medium transition-colors ${
+              pathname === "/" ? "bg-primary/10 text-primary" : ""
+            }`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
-          </svg>
-          Home
-        </Link>
-        <Link
-          href="/wiki"
-          className={`flex items-center px-4 py-2 text-sm rounded-lg hover:bg-card-hover text-text-primary font-medium transition-colors ${
-            pathname === "/wiki" ? "bg-primary/10 text-primary" : ""
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-4 h-4 mr-3 text-primary"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-            />
-          </svg>
-          All Pages
-        </Link>
-        <Link
-          href="/tags"
-          className={`flex items-center px-4 py-2 text-sm rounded-lg hover:bg-card-hover text-text-primary font-medium transition-colors ${
-            pathname === "/tags" ? "bg-primary/10 text-primary" : ""
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-4 h-4 mr-3 text-primary"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-            />
-          </svg>
-          Tags
-        </Link>
-      </nav>
-
-      {/* Horizontal separator */}
-      <hr className="my-4 border-t border-border-light" />
-
-      {/* Top Level Wiki Structure */}
-      <div className="flex-1 overflow-y-auto">
-        <h3 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-          Wiki Structure
-        </h3>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-4">
-            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          </div>
-        ) : rootItems.length === 0 ? (
-          <p className="py-2 text-sm text-muted-foreground">No pages yet</p>
-        ) : (
-          <div className="space-y-1">
-            {/* File tree with smart rendering */}
-            {rootItems.map((item) => (
-              <WikiTreeItem
-                key={item.path}
-                item={item}
-                activeItemPath={activeItemPath}
-                expandedFolders={expandedFolders}
-                toggleFolder={toggleFolder}
-                allNodes={allNodes}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4 mr-3 text-primary"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
               />
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="mt-4">
-        <Link
-          href="/create"
-          className="flex items-center justify-center w-full px-4 py-3 font-medium transition-colors rounded-lg shadow-sm bg-primary text-primary-foreground hover:bg-primary-500"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-4 h-4 mr-2"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
+            </svg>
+            Home
+          </Link>
+          <Link
+            href="/wiki"
+            className={`flex items-center px-4 py-2 text-sm rounded-lg hover:bg-card-hover text-text-primary font-medium transition-colors ${
+              pathname === "/wiki" ? "bg-primary/10 text-primary" : ""
+            }`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          New Page
-        </Link>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4 mr-3 text-primary"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
+            All Pages
+          </Link>
+          <Link
+            href="/tags"
+            className={`flex items-center px-4 py-2 text-sm rounded-lg hover:bg-card-hover text-text-primary font-medium transition-colors ${
+              pathname === "/tags" ? "bg-primary/10 text-primary" : ""
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4 mr-3 text-primary"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+              />
+            </svg>
+            Tags
+          </Link>
+        </nav>
+
+        {/* Horizontal separator */}
+        <hr className="my-4 border-t border-border-light" />
+
+        {/* Top Level Wiki Structure */}
+        <div
+          ref={scrollAreaContainerRef}
+          className={`scroll-indicator-container relative flex flex-col min-h-0 flex-1 ${
+            isScrollable ? "is-scrollable" : ""
+          }`}
+          data-scroll-bottom={isAtBottom}
+        >
+          <h3 className="flex-shrink-0 mb-2 text-xs font-semibold uppercase text-muted-foreground">
+            Wiki Structure
+          </h3>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+            </div>
+          ) : rootItems.length === 0 ? (
+            <p className="py-2 text-sm text-muted-foreground">No pages yet</p>
+          ) : (
+            <ScrollArea className="flex-1 pr-4">
+              <div className="pb-4 space-y-1">
+                {/* File tree with smart rendering */}
+                {rootItems.map((item) => (
+                  <WikiTreeItem
+                    key={item.path}
+                    item={item}
+                    activeItemPath={activeItemPath}
+                    expandedFolders={expandedFolders}
+                    toggleFolder={toggleFolder}
+                    allNodes={allNodes}
+                  />
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </div>
+
+        <div className="p-3 mt-4">
+          <Link href="/create">
+            <Button className="w-full">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 mr-2"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              New Page
+            </Button>
+          </Link>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

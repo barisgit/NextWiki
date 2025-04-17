@@ -30,34 +30,25 @@ export const permissionService = {
   },
 
   /**
-   * Get a permission by name
-   */
-  async getByName(name: string) {
-    return db.query.permissions.findFirst({
-      where: eq(permissions.name, name),
-    });
-  },
-
-  /**
    * Create a new permission
    */
   async create({
-    name,
     description,
     module,
+    resource,
     action,
   }: {
-    name: string;
     description?: string;
     module: string;
+    resource: string;
     action: string;
   }) {
     const result = await db
       .insert(permissions)
       .values({
-        name,
         description,
         module,
+        resource,
         action,
       })
       .returning();
@@ -71,23 +62,23 @@ export const permissionService = {
   async update(
     id: number,
     {
-      name,
       description,
       module,
+      resource,
       action,
     }: {
-      name?: string;
       description?: string;
       module?: string;
+      resource?: string;
       action?: string;
     }
   ) {
     const result = await db
       .update(permissions)
       .set({
-        name,
         description,
         module,
+        resource,
         action,
       })
       .where(eq(permissions.id, id))

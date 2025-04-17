@@ -69,7 +69,10 @@ export default async function EditGroupPage({ params }: EditGroupPageProps) {
         </p>
 
         <GroupForm
-          group={group}
+          group={{
+            ...group,
+            isLocked: group.isLocked === null ? undefined : group.isLocked,
+          }}
           permissions={permissions}
           groupPermissions={groupPermissionIds}
           groupModulePermissions={modulePermissionModules}

@@ -112,7 +112,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-background-default text-text-primary`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-background-default text-text-primary overflow-y-hidden`}
       >
         <Providers>
           <Suspense fallback={<Skeleton className="w-full h-full" />}>

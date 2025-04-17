@@ -6,7 +6,8 @@ import { Button } from "~/components/ui/button";
 import Modal from "~/components/ui/modal";
 import { Input } from "~/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
-import { api } from "~/lib/trpc/providers";
+import { useTRPC } from "~/lib/trpc/client";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface AddUsersModalProps {
@@ -23,22 +24,23 @@ export default function AddUsersModal({
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [isAdding, setIsAdding] = useState(false);
 
+  const trpc = useTRPC();
+
   // Get all users
-  const { data: allUsers, isLoading: loadingUsers } = api.users.getAll.useQuery(
-    undefined,
-    {
+  const { data: allUsers, isLoading: loadingUsers } = useQuery(
+    trpc.users.getAll.queryOptions(undefined, {
       enabled: isModalOpen,
-    }
+    })
   );
 
   // Get existing group users to exclude them
-  const { data: groupUsers } = api.groups.getGroupUsers.useQuery(
-    {
-      groupId,
-    },
-    {
-      enabled: isModalOpen,
-    }
+  const { data: groupUsers } = useQuery(
+    trpc.groups.getGroupUsers.queryOptions(
+      { groupId },
+      {
+        enabled: isModalOpen,
+      }
+    )
   );
 
   // Filter users that are not in the group already and match the search query
@@ -60,18 +62,20 @@ export default function AddUsersModal({
     );
   });
 
-  const addUsersMutation = api.groups.addUsers.useMutation({
-    onSuccess: () => {
-      toast.success("Users added to group successfully");
-      setIsModalOpen(false);
-      // Refresh the page to update the user list
-      window.location.reload();
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to add users to group");
-      setIsAdding(false);
-    },
-  });
+  const addUsersMutation = useMutation(
+    trpc.groups.addUsers.mutationOptions({
+      onSuccess: () => {
+        toast.success("Users added to group successfully");
+        setIsModalOpen(false);
+        // Refresh the page to update the user list
+        window.location.reload();
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to add users to group");
+        setIsAdding(false);
+      },
+    })
+  );
 
   const handleAddUsers = async () => {
     if (selectedUsers.length === 0) {

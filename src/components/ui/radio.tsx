@@ -50,20 +50,20 @@ const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
 
     const colorClasses = {
       primary:
-        "text-primary-500 border-primary-200 hover:border-primary-300 focus:ring-primary-500 checked:border-primary-500 checked:bg-primary-50 dark:checked:bg-primary-950",
+        "text-primary-500 border-primary-200 hover:border-primary-300 focus:ring-primary-500 checked:border-primary-500 checked:bg-primary-500/50 dark:checked:bg-primary-950",
       secondary:
-        "text-secondary-500 border-secondary-200 hover:border-secondary-300 focus:ring-secondary-500 checked:border-secondary-500 checked:bg-secondary-50 dark:checked:bg-secondary-950",
+        "text-secondary-500 border-secondary-200 hover:border-secondary-300 focus:ring-secondary-500 checked:border-secondary-500 checked:bg-secondary-500/50 dark:checked:bg-secondary-950",
       accent:
-        "text-accent-500 border-accent-200 hover:border-accent-300 focus:ring-accent-500 checked:border-accent-500 checked:bg-accent-50 dark:checked:bg-accent-950",
+        "text-accent-500 border-accent-200 hover:border-accent-300 focus:ring-accent-500 checked:border-accent-500 checked:bg-accent-500/50 dark:checked:bg-accent-950",
       error:
-        "text-error-500 border-error-200 hover:border-error-300 focus:ring-error-500 checked:border-error-500 checked:bg-error-50 dark:checked:bg-error-950",
+        "text-error-500 border-error-200 hover:border-error-300 focus:ring-error-500 checked:border-error-500 checked:bg-error-500/50 dark:checked:bg-error-950",
       success:
-        "text-success-500 border-success-200 hover:border-success-300 focus:ring-success-500 checked:border-success-500 checked:bg-success-50 dark:checked:bg-success-950",
-      info: "text-info-500 border-info-200 hover:border-info-300 focus:ring-info-500 checked:border-info-500 checked:bg-info-50 dark:checked:bg-info-950",
+        "text-success-500 border-success-200 hover:border-success-300 focus:ring-success-500 checked:border-success-500 checked:bg-success-500/50 dark:checked:bg-success-950",
+      info: "text-info-500 border-info-200 hover:border-info-300 focus:ring-info-500 checked:border-info-500 checked:bg-info-500/50 dark:checked:bg-info-950",
       warning:
-        "text-warning-500 border-warning-200 hover:border-warning-300 focus:ring-warning-500 checked:border-warning-500 checked:bg-warning-50 dark:checked:bg-warning-950",
+        "text-warning-500 border-warning-200 hover:border-warning-300 focus:ring-warning-500 checked:border-warning-500 checked:bg-warning-500/50 dark:checked:bg-warning-950",
       neutral:
-        "text-neutral-500 border-neutral-200 hover:border-neutral-300 focus:ring-neutral-500 checked:border-neutral-500 checked:bg-neutral-50 dark:checked:bg-neutral-950",
+        "text-neutral-500 border-neutral-200 hover:border-neutral-300 focus:ring-neutral-500 checked:border-neutral-500 checked:bg-neutral-500/50 dark:checked:bg-neutral-950",
     };
 
     const variantClasses = {

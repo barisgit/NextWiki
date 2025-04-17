@@ -13,7 +13,8 @@ import { Badge } from "~/components/ui/badge";
 import { Eye, Pencil, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { api } from "~/lib/trpc/providers";
+import { useTRPC } from "~/lib/trpc/client";
+import { useMutation } from "@tanstack/react-query";
 
 interface GroupsListProps {
   groups: {
@@ -25,20 +26,17 @@ interface GroupsListProps {
 }
 
 export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
-  const deleteGroup = api.groups.delete.useMutation({
-    onSuccess: () => {
-      toast.success("Group deleted successfully");
-      // Refresh the page to get updated data
-      window.location.reload();
-    },
-    onError: (error: unknown) => {
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error("An unknown error occurred");
-      }
-    },
-  });
+  const trpc = useTRPC();
+
+  const deleteGroup = useMutation(
+    trpc.groups.delete.mutationOptions({
+      onSuccess: () => {
+        toast.success("Group deleted successfully");
+        // Refresh the page to get updated data
+        window.location.reload();
+      },
+    })
+  );
 
   const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this group?")) {

@@ -10,13 +10,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "~/lib/auth";
 import { Suspense } from "react";
 import { PageLocationEditor } from "~/components/wiki/PageLocationEditor";
+import { renderMarkdownToHtml } from "~/lib/markdown";
+
+export const dynamic = "auto";
+export const revalidate = 300; // 5 minutes
+export const fetchCache = "force-cache";
 
 async function getWikiPageByPath(path: string[]) {
   // Decode each path segment individually
   const decodedPath = path.map((segment) => decodeURIComponent(segment));
   const joinedPath = decodedPath.join("/").replace("%20", " ");
 
-  // FIXME: Use dbService to get the page
   const page = await db.query.wikiPages.findFirst({
     where: eq(wikiPages.path, joinedPath),
     with: {
@@ -31,8 +35,14 @@ async function getWikiPageByPath(path: string[]) {
     },
   });
 
-  // Return null if page is not found
-  return page;
+  // If page is found and has content, pre-render the markdown to HTML
+  let renderedHtml: string | null = null;
+  if (page && page.content) {
+    renderedHtml = await renderMarkdownToHtml(page.content);
+  }
+
+  // Return the page with the pre-rendered HTML
+  return page ? { ...page, renderedHtml } : null;
 }
 
 type Params = Promise<{ path: string[] }>;
@@ -112,7 +122,14 @@ export default async function WikiPageView({
         title={page.title}
         content={
           <Suspense fallback={<div>Loading...</div>}>
-            <HighlightedMarkdown content={page.content || ""} />
+            {page.renderedHtml ? (
+              <div
+                className="prose max-w-none dark:prose-invert"
+                dangerouslySetInnerHTML={{ __html: page.renderedHtml }}
+              />
+            ) : (
+              <HighlightedMarkdown content={page.content || ""} />
+            )}
           </Suspense>
         }
         createdAt={new Date(page.createdAt ?? new Date())}

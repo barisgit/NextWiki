@@ -1,6 +1,7 @@
 {
   "files.associations": {
-    "*.css": "tailwindcss",
+    "globals.css": "tailwindcss",
+    "markdown.css": "tailwindcss",
     "*.scss": "tailwindcss"
   }
 }
