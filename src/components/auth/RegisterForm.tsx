@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { trpc } from "~/lib/trpc/client";
 import { signIn } from "next-auth/react";
+import { Input } from "../ui/input";
 
 interface RegisterFormProps {
   isFirstUser: boolean;
@@ -78,7 +79,6 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
       name,
       email,
       password,
-      isAdmin: isFirstUser,
     });
   };
 
@@ -96,12 +96,11 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
             <label htmlFor="name" className="sr-only">
               Name
             </label>
-            <input
+            <Input
               id="name"
               name="name"
               type="text"
               required
-              className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
               placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -111,13 +110,12 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
             <label htmlFor="email-address" className="sr-only">
               Email address
             </label>
-            <input
+            <Input
               id="email-address"
               name="email"
               type="email"
               autoComplete="email"
               required
-              className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -127,13 +125,12 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
             <label htmlFor="password" className="sr-only">
               Password
             </label>
-            <input
+            <Input
               id="password"
               name="password"
               type="password"
               autoComplete="new-password"
               required
-              className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -143,13 +140,12 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
             <label htmlFor="confirm-password" className="sr-only">
               Confirm Password
             </label>
-            <input
+            <Input
               id="confirm-password"
               name="confirmPassword"
               type="password"
               autoComplete="new-password"
               required
-              className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
               placeholder="Confirm Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

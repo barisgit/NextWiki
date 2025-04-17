@@ -56,7 +56,6 @@ blockquote.is-info {
 }
 
 blockquote.is-info::before {
-  content: "Info";
   @apply text-info;
 }
 
@@ -65,7 +64,6 @@ blockquote.is-warning {
 }
 
 blockquote.is-warning::before {
-  content: "Warning";
   @apply text-warning;
 }
 
@@ -74,7 +72,6 @@ blockquote.is-danger {
 }
 
 blockquote.is-danger::before {
-  content: "Danger";
   @apply text-error;
 }
 
@@ -83,7 +80,6 @@ blockquote.is-success {
 }
 
 blockquote.is-success::before {
-  content: "Success";
   @apply text-success;
 }
 
@@ -102,4 +98,29 @@ blockquote.is-quote p::before {
 
 blockquote.is-quote p::after {
   content: "”";
+}
+
+/* Lists */
+ul {
+  @apply list-disc list-inside gap-0 pl-4;
+}
+
+ol {
+  @apply list-decimal list-inside gap-0 pl-4;
+}
+
+ul li {
+  @apply p-[0.1rem];
+}
+
+ul li p {
+  @apply py-0 my-0;
+}
+
+ol li {
+  @apply p-[0.1rem];
+}
+
+ol li p {
+  @apply py-0 my-0;
 }

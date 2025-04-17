@@ -1,11 +1,11 @@
 import { db } from "~/lib/db";
-import { users } from "~/lib/db/schema";
+import { users, userGroups, groups } from "~/lib/db/schema";
 import { NextAuthOptions, getServerSession } from "next-auth";
 import { Adapter } from "next-auth/adapters";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { compare } from "bcrypt";
 
 // Create auth options without the adapter initially
@@ -58,11 +58,27 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Check if user is in Administrators group
+        const adminGroup = await db.query.groups.findFirst({
+          where: eq(groups.name, "Administrators"),
+        });
+
+        let isAdmin = false;
+        if (adminGroup) {
+          const adminGroupMembership = await db.query.userGroups.findFirst({
+            where: and(
+              eq(userGroups.userId, user.id),
+              eq(userGroups.groupId, adminGroup.id)
+            ),
+          });
+          isAdmin = !!adminGroupMembership;
+        }
+
         return {
           id: user.id.toString(),
           name: user.name,
           email: user.email,
-          isAdmin: user.isAdmin,
+          isAdmin: isAdmin,
         };
       },
     }),
@@ -82,6 +98,23 @@ export const authOptions: NextAuthOptions = {
         token.sub = user.id;
         // @ts-expect-error - we know isAdmin exists on our custom user
         token.isAdmin = user.isAdmin || false;
+      } else if (token.sub) {
+        // Check admin status on each token refresh to keep it updated
+        const adminGroup = await db.query.groups.findFirst({
+          where: eq(groups.name, "Administrators"),
+        });
+
+        let isAdmin = false;
+        if (adminGroup) {
+          const adminGroupMembership = await db.query.userGroups.findFirst({
+            where: and(
+              eq(userGroups.userId, parseInt(token.sub)),
+              eq(userGroups.groupId, adminGroup.id)
+            ),
+          });
+          isAdmin = !!adminGroupMembership;
+          token.isAdmin = isAdmin;
+        }
       }
       return token;
     },

@@ -4,6 +4,9 @@ import { tagService } from "./tags";
 import { searchService } from "./search";
 import { lockService } from "./locks";
 import { assetService } from "./assets";
+import { permissionService } from "./permissions";
+import { groupService } from "./groups";
+import { authorizationService } from "./authorization";
 
 /**
  * Database Services
@@ -50,6 +53,21 @@ export const dbService = {
    * Asset management operations
    */
   assets: assetService,
+
+  /**
+   * Permission management operations
+   */
+  permissions: permissionService,
+
+  /**
+   * Group management operations
+   */
+  groups: groupService,
+
+  /**
+   * Authorization operations
+   */
+  auth: authorizationService,
 };
 
 // Export individual services for direct use
@@ -60,4 +78,7 @@ export {
   searchService,
   lockService,
   assetService,
+  permissionService,
+  groupService,
+  authorizationService,
 };

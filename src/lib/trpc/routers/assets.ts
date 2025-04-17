@@ -1,25 +1,27 @@
 import { z } from "zod";
 import { assetService } from "~/lib/services";
-import { protectedProcedure, router } from "~/lib/trpc";
+import { permissionProtectedProcedure, router } from "~/lib/trpc";
 
 export const assetsRouter = router({
-  getAll: protectedProcedure.input(z.object({}).optional()).query(async () => {
-    return assetService.getAll();
-  }),
+  getAll: permissionProtectedProcedure("assets:asset:read")
+    .input(z.object({}).optional())
+    .query(async () => {
+      return assetService.getAll();
+    }),
 
-  getByPageId: protectedProcedure
+  getByPageId: permissionProtectedProcedure("assets:asset:read")
     .input(z.object({ pageId: z.number() }))
     .query(async ({ input }) => {
       return assetService.getByPageId(input.pageId);
     }),
 
-  getById: protectedProcedure
+  getById: permissionProtectedProcedure("assets:asset:read")
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       return assetService.getById(input.id);
     }),
 
-  delete: protectedProcedure
+  delete: permissionProtectedProcedure("assets:asset:delete")
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const userId = parseInt(ctx.session.user.id as string, 10);

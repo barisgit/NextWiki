@@ -11,6 +11,7 @@ import { Breadcrumbs } from "./Breadcrumbs";
 import { trpc } from "~/lib/trpc/client";
 import Modal from "~/components/ui/modal";
 import { PageLocationEditor } from "./PageLocationEditor";
+import { RequirePermission } from "~/lib/hooks/usePermissions";
 
 interface WikiPageProps {
   id: number;
@@ -48,6 +49,13 @@ export function WikiPage({
   const [newName, setNewName] = useState("");
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [renameConflict, setRenameConflict] = useState(false);
+
+  // Check specific page permissions if needed
+  const { data: hasPageUpdatePermission } =
+    trpc.auth.hasPagePermission.useQuery(
+      { pageId: id, permission: "wiki:page:update" },
+      { enabled: !!id }
+    );
 
   // Get utility functions for trpc
   const utils = trpc.useUtils();
@@ -157,27 +165,39 @@ export function WikiPage({
             <h1 className="text-3xl font-bold">{title}</h1>
 
             <div className="flex items-center space-x-2">
-              {/* Actions dropdown */}
-              <div className="relative">
-                <div className="flex items-center justify-start flex-shrink-0 ml-auto">
-                  <button onClick={handleRename} className="p-1" title="Rename">
-                    <PencilIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
-                  </button>
-                  <button onClick={handleMove} className="p-1" title="Move">
-                    <MoveIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
-                  </button>
-                </div>
-              </div>
+              {/* Actions dropdown - only show if user has permissions */}
+              <RequirePermission permission="wiki:page:update">
+                {hasPageUpdatePermission && (
+                  <div className="relative">
+                    <div className="flex items-center justify-start flex-shrink-0 ml-auto">
+                      <button
+                        onClick={handleRename}
+                        className="p-1"
+                        title="Rename"
+                      >
+                        <PencilIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
+                      </button>
+                      <button onClick={handleMove} className="p-1" title="Move">
+                        <MoveIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </RequirePermission>
 
-              {/* Lock status and edit controls */}
-              <WikiLockInfo
-                pageId={id}
-                isLocked={isLocked}
-                lockedByName={lockedBy?.name || null}
-                lockedUntil={lockExpiresAt?.toISOString() || null}
-                isCurrentUserLockOwner={isCurrentUserLockOwner}
-                editPath={`/${path}?edit=true`}
-              />
+              {/* Lock status and edit controls - only show if user has permissions */}
+              <RequirePermission permission="wiki:page:update">
+                {hasPageUpdatePermission && (
+                  <WikiLockInfo
+                    pageId={id}
+                    isLocked={isLocked}
+                    lockedByName={lockedBy?.name || null}
+                    lockedUntil={lockExpiresAt?.toISOString() || null}
+                    isCurrentUserLockOwner={isCurrentUserLockOwner}
+                    editPath={`/${path}?edit=true`}
+                  />
+                )}
+              </RequirePermission>
             </div>
           </div>
 
