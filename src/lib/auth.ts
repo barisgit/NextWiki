@@ -7,10 +7,11 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { eq, and } from "drizzle-orm";
 import { compare } from "bcrypt";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 
-// Create auth options without the adapter initially
+// Create auth options with the adapter set directly
 export const authOptions: NextAuthOptions = {
-  adapter: undefined as unknown as Adapter, // Will be set dynamically
+  adapter: DrizzleAdapter(db) as Adapter,
   session: {
     strategy: "jwt",
   },
@@ -120,17 +121,5 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
-
-// Dynamically import and set the adapter
-// This import happens at runtime, not in the module scope
-(async () => {
-  try {
-    const { DrizzleAdapter } = await import("@auth/drizzle-adapter");
-    // @ts-expect-error - we're setting it after initialization
-    authOptions.adapter = DrizzleAdapter(db) as Adapter;
-  } catch (error) {
-    console.error("Failed to load DrizzleAdapter:", error);
-  }
-})();
 
 export const getServerAuthSession = () => getServerSession(authOptions);
