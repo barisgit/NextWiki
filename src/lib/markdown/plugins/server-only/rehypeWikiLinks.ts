@@ -5,10 +5,10 @@
 
 import { visit } from "unist-util-visit";
 import type { Plugin } from "unified";
-import type { Element } from "hast";
+import type { Element, Root } from "hast";
 import { db } from "~/lib/db";
 import { wikiPages } from "~/lib/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
 // Cache configuration
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minute cache lifetime
@@ -212,7 +212,7 @@ export interface RehypeWikiLinksOptions {
  * Creates a rehype plugin to process wiki links
  * This is an async plugin that checks page existence in the database
  */
-export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], any> = (
+export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], Root> = (
   options = {}
 ) => {
   const internalLinksClass = options.internalLinksClass || "internal-link";
@@ -220,7 +220,7 @@ export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], any> = (
   const missingClass = options.missingClass || "wiki-link-missing";
   const currentPagePath = options.currentPagePath || "";
 
-  return async function transformer(tree: any): Promise<void> {
+  return async function transformer(tree: Root): Promise<void> {
     // Collect all wiki links
     const wikiLinks: Array<{
       node: Element;

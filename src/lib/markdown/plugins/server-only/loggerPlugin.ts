@@ -23,7 +23,9 @@ interface LoggerPluginOptions {
 /**
  * Server-only plugin that logs information about processed markdown
  */
-const loggerPlugin: Plugin<[LoggerPluginOptions?], any> = (options = {}) => {
+const loggerPlugin: Plugin<[LoggerPluginOptions?], undefined> = (
+  options = {}
+) => {
   const { level = "info", detailed = false } = options;
 
   return (tree) => {

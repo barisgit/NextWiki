@@ -10,6 +10,8 @@ import { compare } from "bcrypt";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 
 // Helper function to handle provider import differences between environments
+// Ignore any type errors here, we know the providers are valid
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createProvider(provider: any, options: any) {
   // Use provider directly if it's a function, otherwise use provider.default
   return typeof provider === "function"
