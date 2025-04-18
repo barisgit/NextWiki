@@ -25,39 +25,39 @@
 
   /* Light mode theme variables */
   --color-light-background-default: #ffffff;
-  --color-light-background-paper: #f7f7f7;
-  --color-light-background-level1: #f0f0f0;
-  --color-light-background-level2: #e8e8e8;
-  --color-light-background-level3: #dcdcdc;
-  --color-light-background-light: #fafafa;
-  --color-light-background-dark: #101010;
-  --color-light-text-primary: #000000;
-  --color-light-text-secondary: #333333;
+  --color-light-background-paper: #f8f9fa;
+  --color-light-background-level1: #f1f3f5;
+  --color-light-background-level2: #e9ecef;
+  --color-light-background-level3: #dee2e6;
+  --color-light-background-light: #ffffff;
+  --color-light-background-dark: #212529;
+  --color-light-text-primary: #212529;
+  --color-light-text-secondary: #495057;
   --color-light-text-accent: var(--color-primary-700);
-  --color-light-border-default: #999999;
-  --color-light-border-light: #cccccc;
-  --color-light-border-dark: #777777;
+  --color-light-border-default: #adb5bd;
+  --color-light-border-light: #ced4da;
+  --color-light-border-dark: #868e96;
   --color-light-border-accent: var(--color-primary-600);
-  --color-light-scrollbar-track: #f0f0f0;
-  --color-light-scrollbar-thumb: #888888;
+  --color-light-scrollbar-track: #f1f3f5;
+  --color-light-scrollbar-thumb: #adb5bd;
 
   /* Dark mode theme variables */
-  --color-dark-background-default: #050505;
-  --color-dark-background-paper: #121212;
-  --color-dark-background-level1: #1f1f1f;
-  --color-dark-background-level2: #2a2a2a;
-  --color-dark-background-level3: #353535;
-  --color-dark-background-light: #151515;
+  --color-dark-background-default: #131313; /* Near black */
+  --color-dark-background-paper: #1c1c1c; /* Slightly lighter paper */
+  --color-dark-background-level1: #262626; /* Darker level 1 */
+  --color-dark-background-level2: #2c2c2c; /* Darker level 2 */
+  --color-dark-background-level3: #333333; /* Slightly lighter level 3 for better contrast */
+  --color-dark-background-light: #0a0a0a;
   --color-dark-background-dark: #000000;
-  --color-dark-text-primary: #ffffff;
+  --color-dark-text-primary: #f8f9fa;
   --color-dark-text-secondary: #e0e0e0;
   --color-dark-text-accent: var(--color-primary-300);
-  --color-dark-border-default: #555555;
-  --color-dark-border-light: #707070;
-  --color-dark-border-dark: #353535;
+  --color-dark-border-default: #303030;
+  --color-dark-border-light: #4a4a4a;
+  --color-dark-border-dark: #202020;
   --color-dark-border-accent: var(--color-primary-300);
-  --color-dark-scrollbar-track: #2a2a2a;
-  --color-dark-scrollbar-thumb: #808080;
+  --color-dark-scrollbar-track: #1f1f1f;
+  --color-dark-scrollbar-thumb: #4a4a4a;
 
   /* Card colors */
   --color-card: var(--color-background-level1);
@@ -67,14 +67,14 @@
   --color-card-foreground: var(--color-text-primary);
 
   /* Code colors */
-  --color-code: #f5f5f5;
-  --color-code-foreground: #2a2a2a;
+  --color-code: #f1f3f5;
+  --color-code-foreground: #343a40;
   --color-inline-code: var(--color-primary-100);
   --color-inline-code-foreground: var(--color-primary-900);
 
   /* Dark code colors */
-  --color-dark-code: #1a1a1a;
-  --color-dark-code-foreground: #e5e5e5;
+  --color-dark-code: #151515; /* Align with new dark bg */
+  --color-dark-code-foreground: #e9ecef;
   --color-dark-inline-code: var(--color-background-level2);
   --color-dark-inline-code-foreground: var(--color-primary-200);
 
@@ -84,13 +84,13 @@
   --color-popover-border: var(--color-border-default);
 
   /* Font sizes */
-  --font-size-xs: 0.75rem; /* 12px */
-  --font-size-sm: 0.875rem; /* 14px */
-  --font-size-md: 1rem; /* 16px */
-  --font-size-lg: 1.125rem; /* 18px */
-  --font-size-xl: 1.25rem; /* 20px */
-  --font-size-2xl: 1.5rem; /* 24px */
-  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-xs: 0.8125rem;
+  --font-size-sm: 0.9375rem;
+  --font-size-md: 1.0625rem;
+  --font-size-lg: 1.1875rem;
+  --font-size-xl: 1.3125rem;
+  --font-size-2xl: 1.625rem;
+  --font-size-3xl: 2rem;
 
   /* Line heights */
   --line-height-tight: 1.25;
@@ -350,8 +350,8 @@
   --radius-full: 9999px;
 
   /* Font families */
-  --font-sans: "Inter", "sans-serif";
-  --font-mono: "JetBrains Mono", "monospace";
+  --font-sans: var(--font-inter, "Inter", "sans-serif");
+  --font-mono: var(--font-jetbrains-mono, "JetBrains Mono", "monospace");
 }
 
 @layer base {
@@ -388,7 +388,7 @@
 
     /* Adjust Muted colors for dark mode */
     --color-muted: var(--color-background-level1);
-    --color-muted-foreground: #a0a0a8;
+    --color-muted-foreground: #adb5bd;
 
     /* Update markdown-specific colors for dark mode */
     --color-markdown-h1: var(--color-primary-400);

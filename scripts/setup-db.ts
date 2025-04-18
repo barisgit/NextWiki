@@ -3,7 +3,8 @@
 import { execSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
-import { Pool } from "pg"; // Import Pool for DB connection check
+import pg from "pg";
+import * as url from "url";
 
 // Colors for terminal output
 const colors = {
@@ -94,46 +95,70 @@ function containerRunning(name: string): boolean {
 
 // Update .env file with database connection string
 function updateEnvFile(connectionString: string): void {
+  // console.log("*** Entering updateEnvFile function ***"); // Removed debug log
+  // console.log(`Value of __dirname: ${__dirname}`); // Removed debug log
+
+  // ESM-compatible way to get directory name
+  const __filename = url.fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
   const rootDir = path.resolve(__dirname, "..");
   const envPath = path.join(rootDir, ".env");
   const envExamplePath = path.join(rootDir, ".env.example");
   const dbUrlKey = "DATABASE_URL";
   const dbUrlLine = `${dbUrlKey}=${connectionString}`;
 
+  print.normal(`  Resolved root directory: ${rootDir}`); // Keep this log for now
+  print.normal(`  Target .env path: ${envPath}`); // Keep this log for now
+
   print.normal(`Ensuring ${dbUrlKey} is set in ${envPath}`);
 
-  if (fs.existsSync(envPath)) {
-    let envContent = fs.readFileSync(envPath, "utf8");
-    const dbUrlRegex = new RegExp(`^${dbUrlKey}=.*`, "m");
-
-    if (dbUrlRegex.test(envContent)) {
-      // Replace existing DATABASE_URL
-      envContent = envContent.replace(dbUrlRegex, dbUrlLine);
-      print.normal(`Updated existing ${dbUrlKey}.`);
-    } else {
-      // Add DATABASE_URL to .env
-      envContent += `\n${dbUrlLine}\n`;
-      print.normal(`Added ${dbUrlKey}.`);
-    }
-    fs.writeFileSync(envPath, envContent);
-  } else {
-    print.normal(`Creating ${envPath} from scratch or example.`);
-    let envContent = "";
-    if (fs.existsSync(envExamplePath)) {
-      envContent = fs.readFileSync(envExamplePath, "utf8");
+  try {
+    if (fs.existsSync(envPath)) {
+      print.normal(`  Reading existing ${envPath}...`);
+      let envContent = fs.readFileSync(envPath, "utf8");
       const dbUrlRegex = new RegExp(`^${dbUrlKey}=.*`, "m");
+
       if (dbUrlRegex.test(envContent)) {
         envContent = envContent.replace(dbUrlRegex, dbUrlLine);
+        print.normal(`  Updating existing ${dbUrlKey} in ${envPath}...`);
       } else {
         envContent += `\n${dbUrlLine}\n`;
+        print.normal(`  Adding ${dbUrlKey} to ${envPath}...`);
       }
-      print.normal(`Used ${envExamplePath} as template.`);
+      fs.writeFileSync(envPath, envContent);
+      print.normal(`  Successfully wrote changes to ${envPath}`);
     } else {
-      // Create minimal .env file
-      envContent = `${dbUrlLine}\n`;
-      print.normal(`Created minimal ${envPath}.`);
+      print.normal(`  ${envPath} not found. Checking for example file...`);
+      let envContent = "";
+      if (fs.existsSync(envExamplePath)) {
+        print.normal(`  Reading example file ${envExamplePath}...`);
+        envContent = fs.readFileSync(envExamplePath, "utf8");
+        const dbUrlRegex = new RegExp(`^${dbUrlKey}=.*`, "m");
+        if (dbUrlRegex.test(envContent)) {
+          envContent = envContent.replace(dbUrlRegex, dbUrlLine);
+          print.normal(`  Used ${envExamplePath} as template, updated key.`);
+        } else {
+          envContent += `\n${dbUrlLine}\n`;
+          print.normal(`  Used ${envExamplePath} as template, added key.`);
+        }
+      } else {
+        // Create minimal .env file
+        print.normal(`  No example file found. Creating minimal ${envPath}...`);
+        envContent = `${dbUrlLine}\n`;
+      }
+      fs.writeFileSync(envPath, envContent);
+      print.normal(`  Successfully created/wrote ${envPath}`);
     }
-    fs.writeFileSync(envPath, envContent);
+  } catch (error: unknown) {
+    print.error(`  ❌ Error occurred within updateEnvFile function:`);
+    if (error instanceof Error) {
+      print.error(`  Message: ${error.message}`);
+      print.error(`  Stack: ${error.stack}`);
+    } else {
+      print.error(`  Unknown error: ${String(error)}`);
+    }
+    throw error; // Re-throw the error to stop the script
   }
 }
 
@@ -146,19 +171,21 @@ async function waitForDB(
   print.info(`Attempting to connect to database... (up to ${retries} retries)`);
   for (let i = 0; i < retries; i++) {
     try {
-      const pool = new Pool({ connectionString });
+      const pool = new pg.Pool({ connectionString });
       await pool.query("SELECT 1");
       await pool.end();
       print.success("Database connection successful!");
       return;
     } catch (error: unknown) {
-      print.normal(
-        `Attempt ${i + 1} failed. Retrying in ${delay / 1000}s... (${
-          error instanceof Error ? error.message : String(error)
-        })`
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      print.error(`DB connection attempt ${i + 1} failed: ${errorMessage}`);
+      print.normal(`Retrying in ${delay / 1000}s...`);
       if (i === retries - 1) {
         print.error("Database connection failed after multiple retries.");
+        if (error instanceof Error) {
+          print.error(`Stack Trace: ${error.stack}`);
+        }
         throw error;
       }
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -241,14 +268,20 @@ async function main(): Promise<void> {
 
   // --- Environment Setup ---
   const connectionString = `postgresql://${config.dbUser}:${config.dbPassword}@localhost:${config.hostPort}/${config.dbName}`;
+  print.info("🔄 Updating .env file...");
   updateEnvFile(connectionString);
-  print.success("✅ .env file updated successfully.");
+  print.success("✅ .env file update attempt finished.");
   print.normal(
-    `Connection string: ${connectionString.replace(config.dbPassword, "****")}`
+    `Using connection string: ${connectionString.replace(
+      config.dbPassword,
+      "****"
+    )}`
   ); // Hide password in log
 
   // --- Wait for DB ---
+  print.info("⏳ Waiting for database connection...");
   await waitForDB(connectionString);
+  print.success("✅ Database connection established.");
 
   // --- Database Schema and Data ---
   try {

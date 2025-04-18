@@ -3,7 +3,7 @@ import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
 import { NeonHttpDatabase } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import pg from "pg";
 import * as schema from "./schema";
 
 // Database connection string - should be in environment variables in a real app
@@ -45,7 +45,7 @@ if (
   console.log("Using Neon database driver");
 } else {
   // Use regular PostgreSQL driver for local or other PostgreSQL databases
-  const pool = new Pool({ connectionString });
+  const pool = new pg.Pool({ connectionString });
   // Create Drizzle client with regular PostgreSQL driver
   db = drizzlePg(pool, { schema });
   // console.debug("Using standard PostgreSQL driver");

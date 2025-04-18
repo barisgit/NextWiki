@@ -180,6 +180,7 @@ export const searchService = {
     }
   },
 
+  // FIXME: This is a temporary solution to the search problem. We need to handle adding extensions to the database n the server.
   /**
    * Before using this search functionality, make sure to enable the pg_trgm extension in PostgreSQL:
    * CREATE EXTENSION IF NOT EXISTS pg_trgm;

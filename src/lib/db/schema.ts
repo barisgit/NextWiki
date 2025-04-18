@@ -9,6 +9,7 @@ import {
   primaryKey,
   customType,
   index,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations, SQL, sql } from "drizzle-orm";
 
@@ -252,6 +253,11 @@ export const groupActionPermissionsRelations = relations(
   })
 );
 
+export const wikiPageEditorTypeEnum = pgEnum("editor_type", [
+  "markdown",
+  "html",
+]);
+
 // Pages table
 export const wikiPages = pgTable(
   "wiki_pages",
@@ -260,6 +266,8 @@ export const wikiPages = pgTable(
     path: varchar("path", { length: 1000 }).notNull().unique(),
     title: varchar("title", { length: 255 }).notNull(),
     content: text("content"),
+    renderedHtml: text("rendered_html"),
+    editorType: wikiPageEditorTypeEnum("editor_type"),
     isPublished: boolean("is_published").default(false),
     createdById: integer("created_by_id")
       .notNull()
@@ -269,6 +277,7 @@ export const wikiPages = pgTable(
       .notNull()
       .references(() => users.id),
     updatedAt: timestamp("updated_at").defaultNow(),
+    renderedHtmlUpdatedAt: timestamp("rendered_html_updated_at"),
     lockedById: integer("locked_by_id").references(() => users.id),
     lockedAt: timestamp("locked_at"),
     lockExpiresAt: timestamp("lock_expires_at"),

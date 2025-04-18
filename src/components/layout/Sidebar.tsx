@@ -130,7 +130,7 @@ function WikiTreeItem({
                   />
                 ))}
               </div>
-              <div className="px-2 py-1.5 text-xs italic font-bold text-muted-foreground flex items-center">
+              <div className="px-2 py-1.5 text-xs italic font-bold text-text-secondary/80 flex items-center">
                 <span className="text-primary font-mono bg-primary-100 dark:bg-primary/5 px-1.5 py-0.5 rounded">
                   {/* Display the compressed path if needed */}
                   {getCompressedPath(item.path, nextVisibleAncestor.path)}
@@ -206,8 +206,10 @@ function WikiTreeItem({
 
               <Link
                 href={`/${item.path}`}
-                className={`flex flex-1 items-center px-2 py-1.5 text-sm rounded hover:bg-card-hover text-text-primary font-medium transition-colors min-w-0 ${
-                  isActive ? "bg-primary/10 text-primary font-semibold" : ""
+                className={`flex flex-1 items-center px-2 py-1.5 text-sm rounded text-text-primary font-medium transition-colors min-w-0 ${
+                  isActive
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "hover:bg-card-hover"
                 }`}
               >
                 {item.type === "folder" ? (
@@ -542,8 +544,10 @@ export function Sidebar() {
         <nav className="space-y-1">
           <Link
             href="/"
-            className={`flex items-center px-4 py-2 text-sm rounded-lg hover:bg-card-hover text-text-primary font-medium transition-colors ${
-              pathname === "/" ? "bg-primary/10 text-primary" : ""
+            className={`flex items-center px-4 py-2 text-sm rounded-lg text-text-primary font-medium transition-colors ${
+              pathname === "/"
+                ? "bg-primary/10 text-primary"
+                : "hover:bg-card-hover"
             }`}
           >
             <svg
@@ -564,8 +568,10 @@ export function Sidebar() {
           </Link>
           <Link
             href="/wiki"
-            className={`flex items-center px-4 py-2 text-sm rounded-lg hover:bg-card-hover text-text-primary font-medium transition-colors ${
-              pathname === "/wiki" ? "bg-primary/10 text-primary" : ""
+            className={`flex items-center px-4 py-2 text-sm rounded-lg text-text-primary font-medium transition-colors ${
+              pathname === "/wiki"
+                ? "bg-primary/10 text-primary"
+                : "hover:bg-card-hover"
             }`}
           >
             <svg
@@ -586,8 +592,10 @@ export function Sidebar() {
           </Link>
           <Link
             href="/tags"
-            className={`flex items-center px-4 py-2 text-sm rounded-lg hover:bg-card-hover text-text-primary font-medium transition-colors ${
-              pathname === "/tags" ? "bg-primary/10 text-primary" : ""
+            className={`flex items-center px-4 py-2 text-sm rounded-lg text-text-primary font-medium transition-colors ${
+              pathname === "/tags"
+                ? "bg-primary/10 text-primary"
+                : "hover:bg-card-hover"
             }`}
           >
             <svg
@@ -619,7 +627,7 @@ export function Sidebar() {
           }`}
           data-scroll-bottom={isAtBottom}
         >
-          <h3 className="flex-shrink-0 mb-2 text-xs font-semibold uppercase text-muted-foreground">
+          <h3 className="flex-shrink-0 px-2 mb-2 text-xs font-semibold uppercase text-text-secondary/80">
             Wiki Structure
           </h3>
 
@@ -628,7 +636,7 @@ export function Sidebar() {
               <Loader2 className="w-5 h-5 animate-spin text-primary" />
             </div>
           ) : rootItems.length === 0 ? (
-            <p className="py-2 text-sm text-muted-foreground">No pages yet</p>
+            <p className="py-2 text-sm text-text-secondary/80">No pages yet</p>
           ) : (
             <ScrollArea className="flex-1 pr-4">
               <div className="pb-4 space-y-1">

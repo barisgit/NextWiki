@@ -5,7 +5,7 @@ import { CodeBlock } from "~/components/ui/code-block";
 export default function GettingStartedPage() {
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="p-4 space-y-6">
         <h1 className="text-2xl font-bold">Getting Started with NextWiki</h1>
 
         <section className="p-6 border rounded-lg shadow-lg bg-background-paper border-border-default">

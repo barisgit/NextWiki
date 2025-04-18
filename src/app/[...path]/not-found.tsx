@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MainLayout } from "~/components/layout/MainLayout";
+import { Button } from "~/components/ui/button";
 import { CreatePageButton } from "~/components/wiki/CreatePageButton";
 
 export default function WikiNotFound() {
@@ -13,11 +14,8 @@ export default function WikiNotFound() {
           moved.
         </p>
         <div className="space-x-4">
-          <Link
-            href="/wiki"
-            className="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground"
-          >
-            Browse All Pages
+          <Link href="/wiki">
+            <Button variant="outlined">Browse All Pages</Button>
           </Link>
           <CreatePageButton />
         </div>

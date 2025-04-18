@@ -9,6 +9,14 @@ import { eq, and } from "drizzle-orm";
 import { compare } from "bcrypt";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 
+// Helper function to handle provider import differences between environments
+function createProvider(provider: any, options: any) {
+  // Use provider directly if it's a function, otherwise use provider.default
+  return typeof provider === "function"
+    ? provider(options)
+    : provider.default(options);
+}
+
 // Create auth options with the adapter set directly
 export const authOptions: NextAuthOptions = {
   adapter: DrizzleAdapter(db) as Adapter,
@@ -23,21 +31,21 @@ export const authOptions: NextAuthOptions = {
     newUser: "/auth/new-user",
   },
   providers: [
-    GitHubProvider({
+    createProvider(GitHubProvider, {
       clientId: process.env.GITHUB_CLIENT_ID || "",
       clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
     }),
-    GoogleProvider({
+    createProvider(GoogleProvider, {
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
-    CredentialsProvider({
+    createProvider(CredentialsProvider, {
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials: Record<string, string> | undefined) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }

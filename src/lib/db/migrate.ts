@@ -34,7 +34,7 @@ import * as schema from "./schema";
 import { neon } from "@neondatabase/serverless";
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import pg from "pg";
 
 // Create database connection locally instead of importing from index.ts
 const getDb = () => {
@@ -55,7 +55,7 @@ const getDb = () => {
     const sql = neon(connectionString);
     return drizzleNeon(sql, { schema });
   } else {
-    const pool = new Pool({ connectionString });
+    const pool = new pg.Pool({ connectionString });
     return drizzlePg(pool, { schema });
   }
 };
@@ -85,7 +85,7 @@ async function runMigrations(force = false) {
         connectionString.includes("pooler.internal.neon") ||
         connectionString.includes(".neon.tech")
       ) {
-        console.log("Using Neon migrator..."); // Added log
+        console.log("Using Neon migrator...");
         migrationsResult = await migrateNeon(
           db as NeonHttpDatabase<typeof schema>,
           {
@@ -94,7 +94,7 @@ async function runMigrations(force = false) {
         );
         console.log("Migrations completed successfully using Neon driver");
       } else {
-        console.log("Using PostgreSQL migrator..."); // Added log
+        console.log("Using PostgreSQL migrator...");
         migrationsResult = await migratePg(
           db as NodePgDatabase<typeof schema>,
           {
@@ -106,12 +106,10 @@ async function runMigrations(force = false) {
         );
       }
 
-      console.log("Migration result:", migrationsResult); // Log the result of migrate()
+      console.log("Migration result:", migrationsResult);
     } catch (error: unknown) {
-      // Cast the error to any type to access properties
       const migrationError = error as { message?: string };
 
-      // If we get an error about relations already existing, it means the migration was already applied
       if (
         migrationError.message &&
         migrationError.message.includes("already exists")
@@ -125,8 +123,6 @@ async function runMigrations(force = false) {
           console.log(
             "Force flag is set, attempting to continue with other migrations..."
           );
-          // Here you could implement logic to run only specific migrations
-          // but for now we'll just acknowledge the issue
         } else {
           console.log(
             "Use the --force flag to attempt running migrations anyway."
@@ -136,7 +132,6 @@ async function runMigrations(force = false) {
           );
         }
       } else {
-        // If it's some other error, rethrow it
         throw error;
       }
     }
@@ -144,13 +139,13 @@ async function runMigrations(force = false) {
     process.exit(0);
   } catch (error) {
     console.error("Migration failed:", error);
-    console.error("Error details:", error); // Log the full error object
+    console.error("Error details:", error);
     process.exit(1);
   }
 }
 
 // Run migrations if file is executed directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const forceFlag = process.argv.includes("--force");
   runMigrations(forceFlag);
 }

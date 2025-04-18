@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { AuthProvider } from "~/components/auth/AuthProvider";
 import "highlight.js/styles/github.css";
 import "~/styles/globals.css";
@@ -10,13 +10,13 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Providers } from "~/providers";
 import { seed } from "~/lib/db/seed";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
 });
 
@@ -112,7 +112,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-background-default text-text-primary overflow-y-hidden`}
+        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-background-default text-text-primary overflow-y-hidden`}
       >
         <Providers>
           <Suspense fallback={<Skeleton className="w-full h-full" />}>

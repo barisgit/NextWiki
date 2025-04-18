@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { MainLayout } from "~/components/layout/MainLayout";
 import { WikiPage } from "~/components/wiki/WikiPage";
 import { WikiEditor } from "~/components/wiki/WikiEditor";
-import { HighlightedMarkdown } from "~/components/wiki/HighlightedMarkdown";
+import { HighlightedContent } from "~/lib/markdown/client";
 import { db } from "~/lib/db/index";
 import { wikiPages } from "~/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -10,7 +10,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "~/lib/auth";
 import { Suspense } from "react";
 import { PageLocationEditor } from "~/components/wiki/PageLocationEditor";
-import { renderMarkdownToHtml } from "~/lib/markdown";
+import { renderWikiMarkdownToHtml } from "~/lib/services/markdown";
 
 export const dynamic = "auto";
 export const revalidate = 300; // 5 minutes
@@ -35,14 +35,22 @@ async function getWikiPageByPath(path: string[]) {
     },
   });
 
-  // If page is found and has content, pre-render the markdown to HTML
-  let renderedHtml: string | null = null;
-  if (page && page.content) {
-    renderedHtml = await renderMarkdownToHtml(page.content);
+  if (
+    page?.renderedHtml &&
+    page?.renderedHtmlUpdatedAt &&
+    page?.renderedHtmlUpdatedAt > (page?.updatedAt ?? new Date())
+  ) {
+    return page;
   }
 
-  // Return the page with the pre-rendered HTML
-  return page ? { ...page, renderedHtml } : null;
+  // If page is found and has content, pre-render the markdown to HTML with wiki link validation
+  if (page && page.content) {
+    const renderedHtml = await renderWikiMarkdownToHtml(page.content, page.id);
+    page.renderedHtml = renderedHtml;
+    page.renderedHtmlUpdatedAt = new Date();
+  }
+
+  return page;
 }
 
 type Params = Promise<{ path: string[] }>;
@@ -122,14 +130,10 @@ export default async function WikiPageView({
         title={page.title}
         content={
           <Suspense fallback={<div>Loading...</div>}>
-            {page.renderedHtml ? (
-              <div
-                className="prose max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: page.renderedHtml }}
-              />
-            ) : (
-              <HighlightedMarkdown content={page.content || ""} />
-            )}
+            <HighlightedContent
+              content={page.content || ""}
+              renderedHtml={page.renderedHtml}
+            />
           </Suspense>
         }
         createdAt={new Date(page.createdAt ?? new Date())}

@@ -13,7 +13,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import Modal from "~/components/ui/modal";
 import { PageLocationEditor } from "./PageLocationEditor";
 import { RequirePermission } from "~/lib/hooks/usePermissions";
-
+import { ScrollArea } from "~/components/ui/scroll-area";
 interface WikiPageProps {
   id: number;
   title: string;
@@ -161,186 +161,192 @@ export function WikiPage({
   }, [folderStructure, path]);
 
   return (
-    <div className="flex space-x-8">
-      {/* Main content */}
-      <div className="flex-1 min-w-0 space-y-6">
-        <div className="pb-4 mb-6 border-b">
-          {/* Breadcrumbs */}
-          <Breadcrumbs path={path} className="mb-3 text-slate-600" />
+    <ScrollArea className="h-[calc(100vh-4rem)]">
+      <div className="flex p-4 space-x-8">
+        {/* Main content */}
+        <div className="flex-1 min-w-0 space-y-6">
+          <div className="pb-4 mb-6 border-b">
+            {/* Breadcrumbs */}
+            <Breadcrumbs path={path} className="mb-3 text-slate-600" />
 
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold">{title}</h1>
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-3xl font-bold">{title}</h1>
 
-            <div className="flex items-center space-x-2">
-              {/* Actions dropdown - only show if user has permissions */}
-              <RequirePermission permission="wiki:page:update">
-                {hasPageUpdatePermission && (
-                  <div className="relative">
-                    <div className="flex items-center justify-start flex-shrink-0 ml-auto">
-                      <button
-                        onClick={handleRename}
-                        className="p-1"
-                        title="Rename"
-                      >
-                        <PencilIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
-                      </button>
-                      <button onClick={handleMove} className="p-1" title="Move">
-                        <MoveIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
-                      </button>
+              <div className="flex items-center space-x-2">
+                {/* Actions dropdown - only show if user has permissions */}
+                <RequirePermission permission="wiki:page:update">
+                  {hasPageUpdatePermission && (
+                    <div className="relative">
+                      <div className="flex items-center justify-start flex-shrink-0 ml-auto">
+                        <button
+                          onClick={handleRename}
+                          className="p-1"
+                          title="Rename"
+                        >
+                          <PencilIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
+                        </button>
+                        <button
+                          onClick={handleMove}
+                          className="p-1"
+                          title="Move"
+                        >
+                          <MoveIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </RequirePermission>
+                  )}
+                </RequirePermission>
 
-              {/* Lock status and edit controls - only show if user has permissions */}
-              <RequirePermission permission="wiki:page:update">
-                {hasPageUpdatePermission && (
-                  <WikiLockInfo
-                    pageId={id}
-                    isLocked={isLocked}
-                    lockedByName={lockedBy?.name || null}
-                    lockedUntil={lockExpiresAt?.toISOString() || null}
-                    isCurrentUserLockOwner={isCurrentUserLockOwner}
-                    editPath={`/${path}?edit=true`}
-                  />
-                )}
-              </RequirePermission>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-            <div className="flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4 mr-1"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-              Updated {formatDistanceToNow(updatedAt, { addSuffix: true })}
-              {updatedBy ? ` by ${updatedBy.name}` : ""}
-            </div>
-            <div>
-              Created {formatDistanceToNow(createdAt, { addSuffix: true })}
-              {createdBy ? ` by ${createdBy.name}` : ""}
-            </div>
-          </div>
-
-          {tags.length > 0 && (
-            <div className="flex items-center mt-3 space-x-2">
-              {tags.map((tag) => (
-                <Link
-                  key={tag.id}
-                  href={`/tags/${tag.name}`}
-                  className="px-2 py-0.5 bg-muted text-xs rounded-full hover:bg-muted/80"
-                >
-                  {tag.name}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div>{content}</div>
-      </div>
-
-      {/* Subfolders sidebar - only shown if page has subpages */}
-      {hasSubpages && (
-        <div className="w-72 shrink-0">
-          <WikiSubfolders
-            path={path}
-            maxDepth={3}
-            openDepth={1}
-            showLegend={true}
-          />
-        </div>
-      )}
-
-      {/* Rename Modal */}
-      {showRenameModal && (
-        <Modal
-          onClose={() => setShowRenameModal(false)}
-          size="sm"
-          closeOnEscape={true}
-          showCloseButton={true}
-        >
-          <div className="p-4">
-            <h3 className="mb-4 text-lg font-medium">Rename Page</h3>
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium text-text-secondary">
-                Current Name
-              </label>
-              <div className="px-3 py-2 text-sm border rounded-md border-border-light bg-background-paper text-text-secondary/50">
-                {title}
+                {/* Lock status and edit controls - only show if user has permissions */}
+                <RequirePermission permission="wiki:page:update">
+                  {hasPageUpdatePermission && (
+                    <WikiLockInfo
+                      pageId={id}
+                      isLocked={isLocked}
+                      lockedByName={lockedBy?.name || null}
+                      lockedUntil={lockExpiresAt?.toISOString() || null}
+                      isCurrentUserLockOwner={isCurrentUserLockOwner}
+                      editPath={`/${path}?edit=true`}
+                    />
+                  )}
+                </RequirePermission>
               </div>
             </div>
-            <div className="mb-4">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="newName"
-                  className="block mb-1 text-sm font-medium text-text-secondary"
+
+            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+              <div className="flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4 mr-1"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
                 >
-                  New Name
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                Updated {formatDistanceToNow(updatedAt, { addSuffix: true })}
+                {updatedBy ? ` by ${updatedBy.name}` : ""}
+              </div>
+              <div>
+                Created {formatDistanceToNow(createdAt, { addSuffix: true })}
+                {createdBy ? ` by ${createdBy.name}` : ""}
+              </div>
+            </div>
+
+            {tags.length > 0 && (
+              <div className="flex items-center mt-3 space-x-2">
+                {tags.map((tag) => (
+                  <Link
+                    key={tag.id}
+                    href={`/tags/${tag.name}`}
+                    className="px-2 py-0.5 bg-muted text-xs rounded-full hover:bg-muted/80"
+                  >
+                    {tag.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>{content}</div>
+        </div>
+
+        {/* Subfolders sidebar - only shown if page has subpages */}
+        {hasSubpages && (
+          <div className="w-72 shrink-0">
+            <WikiSubfolders
+              path={path}
+              maxDepth={3}
+              openDepth={1}
+              showLegend={true}
+            />
+          </div>
+        )}
+
+        {/* Rename Modal */}
+        {showRenameModal && (
+          <Modal
+            onClose={() => setShowRenameModal(false)}
+            size="sm"
+            closeOnEscape={true}
+            showCloseButton={true}
+          >
+            <div className="p-4">
+              <h3 className="mb-4 text-lg font-medium">Rename Page</h3>
+              <div className="mb-4">
+                <label className="block mb-1 text-sm font-medium text-text-secondary">
+                  Current Name
                 </label>
-                {renameConflict && (
-                  <span className="text-sm text-red-500">
-                    Name already exists
-                  </span>
-                )}
+                <div className="px-3 py-2 text-sm border rounded-md border-border-light bg-background-paper text-text-secondary/50">
+                  {title}
+                </div>
               </div>
-              <input
-                id="newName"
-                type="text"
-                value={newName}
-                onChange={(e) => {
-                  setNewName(e.target.value);
-                  setRenameConflict(false);
-                }}
-                className={`w-full px-3 py-2 text-sm border border-border-light rounded-md focus:outline-none focus:ring-1 bg-background-level1 ${
-                  renameConflict
-                    ? "border-red-500 focus:ring-red-200"
-                    : "focus:ring-primary"
-                }`}
-                placeholder="New title"
-              />
+              <div className="mb-4">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="newName"
+                    className="block mb-1 text-sm font-medium text-text-secondary"
+                  >
+                    New Name
+                  </label>
+                  {renameConflict && (
+                    <span className="text-sm text-red-500">
+                      Name already exists
+                    </span>
+                  )}
+                </div>
+                <input
+                  id="newName"
+                  type="text"
+                  value={newName}
+                  onChange={(e) => {
+                    setNewName(e.target.value);
+                    setRenameConflict(false);
+                  }}
+                  className={`w-full px-3 py-2 text-sm border border-border-light rounded-md focus:outline-none focus:ring-1 bg-background-level1 ${
+                    renameConflict
+                      ? "border-red-500 focus:ring-red-200"
+                      : "focus:ring-primary"
+                  }`}
+                  placeholder="New title"
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setShowRenameModal(false)}
+                  className="px-3 py-1.5 text-sm font-medium rounded-md text-text-secondary hover:bg-background-level2 transition-colors border border-border-light"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={renameNode}
+                  className="px-3 py-1.5 text-sm font-medium rounded-md bg-primary hover:bg-primary-600 text-primary-foreground hover:bg-primary-dark transition-colors"
+                  disabled={!newName.trim() || renameConflict}
+                >
+                  Rename
+                </button>
+              </div>
             </div>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setShowRenameModal(false)}
-                className="px-3 py-1.5 text-sm font-medium rounded-md text-text-secondary hover:bg-background-level2 transition-colors border border-border-light"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={renameNode}
-                className="px-3 py-1.5 text-sm font-medium rounded-md bg-primary hover:bg-primary-600 text-primary-foreground hover:bg-primary-dark transition-colors"
-                disabled={!newName.trim() || renameConflict}
-              >
-                Rename
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
+          </Modal>
+        )}
 
-      {/* Move Modal using PageLocationEditor */}
-      {showMoveModal && (
-        <PageLocationEditor
-          mode="move"
-          isOpen={showMoveModal}
-          onClose={() => {
-            setShowMoveModal(false);
-          }}
-          initialPath={path}
-          pageId={id}
-          pageTitle={title}
-          initialName={title.split("/").pop() || title}
-        />
-      )}
-    </div>
+        {/* Move Modal using PageLocationEditor */}
+        {showMoveModal && (
+          <PageLocationEditor
+            mode="move"
+            isOpen={showMoveModal}
+            onClose={() => {
+              setShowMoveModal(false);
+            }}
+            initialPath={path}
+            pageId={id}
+            pageTitle={title}
+            initialName={title.split("/").pop() || title}
+          />
+        )}
+      </div>
+    </ScrollArea>
   );
 }
