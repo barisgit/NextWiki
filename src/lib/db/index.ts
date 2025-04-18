@@ -5,9 +5,10 @@ import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "./schema";
+import { env } from "~/env";
 
 // Database connection string - should be in environment variables in a real app
-const connectionString = process.env.DATABASE_URL;
+const connectionString = env.DATABASE_URL;
 
 // Validate connection string
 if (!connectionString) {
