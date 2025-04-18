@@ -7,7 +7,6 @@ import { unified } from "unified";
 import remarkParse from "remark-parse";
 import rehypeStringify from "rehype-stringify";
 import remarkRehype from "remark-rehype";
-import rehypeWikiLinks from "./plugins/rehypeWikiLinks.server";
 import { createMarkdownProcessor } from "./factory";
 
 // Get server-side markdown configuration
@@ -29,21 +28,48 @@ export async function renderMarkdownToHtml(
     (await serverMarkdownConfig.getAsyncRehypePlugins?.()) ||
     serverMarkdownConfig.rehypePlugins;
 
-  // If we have a page path and rehypeWikiLinks plugin exists, configure it
+  // If we have a page path, configure any wiki link plugins with the path
   if (pagePath) {
-    // Load the rehypeWikiLinks module dynamically
-    const rehypeWikiLinksModule = await import(
-      "./plugins/rehypeWikiLinks.server"
-    );
-    // Replace the default plugin with one that has the pagePath configured
-    rehypePlugins = rehypePlugins.filter(
-      (plugin) => plugin !== rehypeWikiLinksModule.default
-    );
-    // Add the configured plugin
-    rehypePlugins.push([
-      rehypeWikiLinksModule.default,
-      { currentPagePath: pagePath },
-    ]);
+    try {
+      // Try to load the rehypeWikiLinks module dynamically
+      const rehypeWikiLinksModule = await import(
+        "./plugins/server-only/rehypeWikiLinks"
+      ).catch((e) => {
+        console.error("Failed to import rehypeWikiLinks:", e);
+        return { default: null };
+      });
+
+      if (rehypeWikiLinksModule.default) {
+        // Replace any existing wiki links plugin with configured version
+        rehypePlugins = rehypePlugins.map((plugin) => {
+          // Skip non-array items and plugins that aren't wikilinks
+          if (
+            !Array.isArray(plugin) &&
+            plugin === rehypeWikiLinksModule.default
+          ) {
+            // Replace with configured version
+            return [
+              rehypeWikiLinksModule.default,
+              { currentPagePath: pagePath },
+            ];
+          }
+          // Also check array plugins
+          if (
+            Array.isArray(plugin) &&
+            plugin[0] === rehypeWikiLinksModule.default
+          ) {
+            // Merge existing options with the page path
+            return [
+              rehypeWikiLinksModule.default,
+              { ...(plugin[1] || {}), currentPagePath: pagePath },
+            ];
+          }
+          return plugin;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load rehypeWikiLinks plugin:", error);
+    }
   }
 
   // Create the processing pipeline

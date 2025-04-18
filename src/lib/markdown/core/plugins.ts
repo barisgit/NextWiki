@@ -29,17 +29,45 @@ export const remarkPlugins: PluggableList = [
   ...customPlugins,
 ];
 
+async function tryLoadPlugin(pluginPath: string) {
+  if (!isServer) return [];
+
+  try {
+    const pluginModule = await import(pluginPath);
+    if (pluginModule.default) {
+      return pluginModule.default;
+    }
+    return null;
+  } catch (error) {
+    console.error(`Failed to load plugin from ${pluginPath}:`, error);
+    return null;
+  }
+}
+
 /**
- * Dynamically load server-only rehype plugins
- * This is properly handled in an async context
+ * Dynamically load all server-only rehype plugins
+ * This automatically imports all plugins from the server-only directory
  */
 export async function loadServerRehypePlugins(): Promise<PluggableList> {
   if (!isServer) return [];
 
   try {
-    // Dynamic import for server-only code (ESM compatible)
-    const wikiLinksModule = await import("../plugins/rehypeWikiLinks.server");
-    return [wikiLinksModule.default];
+    // Pre-defined list of server-only plugins to import
+    // This avoids using fs which is not available in Next.js client bundles
+    const serverPlugins: PluggableList = [];
+    const plugins = await Promise.all([
+      tryLoadPlugin("../plugins/server-only/rehypeWikiLinks"),
+      tryLoadPlugin("../plugins/server-only/loggerPlugin"),
+      // Add additional server-only plugins here as they are created
+    ]);
+
+    for (const plugin of plugins) {
+      if (plugin) {
+        serverPlugins.push(plugin);
+      }
+    }
+
+    return serverPlugins;
   } catch (error) {
     console.error("Failed to load server-only plugins:", error);
     return [];

@@ -111,9 +111,6 @@ export function clearPageExistenceCache(): void {
   pageExistenceCache.clear();
 }
 
-/**
- * Link types
- */
 export enum LinkType {
   IMAGE = "image",
   VIDEO = "video",
@@ -242,7 +239,6 @@ export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], any> = (
         const type = getLinkType(href);
         if (type === LinkType.PAGE) {
           const path = renderInternalLink(href, currentPagePath);
-          console.log(`${href} -> ${path}`);
           wikiLinks.push({ node, path });
         }
       }

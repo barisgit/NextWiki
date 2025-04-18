@@ -180,6 +180,12 @@ export function HighlightedContent({
         e.preventDefault();
         router.push(href);
       }
+
+      const isExternalLink = anchor.classList.contains("external-link");
+      if (isExternalLink) {
+        e.preventDefault();
+        window.open(href, "_blank");
+      }
     };
 
     // Only add this listener if we're using pre-rendered HTML

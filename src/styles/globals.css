@@ -42,11 +42,11 @@
   --color-light-scrollbar-thumb: #adb5bd;
 
   /* Dark mode theme variables */
-  --color-dark-background-default: #020202; /* Near black */
+  --color-dark-background-default: #131313; /* Near black */
   --color-dark-background-paper: #1c1c1c; /* Slightly lighter paper */
-  --color-dark-background-level1: #202020; /* Darker level 1 */
-  --color-dark-background-level2: #262626; /* Darker level 2 */
-  --color-dark-background-level3: #2c2c2c; /* Slightly lighter level 3 for better contrast */
+  --color-dark-background-level1: #262626; /* Darker level 1 */
+  --color-dark-background-level2: #2c2c2c; /* Darker level 2 */
+  --color-dark-background-level3: #333333; /* Slightly lighter level 3 for better contrast */
   --color-dark-background-light: #0a0a0a;
   --color-dark-background-dark: #000000;
   --color-dark-text-primary: #f8f9fa;

@@ -50,12 +50,49 @@ export function MarkdownEditor({ content }: { content: string }) {
 2. **Consistent Plugins**: All remark/rehype plugins are shared
 3. **Component Mapping**: All HTML elements are mapped to the same React components
 
+## Plugin Organization
+
+This library organizes plugins in a structured way:
+
+1. **Shared Plugins**: Located in `src/lib/markdown/plugins/`
+2. **Server-Only Plugins**: Located in `src/lib/markdown/plugins/server-only/`
+
+### Adding Server-Only Plugins
+
+To create a server-only plugin:
+
+1. Create a new file in the `plugins/server-only/` directory
+2. Export your plugin as the default export
+3. No additional configuration needed - it will be automatically loaded on the server
+
+Example:
+
+```ts
+// src/lib/markdown/plugins/server-only/myServerPlugin.ts
+import type { Plugin } from 'unified';
+
+interface MyPluginOptions {
+  // Your options here
+}
+
+const myServerPlugin: Plugin<[MyPluginOptions?], any> = (options = {}) => {
+  return (tree) => {
+    // Plugin implementation
+  };
+};
+
+export default myServerPlugin;
+```
+
+The system will automatically detect and load this plugin when running on the server.
+
 ## Best Practices
 
 1. **Always use `HighlightedContent` when possible**, providing both the original markdown and pre-rendered HTML
 2. Use consistent CSS classes on the wrapper elements
 3. For live previews, use `HighlightedMarkdown` directly
 4. For server-rendered content, use `renderMarkdownToHtml` and pass the result to `HighlightedContent`
+5. Place server-only plugins in the `plugins/server-only/` directory to ensure they're automatically loaded
 
 ## Testing for Consistency
 
@@ -63,4 +100,4 @@ To ensure your rendered content looks the same on both server and client:
 
 1. Compare snapshots of server-rendered and client-rendered output
 2. Test with complex markdown including various elements (tables, code, etc.)
-3. Verify styling is consistent across both render methods 
+3. Verify styling is consistent across both render methods

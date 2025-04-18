@@ -6,25 +6,7 @@ import { renderMarkdownToHtml as baseRenderMarkdownToHtml } from "~/lib/markdown
 import { db } from "~/lib/db";
 import { wikiPages } from "~/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { invalidatePageExistenceCache } from "~/lib/markdown/plugins/rehypeWikiLinks.server";
-
-// Regular expression to find wiki links in markdown for pre-caching
-const INTERNAL_LINK_REGEX = /\[([^\]]+)\]\(\/([^)]+)\)/g;
-
-/**
- * Extract all internal link paths from markdown content
- *
- * @param content Markdown content to extract links from
- * @returns Array of link paths
- */
-function extractInternalLinkPaths(content: string): string[] {
-  const matches = Array.from(content.matchAll(INTERNAL_LINK_REGEX));
-  return matches.map((match) => {
-    const pagePath = match[2];
-    // Remove leading slash if present
-    return pagePath.startsWith("/") ? pagePath.substring(1) : pagePath;
-  });
-}
+import { invalidatePageExistenceCache } from "~/lib/markdown/plugins/server-only/rehypeWikiLinks";
 
 /**
  * Renders markdown content to HTML with enhanced wiki features
@@ -86,7 +68,7 @@ export async function rebuildAllRenderedHtml(): Promise<void> {
 
   for (const page of allPages) {
     if (page.content) {
-      console.log("Rebuilding rendered HTML for page", page.id);
+      // console.log("Rebuilding rendered HTML for page", page.id);
       await renderWikiMarkdownToHtml(page.content, page.id);
     }
   }

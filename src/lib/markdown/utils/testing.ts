@@ -82,9 +82,9 @@ export function normalizeHtml(html: string): string {
  * @param markdown The markdown content to test
  * @returns Object containing both outputs and whether they are consistent
  */
-export function compareRenderedOutput(markdown: string) {
+export async function compareRenderedOutput(markdown: string) {
   // Get server-rendered HTML
-  const serverHtml = renderMarkdownToHtml(markdown);
+  const serverHtml = await renderMarkdownToHtml(markdown);
 
   // Get the configuration used for client rendering
   const clientConfig = createMarkdownProcessor("client");

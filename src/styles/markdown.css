@@ -10,7 +10,10 @@ ul.links-list {
 }
 
 ul.links-list li {
-  @apply bg-background-level1 dark:bg-background-level2 p-4 rounded-lg shadow-md dark:shadow-none hover:border-primary/50 hover:bg-background-level2 dark:hover:bg-background-level3 border border-transparent dark:border-border-dark transition-all duration-200 flex items-start;
+  @apply bg-background-paper/50 dark:bg-background-level2 rounded-lg shadow-lg dark:shadow-none 
+  hover:border-primary/50 dark:hover:bg-background-level3 border hover:shadow-xl
+  border-transparent dark:border-border-dark transition-all duration-200 flex items-start border-l-4
+  border-l-primary dark:border-l-primary hover:border-l-primary;
 }
 
 /* Emoji styling */
@@ -20,7 +23,7 @@ ul.links-list li {
 
 /* Specific styling for links with emojis */
 ul.links-list li a {
-  @apply flex items-center gap-8 no-underline text-primary hover:no-underline font-bold;
+  @apply flex items-center gap-8 p-4 no-underline text-primary hover:no-underline font-bold w-full;
 }
 
 ul.links-list li a em {
@@ -48,7 +51,12 @@ a.wiki-link-missing {
 }
 
 ul.links-list li:has(a.wiki-link-missing) {
-  @apply hover:border-error/50 border;
+  @apply hover:border-error/50 border border-l-4 border-l-error hover:border-l-error;
+}
+
+ul.links-list li a.wiki-link-missing::after {
+  @apply text-text-secondary/50 font-normal text-xs;
+  content: "Page missing";
 }
 
 blockquote {
