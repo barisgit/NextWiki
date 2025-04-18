@@ -14,7 +14,7 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "tsx src/lib/db/migrate.ts",
     "db:setup": "tsx scripts/setup-db.ts",
-    "db:seed": "env-cmd -f .env tsx src/lib/db/seed.ts",
+    "db:seed": "env-cmd -f .env NODE_ENV=development tsx src/lib/db/seed.ts",
     "db:studio": "drizzle-kit studio",
     "rebuild-rendered-html": "env-cmd -f .env tsx scripts/rebuildRenderedHtml.ts",
     "watch-css": "tailwindcss -i ./src/styles/globals.css -o ./public/output.css --watch"
@@ -31,6 +31,7 @@
     "@radix-ui/react-select": "^2.1.7",
     "@radix-ui/react-tabs": "^1.1.4",
     "@radix-ui/react-tooltip": "^1.2.0",
+    "@t3-oss/env-nextjs": "^0.12.0",
     "@tailwindcss/cli": "^4.1.4",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/react-query": "^5.74.4",

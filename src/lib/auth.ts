@@ -8,6 +8,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { eq, and } from "drizzle-orm";
 import { compare } from "bcrypt";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { env } from "~/env";
 
 // Helper function to handle provider import differences between environments
 // Ignore any type errors here, we know the providers are valid
@@ -34,12 +35,12 @@ export const authOptions: NextAuthOptions = {
   },
   providers: [
     createProvider(GitHubProvider, {
-      clientId: process.env.GITHUB_CLIENT_ID || "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
+      clientId: env.GITHUB_CLIENT_ID || "",
+      clientSecret: env.GITHUB_CLIENT_SECRET || "",
     }),
     createProvider(GoogleProvider, {
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: env.GOOGLE_CLIENT_ID || "",
+      clientSecret: env.GOOGLE_CLIENT_SECRET || "",
     }),
     createProvider(CredentialsProvider, {
       name: "Credentials",
