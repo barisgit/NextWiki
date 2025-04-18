@@ -172,25 +172,14 @@ export function HighlightedContent({
       const href = anchor.getAttribute("href");
       if (!href) return;
 
-      // Skip external links, anchors, or links with special targets
-      if (
-        href.startsWith("http://") ||
-        href.startsWith("https://") ||
-        href.startsWith("#") ||
-        href.startsWith("mailto:") ||
-        href.startsWith("tel:") ||
-        anchor.getAttribute("target") === "_blank" ||
-        anchor.getAttribute("rel") === "external" ||
-        e.ctrlKey ||
-        e.metaKey ||
-        e.shiftKey
-      ) {
-        return;
-      }
+      // Check if this is an internal link (has internal-link class)
+      const isInternalLink = anchor.classList.contains("internal-link");
 
-      // Handle internal links with client-side navigation
-      e.preventDefault();
-      router.push(href);
+      // Only handle internal links with client-side navigation
+      if (isInternalLink) {
+        e.preventDefault();
+        router.push(href);
+      }
     };
 
     // Only add this listener if we're using pre-rendered HTML

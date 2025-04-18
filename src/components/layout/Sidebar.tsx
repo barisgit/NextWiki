@@ -619,7 +619,7 @@ export function Sidebar() {
           }`}
           data-scroll-bottom={isAtBottom}
         >
-          <h3 className="flex-shrink-0 mb-2 text-xs font-semibold uppercase text-muted-foreground">
+          <h3 className="flex-shrink-0 px-2 mb-2 text-xs font-semibold uppercase text-muted-foreground">
             Wiki Structure
           </h3>
 

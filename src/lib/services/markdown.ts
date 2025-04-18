@@ -6,6 +6,7 @@ import { renderMarkdownToHtml as baseRenderMarkdownToHtml } from "~/lib/markdown
 import { db } from "~/lib/db";
 import { wikiPages } from "~/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { invalidatePageExistenceCache } from "~/lib/markdown/plugins/rehypeWikiLinks.server";
 
 // Regular expression to find wiki links in markdown for pre-caching
 const INTERNAL_LINK_REGEX = /\[([^\]]+)\]\(\/([^)]+)\)/g;
@@ -32,14 +33,23 @@ function extractInternalLinkPaths(content: string): string[] {
  *
  * @param content Markdown content to render
  * @param pageId Optional ID of the page for updating the database
+ * @param pagePath Optional path of the current page for link resolution
  * @returns The rendered HTML string
  */
 export async function renderWikiMarkdownToHtml(
   content: string,
-  pageId?: number
+  pageId?: number,
+  pagePath?: string
 ): Promise<string> {
   // Render the markdown content to HTML (the rehype plugin will process links automatically)
-  const renderedHtml = await baseRenderMarkdownToHtml(content);
+  // If pagePath is provided, strip any leading slash to match database paths format
+  const normalizedPagePath = pagePath?.startsWith("/")
+    ? pagePath.substring(1)
+    : pagePath;
+  const renderedHtml = await baseRenderMarkdownToHtml(
+    content,
+    normalizedPagePath
+  );
 
   // If page ID is provided, update the database with the rendered HTML
   // We do not await this as it is not needed for the function to return
@@ -64,6 +74,9 @@ export async function renderWikiMarkdownToHtml(
  * Useful for refreshing after changes to rendering logic
  */
 export async function rebuildAllRenderedHtml(): Promise<void> {
+  // Invalidate the page existence cache for a full refresh
+  invalidatePageExistenceCache();
+
   const allPages = await db.query.wikiPages.findMany({
     columns: {
       id: true,
@@ -79,7 +92,16 @@ export async function rebuildAllRenderedHtml(): Promise<void> {
   }
 }
 
+/**
+ * Hook to invalidate wiki link cache after page creation/update/deletion
+ * Call this when pages are created/updated/deleted to ensure link status is updated
+ */
+export function invalidateWikiLinkCache(): void {
+  invalidatePageExistenceCache();
+}
+
 export const markdownService = {
   renderWikiMarkdownToHtml,
   rebuildAllRenderedHtml,
+  invalidateWikiLinkCache,
 };

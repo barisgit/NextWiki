@@ -8,20 +8,179 @@ import type { Plugin } from "unified";
 import type { Element } from "hast";
 import { db } from "~/lib/db";
 import { wikiPages } from "~/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
+
+// Cache configuration
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minute cache lifetime
+
+// Time-based cache implementation
+interface CacheEntry {
+  value: boolean;
+  timestamp: number;
+}
+
+// Cache of page existence to avoid repeated queries
+const pageExistenceCache = new Map<string, CacheEntry>();
+
+/**
+ * Check if multiple pages exist in a single database query
+ * @param paths Array of paths to check
+ * @returns Map of path to existence boolean
+ */
+async function bulkCheckPagesExistence(
+  paths: string[]
+): Promise<Map<string, boolean>> {
+  // If no paths, return empty map
+  if (paths.length === 0) return new Map();
+
+  // Query the database for all paths at once
+  const existingPages = await db.query.wikiPages.findMany({
+    where: inArray(
+      wikiPages.path,
+      paths.map((path) => (path.startsWith("/") ? path.slice(1) : path))
+    ),
+    columns: { path: true },
+  });
+
+  // Create a map of path -> exists
+  const existingPathsSet = new Set(
+    existingPages.map((page) => `/${page.path}`)
+  );
+  const result = new Map<string, boolean>();
+
+  // Fill the result map with existence status
+  for (const path of paths) {
+    result.set(path, existingPathsSet.has(path));
+  }
+
+  return result;
+}
 
 /**
  * Checks if a wiki page exists in the database by its path
- * @param path Path of the page to check
- * @returns Boolean indicating if the page exists
+ * Uses caching to reduce database queries
+ *
+ * @param pathsToCheck Paths to check for existence
+ * @returns Map of path to existence boolean
  */
-async function doesPageExist(path: string): Promise<boolean> {
-  const page = await db.query.wikiPages.findFirst({
-    where: eq(wikiPages.path, path),
-    columns: { id: true },
-  });
+async function checkPagesExistence(
+  pathsToCheck: string[]
+): Promise<Map<string, boolean>> {
+  const now = Date.now();
+  const result = new Map<string, boolean>();
+  const pathsToQuery: string[] = [];
 
-  return !!page;
+  // Check cache first and collect uncached or expired paths
+  for (const path of pathsToCheck) {
+    const cacheEntry = pageExistenceCache.get(path);
+
+    if (cacheEntry && now - cacheEntry.timestamp < CACHE_TTL_MS) {
+      // Cache hit and not expired
+      result.set(path, cacheEntry.value);
+    } else {
+      // Cache miss or expired
+      pathsToQuery.push(path);
+    }
+  }
+
+  // If all paths were cached, return early
+  if (pathsToQuery.length === 0) return result;
+
+  // Query database for all uncached/expired paths
+  const freshData = await bulkCheckPagesExistence(pathsToQuery);
+
+  // Update cache and merge with cached results
+  for (const [path, exists] of freshData.entries()) {
+    // Update cache
+    pageExistenceCache.set(path, {
+      value: exists,
+      timestamp: now,
+    });
+
+    // Add to result
+    result.set(path, exists);
+  }
+
+  return result;
+}
+
+/**
+ * Clear the page existence cache
+ */
+export function clearPageExistenceCache(): void {
+  pageExistenceCache.clear();
+}
+
+/**
+ * Link types
+ */
+export enum LinkType {
+  IMAGE = "image",
+  VIDEO = "video",
+  AUDIO = "audio",
+  PAGE = "page",
+  DOCUMENT = "document",
+  EXTERNAL = "external",
+}
+
+/**
+ * Allowed link extensions for each link type
+ */
+export const allowedLinkExtensions = {
+  [LinkType.IMAGE]: ["png", "jpg", "jpeg", "gif", "svg", "webp"],
+  [LinkType.VIDEO]: ["mp4", "webm", "mov", "avi", "mkv"],
+  [LinkType.AUDIO]: ["mp3", "wav", "ogg", "m4a", "flac"],
+  [LinkType.DOCUMENT]: ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"],
+};
+
+/**
+ * Get the type of a link based on its href
+ * @param href The href of the link
+ * @returns The type of the link
+ */
+export function getLinkType(href: string): LinkType {
+  // If the link doesn't contain a dot, it can't be an external link
+  if (!href.includes(".")) {
+    const extension = href.split(".").pop();
+    if (!extension) return LinkType.PAGE;
+    if (allowedLinkExtensions[LinkType.IMAGE].includes(extension)) {
+      return LinkType.IMAGE;
+    }
+    if (allowedLinkExtensions[LinkType.AUDIO].includes(extension)) {
+      return LinkType.AUDIO;
+    }
+    if (allowedLinkExtensions[LinkType.VIDEO].includes(extension)) {
+      return LinkType.VIDEO;
+    }
+    if (allowedLinkExtensions[LinkType.DOCUMENT].includes(extension)) {
+      return LinkType.DOCUMENT;
+    }
+    return LinkType.PAGE;
+  }
+  return LinkType.EXTERNAL;
+}
+
+/**
+ * Render an internal link to a full format
+ * @param href The href of the link
+ * @param currentPage The current page
+ * @returns The rendered link
+ *
+ * @example: link with href: path/to/page on page original/path -> /original/path/path/to/page
+ * Note: See how links are stored without leading slash but we need to add it for the href to work from the root
+ */
+export function renderInternalLink(href: string, currentPage: string) {
+  if (href.startsWith("/")) {
+    return href;
+  }
+
+  // Special case for root page
+  if (currentPage === "") {
+    return `/${href}`;
+  }
+
+  const path = href.substring(1).replace(/\/+$/, "");
+  return `/${currentPage}/${path}`;
 }
 
 /**
@@ -39,6 +198,17 @@ export interface RehypeWikiLinksOptions {
    * @default 'wiki-link-missing'
    */
   missingClass?: string;
+
+  /**
+   * Class to add to internal links
+   * @default 'internal-link'
+   */
+  internalLinksClass?: string;
+
+  /**
+   * Current page path for resolving relative links
+   */
+  currentPagePath?: string;
 }
 
 /**
@@ -48,8 +218,10 @@ export interface RehypeWikiLinksOptions {
 export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], any> = (
   options = {}
 ) => {
+  const internalLinksClass = options.internalLinksClass || "internal-link";
   const existsClass = options.existsClass || "wiki-link-exists";
   const missingClass = options.missingClass || "wiki-link-missing";
+  const currentPagePath = options.currentPagePath || "";
 
   return async function transformer(tree: any): Promise<void> {
     // Collect all wiki links
@@ -63,36 +235,50 @@ export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], any> = (
       if (
         node.tagName === "a" &&
         node.properties &&
-        typeof node.properties.href === "string" &&
-        node.properties.href.startsWith("/")
+        typeof node.properties.href === "string"
+        // node.properties.href.startsWith("/")
       ) {
         const href = node.properties.href;
-        // Remove leading slash and remove any trailing slashes
-        const path = href.substring(1).replace(/\/+$/, "");
-        wikiLinks.push({ node, path });
+        const type = getLinkType(href);
+        if (type === LinkType.PAGE) {
+          const path = renderInternalLink(href, currentPagePath);
+          console.log(`${href} -> ${path}`);
+          wikiLinks.push({ node, path });
+        }
       }
     });
 
-    // Process all links in parallel
-    await Promise.all(
-      wikiLinks.map(async ({ node, path }) => {
-        const exists = await doesPageExist(path);
+    // If no wiki links, return early
+    if (wikiLinks.length === 0) return;
 
-        // Add class to the node
-        const className = exists ? existsClass : missingClass;
-        if (!node.properties) node.properties = {};
+    // Get unique paths to check
+    const uniquePaths = Array.from(new Set(wikiLinks.map((link) => link.path)));
 
-        if (Array.isArray(node.properties.className)) {
-          node.properties.className.push(className);
-        } else if (typeof node.properties.className === "string") {
-          node.properties.className = [node.properties.className, className];
-        } else {
-          node.properties.className = [className];
-        }
-      })
-    );
+    // Batch check all paths in a single query
+    const existenceMap = await checkPagesExistence(uniquePaths);
+
+    // Apply classes to all links
+    for (const { node, path } of wikiLinks) {
+      const exists = existenceMap.get(path) || false;
+
+      // Add class to the node
+      const className = `${internalLinksClass} ${
+        exists ? existsClass : missingClass
+      }`;
+      if (!node.properties) node.properties = {};
+
+      if (Array.isArray(node.properties.className)) {
+        node.properties.className.push(className);
+      } else if (typeof node.properties.className === "string") {
+        node.properties.className = [node.properties.className, className];
+      } else {
+        node.properties.className = [className];
+      }
+    }
   };
 };
 
-// Add export here to ensure it's properly accessible
+// Re-export the cache clearing function
+export { clearPageExistenceCache as invalidatePageExistenceCache };
+
 export default rehypeWikiLinks;

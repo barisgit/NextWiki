@@ -10,7 +10,7 @@ ul.links-list {
 }
 
 ul.links-list li {
-  @apply bg-background-level1 p-4 rounded-lg shadow-md dark:shadow-black dark:shadow-sm hover:border-primary/50 hover:bg-background-level2/80 border border-transparent transition-all duration-200 flex items-start;
+  @apply bg-background-level1 dark:bg-background-level2 p-4 rounded-lg shadow-md dark:shadow-none hover:border-primary/50 hover:bg-background-level2 dark:hover:bg-background-level3 border border-transparent dark:border-border-dark transition-all duration-200 flex items-start;
 }
 
 /* Emoji styling */

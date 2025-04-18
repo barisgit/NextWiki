@@ -1,4 +1,6 @@
 import { seedPermissions, createDefaultGroups } from "./seeds/permissions";
+import * as path from "path";
+import * as url from "url";
 
 /**
  * Main seed function that runs all seed operations
@@ -27,9 +29,13 @@ async function seed() {
 }
 
 // Run the seed function and exit only if this file is executed directly
-if (require.main === module) {
+const currentFilePath = url.fileURLToPath(import.meta.url);
+const entryPointPath = path.resolve(process.argv[1]);
+
+if (currentFilePath === entryPointPath) {
   seed()
     .then(() => {
+      console.log("Seed script finished successfully.");
       process.exit(0);
     })
     .catch((error) => {

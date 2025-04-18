@@ -102,7 +102,7 @@ export function SearchBar() {
       <input
         type="search"
         placeholder="Search wiki..."
-        className="w-full py-2 pl-10 pr-4 text-sm transition-colors border rounded-lg bg-input border-border-default hover:border-border-dark dark:hover:border-border-light focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary text-text-primary"
+        className="w-full py-2 pl-10 pr-4 text-sm transition-colors border rounded-lg dark:bg-background-level3 border-border-default hover:border-border-dark dark:hover:border-border-light focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary text-text-primary"
         value={searchQuery}
         onChange={(e) => updateHighlightParam(e.target.value)}
         onFocus={() => setShowResults(true)}
