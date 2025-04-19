@@ -38,7 +38,7 @@ export default function AssetsAdminPage() {
   );
 
   // Handle asset deletion
-  const handleDeleteAsset = (assetId: number) => {
+  const handleDeleteAsset = (assetId: string) => {
     if (confirm("Are you sure you want to delete this asset?")) {
       deleteAssetMutation.mutate({ id: assetId });
     }
@@ -191,9 +191,9 @@ export default function AssetsAdminPage() {
                     {asset.uploadedBy?.name || "Unknown"}
                   </td>
                   <td className="px-4 py-2">
-                    {asset.pageId ? (
+                    {asset.id ? (
                       <a
-                        href={`/admin/wiki/${asset.pageId}`}
+                        href={`/admin/wiki/${asset.id}`}
                         className="text-blue-600 hover:underline"
                       >
                         View Page

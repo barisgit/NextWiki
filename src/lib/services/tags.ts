@@ -1,6 +1,6 @@
 import { db } from "~/lib/db";
 import { wikiTags, wikiPageToTag } from "~/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, ilike } from "drizzle-orm";
 
 /**
  * Tag service - handles all tag-related database operations
@@ -49,10 +49,33 @@ export const tagService = {
       with: {
         pages: {
           with: {
-            page: true,
+            page: {
+              with: {
+                updatedBy: true,
+                lockedBy: true,
+                tags: {
+                  with: {
+                    tag: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
+    });
+  },
+
+  /**
+   * Search for tags by name (case-insensitive)
+   * @param query The search query string
+   * @param limit Maximum number of results to return
+   */
+  async searchByName(query: string, limit = 10) {
+    return db.query.wikiTags.findMany({
+      where: ilike(wikiTags.name, `%${query}%`), // Use ilike for case-insensitive matching
+      orderBy: (tags, { asc }) => [asc(tags.name)],
+      limit: limit,
     });
   },
 

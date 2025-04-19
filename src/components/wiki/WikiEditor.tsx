@@ -1,22 +1,107 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTRPC } from "~/lib/trpc/client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { MarkdownProse } from "./MarkdownProse";
-import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror";
-import { markdown } from "@codemirror/lang-markdown";
-import { tokyoNightStorm } from "@uiw/codemirror-theme-tokyo-night-storm";
+import CodeMirror, {
+  EditorView,
+  type ReactCodeMirrorRef,
+} from "@uiw/react-codemirror";
+import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+import { languages } from "@codemirror/language-data";
+import {
+  syntaxHighlighting,
+  defaultHighlightStyle,
+  HighlightStyle,
+} from "@codemirror/language";
+import { tags } from "@lezer/highlight";
+import { xcodeLight, xcodeDark } from "@uiw/codemirror-theme-xcode";
 import { HighlightedMarkdown } from "~/lib/markdown/client";
-import Modal from "~/components/ui/modal";
 import { AssetManager } from "./AssetManager";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverAnchor,
+} from "../ui/popover";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { ThemeToggle } from "../layout/theme-toggle";
+import {
+  X,
+  ChevronDown,
+  Image,
+  File,
+  Save,
+  ArrowLeft,
+  Loader2,
+} from "lucide-react";
+import {
+  Command,
+  CommandList,
+  CommandItem,
+  CommandEmpty,
+} from "~/components/ui/command";
 
-// Define extensions and theme statically
-const editorExtensions = [markdown()];
-const editorTheme = tokyoNightStorm;
+// Basic debounce hook implementation
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// Custom highlight style for markdown
+// TODO: Try to use nested styles
+const markdownHighlightStyle = HighlightStyle.define([
+  { tag: tags.heading, fontWeight: "bold", color: "var(--color-primary)" },
+  { tag: tags.heading1, fontSize: "1.6em", color: "var(--color-accent)" },
+  { tag: tags.heading2, fontSize: "1.4em", color: "var(--color-accent)" },
+  { tag: tags.heading3, fontSize: "1.2em", color: "var(--color-secondary)" },
+  { tag: tags.strong, fontWeight: "bold", color: "var(--color-complementary)" },
+  {
+    tag: tags.emphasis,
+    fontStyle: "italic",
+    color: "var(--color-text-secondary)",
+  },
+  { tag: tags.link, color: "var(--color-complementary)" },
+  { tag: tags.url, color: "var(--color-complementary)" },
+  { tag: tags.escape, color: "var(--color-complementary)" },
+  { tag: tags.list, color: "var(--color-text-secondary)" },
+  { tag: tags.quote, color: "var(--color-primary)" },
+  { tag: tags.comment, color: "var(--color-accent)" },
+  {
+    tag: tags.monospace,
+    color: "var(--color-text-primary)",
+    backgroundColor: "var(--color-background-level3)",
+  },
+  { tag: tags.meta, color: "var(--color-text-secondary)" },
+]);
+
+// Enhanced extensions for better markdown handling
+const editorExtensions = [
+  markdown({
+    base: markdownLanguage,
+    codeLanguages: languages,
+  }),
+  syntaxHighlighting(markdownHighlightStyle),
+  syntaxHighlighting(defaultHighlightStyle),
+];
 
 interface WikiEditorProps {
   mode: "create" | "edit";
@@ -41,21 +126,160 @@ export function WikiEditor({
   const [content, setContent] = useState(initialContent);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(initialTags);
-  const [isLocked, setIsLocked] = useState(false);
+  const [isLocked, setIsLocked] = useState(mode === "create");
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [showPreview, setShowPreview] = useState(true);
-  const [showMetaModal, setShowMetaModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("editor");
   const [showAssetManager, setShowAssetManager] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const popoverContentRef = useRef<HTMLDivElement>(null);
+  const lockAcquiredRef = useRef(false);
+  const isDarkMode =
+    typeof window !== "undefined"
+      ? document.documentElement.classList.contains("dark")
+      : false;
   const trpc = useTRPC();
+
+  const debouncedTagInput = useDebounce(tagInput, 300);
+
+  const queryClient = useQueryClient();
+  const assetsQueryKey = trpc.assets.getPaginated.queryKey();
+
+  // TRPC mutation for uploading assets
+  const uploadAssetMutation = useMutation(
+    trpc.assets.upload.mutationOptions({
+      onSuccess: (asset) => {
+        // Insert markdown link for the uploaded asset
+        const isImage = asset.fileType.startsWith("image/");
+        const assetMarkdown = isImage
+          ? `![${asset.fileName}](${`/api/assets/${asset.id}`})` // Image link
+          : `[${asset.fileName}](${`/api/assets/${asset.id}`})`; // Standard link
+
+        // Insert at current cursor position or append to content
+        // TODO: Implement inserting at cursor position using editorRef
+        setContent((current) => current + "\n" + assetMarkdown + "\n");
+        setUnsavedChanges(true);
+
+        notification.success("Asset uploaded successfully");
+      },
+      onError: (error) => {
+        console.error("Error uploading asset:", error);
+        notification.error(`Failed to upload asset: ${error.message}`);
+      },
+    })
+  );
+
+  // Upload file to server using TRPC mutation
+  const handleFileUpload = useCallback(
+    async (file: File) => {
+      if (!file) return;
+
+      try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64Data = reader.result as string;
+          uploadAssetMutation.mutateAsync({
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size,
+            data: base64Data, // Pass the base64 data URI
+            pageId: pageId || null, // Ensure pageId is number or null
+          });
+        };
+        reader.readAsDataURL(file); // Read as data URL
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        notification.error("Failed to upload image");
+      } finally {
+        queryClient.invalidateQueries({ queryKey: assetsQueryKey });
+      }
+    },
+    [pageId, notification, uploadAssetMutation]
+  );
+
+  // CodeMirror event handler extension for paste and drop
+  const cmEventHandlers = EditorView.domEventHandlers({
+    paste: (event: ClipboardEvent, view: EditorView) => {
+      console.log("CodeMirror paste event triggered");
+      console.log("Pasted into view:", view); // Example use of view to satisfy linter
+      const files = Array.from(event.clipboardData?.files || []);
+      const items = Array.from(event.clipboardData?.items || []);
+
+      // Optional: Log detected items for debugging
+      console.log(
+        "CM Clipboard Files:",
+        files.map((f) => ({ name: f.name, type: f.type, size: f.size }))
+      );
+      console.log(
+        "CM Clipboard Items:",
+        items.map((item) => ({ kind: item.kind, type: item.type }))
+      );
+
+      // Prioritize actual files
+      if (files.length > 0) {
+        // Check if the first file is suitable (could be image or other type)
+        const fileToUpload = files[0];
+        if (fileToUpload) {
+          console.log("CM: Found file in files:", fileToUpload.name);
+          event.preventDefault();
+          handleFileUpload(fileToUpload);
+          return true; // Indicate we handled the event
+        }
+      }
+
+      // Fallback: check items
+      const imageItem = items.find(
+        (item) => item.kind === "file" // Find any file item, regardless of type
+      );
+
+      if (imageItem) {
+        console.log("CM: Found file item (kind=file)", imageItem.type);
+        event.preventDefault();
+        const file = imageItem.getAsFile();
+        if (file) {
+          console.log("CM: Got file from image item:", file.name);
+          handleFileUpload(file); // Use the renamed file upload handler
+          return true; // Indicate we handled the event
+        }
+      }
+      console.log(
+        "CM: No suitable file found in clipboard data, allowing default paste."
+      );
+      return false; // Allow default paste if no image found/handled
+    },
+    drop: (event: DragEvent, view: EditorView) => {
+      console.log("CodeMirror drop event triggered");
+      console.log("Dropped onto view:", view); // Example use of view to satisfy linter
+      event.preventDefault();
+      const file = event.dataTransfer?.files[0];
+      // Handle any dropped file type
+      if (file) {
+        console.log("CM: Handling dropped image:", file.name);
+        handleFileUpload(file); // Use the renamed file upload handler
+        return true; // Indicate we handled the event
+      }
+      return false; // Allow default drop if not handled
+    },
+  });
+
+  // Content change tracking
+  useEffect(() => {
+    if (content !== initialContent) {
+      setUnsavedChanges(true);
+    }
+  }, [content, initialContent]);
 
   // Create page mutation
   const createPageMutation = useMutation(
     trpc.wiki.create.mutationOptions({
       onSuccess: (data) => {
         notification.success("Page created successfully");
+        setUnsavedChanges(false);
         // Navigate to new page
         router.push(`/${data.path}`);
       },
@@ -71,6 +295,7 @@ export function WikiEditor({
     trpc.wiki.update.mutationOptions({
       onSuccess: () => {
         notification.success("Page updated successfully");
+        setUnsavedChanges(false);
         if (pagePath) {
           router.push(`/${pagePath}`);
         } else {
@@ -90,37 +315,25 @@ export function WikiEditor({
       onSuccess: (data) => {
         if (data && "success" in data && data.success) {
           setIsLocked(true);
-          notification.success("You have acquired the edit lock for this page");
+          notification.success("You now have edit access to this page");
         } else if (data && "page" in data && data.page?.lockedById) {
           // Lock acquisition failed because someone else has the lock
           notification.error("This page is being edited by another user");
           // Navigate back
-          if (pagePath) {
-            router.push(`/${pagePath}`);
-          } else {
-            router.push("/wiki");
-          }
+          navigateBack();
         } else {
           // Generic failure
           notification.error(
             "Could not acquire edit lock. Please try again later."
           );
           // Navigate back
-          if (pagePath) {
-            router.push(`/${pagePath}`);
-          } else {
-            router.push("/wiki");
-          }
+          navigateBack();
         }
       },
       onError: (error) => {
         notification.error(`Failed to acquire edit lock: ${error.message}`);
         // If we can't get the lock, go back to the page
-        if (pagePath) {
-          router.push(`/${pagePath}`);
-        } else {
-          router.push("/wiki");
-        }
+        navigateBack();
       },
     })
   );
@@ -139,32 +352,39 @@ export function WikiEditor({
       onError: (error) => {
         notification.error(`Lock expired: ${error.message}`);
         // Lock expired, go back to the wiki page
-        if (pagePath) {
-          router.push(`/${pagePath}`);
-        } else {
-          router.push("/wiki");
-        }
+        navigateBack();
       },
     })
   );
 
+  // Navigate back helper
+  const navigateBack = useCallback(() => {
+    router.refresh();
+    if (pagePath) {
+      router.push(`/${pagePath}`);
+    } else {
+      router.push("/wiki");
+    }
+  }, [router, pagePath]);
+
   // Acquire lock on component mount (only in edit mode)
   useEffect(() => {
-    if (mode === "edit" && pageId) {
+    if (mode === "edit" && pageId && !lockAcquiredRef.current) {
+      lockAcquiredRef.current = true;
       acquireLockMutation.mutate({ id: pageId });
-
-      // Release lock when component unmounts
-      return () => {
-        if (isLocked && pageId) {
-          releaseLockMutation.mutate({ id: pageId });
-        }
-      };
     }
-  }, [mode, pageId]);
+
+    // Release lock when component unmounts
+    return () => {
+      if (isLocked && pageId) {
+        releaseLockMutation.mutate({ id: pageId });
+      }
+    };
+  }, [mode, pageId, isLocked]);
 
   // Add lock refresh interval (only in edit mode)
   useEffect(() => {
-    let refreshInterval: NodeJS.Timeout;
+    let refreshInterval: NodeJS.Timeout | undefined;
 
     if (mode === "edit" && isLocked && pageId) {
       // Refresh the lock every 5 minutes to prevent timeout
@@ -178,17 +398,56 @@ export function WikiEditor({
         clearInterval(refreshInterval);
       }
     };
-  }, [mode, isLocked, pageId, refreshLockMutation]);
+  }, [mode, isLocked, pageId]);
 
+  // Fetch tag suggestions when debounced input changes
+  const { data: fetchedSuggestions } = useQuery({
+    ...trpc.tags.search.queryOptions({
+      query: debouncedTagInput,
+      limit: 3, // Limit suggestions on the backend,
+    }),
+    enabled: debouncedTagInput.length > 0 && showSuggestions, // Other options merged here
+  });
+
+  // Update suggestions state when fetched data changes
+  useEffect(() => {
+    if (fetchedSuggestions) {
+      // Define expected tag type for suggestions
+      type TagSuggestion = { id: number; name: string };
+
+      // Filter out tags already added
+      setTagSuggestions(
+        (fetchedSuggestions as TagSuggestion[])
+          .map((tag: TagSuggestion) => tag.name)
+          .filter((name: string) => !tags.includes(name))
+      );
+    } else {
+      // Clear suggestions if fetched data is undefined (e.g., query disabled or loading)
+      setTagSuggestions([]);
+    }
+  }, [fetchedSuggestions, tags]);
+
+  // Focus title input when editing title
+  useEffect(() => {
+    if (editingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+    }
+  }, [editingTitle]);
+
+  // Tag management
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
       setTagInput("");
+      setTagSuggestions([]);
+      setShowSuggestions(false);
+      setUnsavedChanges(true);
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
     setTags(tags.filter((tag) => tag !== tagToRemove));
+    setUnsavedChanges(true);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -198,8 +457,33 @@ export function WikiEditor({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Title management
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      setEditingTitle(false);
+    } else if (e.key === "Escape") {
+      setEditingTitle(false);
+    }
+  };
+
+  const handleTitleBlur = () => {
+    setEditingTitle(false);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+    setUnsavedChanges(true);
+  };
+
+  // Save & cancel handlers
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!title.trim()) {
+      notification.error("Please enter a title for the page");
+      return;
+    }
+
     setIsSaving(true);
 
     if (mode === "create") {
@@ -208,6 +492,7 @@ export function WikiEditor({
         content,
         path: pagePath,
         isPublished: true,
+        tags,
       });
     } else if (mode === "edit" && pageId) {
       updatePageMutation.mutate({
@@ -216,85 +501,36 @@ export function WikiEditor({
         title,
         content,
         isPublished: true,
+        tags,
       });
     }
   };
 
   const handleCancel = () => {
+    // Ask for confirmation if there are unsaved changes
+    if (unsavedChanges) {
+      if (
+        !window.confirm(
+          "You have unsaved changes. Are you sure you want to leave?"
+        )
+      ) {
+        return;
+      }
+    }
+
     // Release the lock if in edit mode
     if (mode === "edit" && isLocked && pageId) {
       releaseLockMutation.mutate(
-        {
-          id: pageId,
-        },
+        { id: pageId },
         {
           onSuccess: () => {
-            // Refresh router data and then navigate back
-            router.refresh();
-            if (pagePath) {
-              router.push(`/${pagePath}`);
-            } else {
-              router.push("/wiki");
-            }
+            navigateBack();
           },
         }
       );
     } else {
       // If no lock to release, just navigate back
-      if (pagePath) {
-        router.push(`/${pagePath}`);
-      } else {
-        router.push("/wiki");
-      }
-    }
-  };
-
-  // If we're waiting for lock acquisition in edit mode, show loading
-  if (mode === "edit" && acquireLockMutation.isPending) {
-    return (
-      <div className="flex justify-center p-10">Acquiring edit lock...</div>
-    );
-  }
-
-  // Upload image to server
-  const handleImageUpload = async (file: File) => {
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-      // Create form data
-      const formData = new FormData();
-      formData.append("file", file);
-      if (pageId) {
-        formData.append("pageId", pageId.toString());
-      }
-
-      // Upload to server
-      const response = await fetch("/api/assets/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to upload image");
-      }
-
-      const data = await response.json();
-
-      if (data.success && data.asset) {
-        // Insert markdown for image at cursor position
-        const imageMarkdown = `![${data.asset.fileName}](/api/assets/${data.asset.id})`;
-
-        // Insert at current cursor position or append to content
-        setContent((current) => current + "\n" + imageMarkdown + "\n");
-
-        notification.success("Image uploaded successfully");
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      notification.error("Failed to upload image");
-    } finally {
-      setIsUploading(false);
+      navigateBack();
     }
   };
 
@@ -302,7 +538,7 @@ export function WikiEditor({
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      void handleImageUpload(files[0]);
+      void handleFileUpload(files[0]); // Use the renamed file upload handler
     }
   };
 
@@ -311,35 +547,6 @@ export function WikiEditor({
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-    const pastedImage = Array.from(e.clipboardData.items).find((item) =>
-      item.type.startsWith("image/")
-    );
-    if (pastedImage) {
-      const file = pastedImage.getAsFile();
-      if (file) {
-        handleImageUpload(file);
-      }
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleImageUpload(file);
-    }
-  };
-
-  // Render markdown preview
-  const renderMarkdown = () => {
-    return (
-      <MarkdownProse className="px-6 py-4">
-        <HighlightedMarkdown content={content} />
-      </MarkdownProse>
-    );
   };
 
   // Handle asset selection from asset manager
@@ -352,304 +559,382 @@ export function WikiEditor({
 
     // Insert at cursor position or append to content
     setContent((current) => current + "\n" + markdownLink + "\n");
+    setUnsavedChanges(true);
 
     // Close the asset manager
     setShowAssetManager(false);
   };
 
+  const getEditorTheme = () => {
+    return isDarkMode ? xcodeDark : xcodeLight;
+  };
+
+  // If we're waiting for lock acquisition in edit mode, show loading
+  if (mode === "edit" && !isLocked) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-background">
+        <div className="flex flex-col items-center p-8 space-y-4 text-center">
+          <Loader2 className="w-10 h-10 text-primary animate-spin" />
+          <h2 className="text-xl font-medium text-text-primary">
+            Acquiring edit lock...
+          </h2>
+          <p className="text-text-secondary">
+            Please wait while we secure exclusive access to edit this page
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header Bar */}
       <header className="sticky top-0 z-10 border-b bg-card border-border">
-        <div className="flex items-center justify-between px-4 h-14">
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-medium truncate text-text-primary">
-              {title || "Untitled"}
-            </h2>
-            {mode === "edit" && isLocked && (
-              <span className="px-2 py-1 text-xs font-medium rounded-full text-success-50 bg-success-500">
-                Editing
-              </span>
+        <div className="flex items-center justify-between h-16 px-6 py-2">
+          <div className="flex items-center gap-4">
+            <Button
+              size="sm"
+              variant="outlined"
+              color="neutral"
+              onClick={handleCancel}
+              className="flex items-center gap-1"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </Button>
+
+            {editingTitle ? (
+              <Input
+                ref={titleInputRef}
+                value={title}
+                onChange={handleTitleChange}
+                onBlur={handleTitleBlur}
+                onKeyDown={handleTitleKeyDown}
+                placeholder="Enter page title"
+                className="px-2 py-1 text-xl font-medium w-72"
+                autoFocus
+              />
+            ) : (
+              <h2
+                className="max-w-md text-xl font-medium truncate cursor-pointer text-text-primary hover:text-primary"
+                onClick={() => setEditingTitle(true)}
+                title="Click to edit title"
+              >
+                {title || "Untitled"}
+              </h2>
             )}
-            <span className="text-xs text-muted-foreground">
-              {pagePath && `Path: ${pagePath}`}
-            </span>
+
+            {mode === "edit" && isLocked && (
+              <Badge variant="default" color="success">
+                Editing
+              </Badge>
+            )}
+
+            {pagePath && (
+              <Badge variant="secondary" color="neutral" className="text-xs">
+                {pagePath}
+              </Badge>
+            )}
+
+            {unsavedChanges && (
+              <Badge variant="secondary" color="warning">
+                Unsaved Changes
+              </Badge>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="soft"
-              color="primary"
-              onClick={triggerFileUpload}
-              disabled={isUploading}
-            >
-              {isUploading ? "Uploading..." : "Upload Image"}
-            </Button>
+            {/* Asset Management Button with Dropdown */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="soft"
+                  color="accent"
+                  className="flex items-center gap-1"
+                >
+                  <span>Assets</span>
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-2">
+                <div className="flex flex-col gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    color="primary"
+                    onClick={triggerFileUpload}
+                    disabled={uploadAssetMutation.isPending}
+                    className="flex items-center justify-start gap-2"
+                  >
+                    <Image className="w-4 h-4" />
+                    <span>Upload Image</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    color="accent"
+                    onClick={() => setShowAssetManager(true)}
+                    className="flex items-center justify-start gap-2"
+                  >
+                    <File className="w-4 h-4" />
+                    <span>Asset Manager</span>
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
 
-            <Button
-              size="sm"
-              variant="soft"
-              color="accent"
-              onClick={() => setShowAssetManager(true)}
-            >
-              Asset Manager
-            </Button>
-
+            {/* Hidden File Input - Kept for triggerFileUpload functionality */}
             <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileInputChange}
-              accept="image/*"
-              className="hidden"
+              style={{ display: "none" }}
             />
 
             <Button
               size="sm"
-              variant="ghost"
-              color="secondary"
-              onClick={() => setShowMetaModal(true)}
-            >
-              Edit Metadata
-            </Button>
-
-            <Button
-              size="sm"
-              variant="outlined"
-              color="secondary"
-              onClick={() => setShowPreview(!showPreview)}
-            >
-              {showPreview ? "Hide Preview" : "Show Preview"}
-            </Button>
-
-            <div className="h-6 mx-1 border-l border-border"></div>
-
-            <Button
-              size="sm"
-              variant="outlined"
-              color="error"
-              onClick={handleCancel}
-              disabled={isSaving}
-            >
-              Cancel
-            </Button>
-
-            <Button
-              size="sm"
-              variant="solid"
+              variant={isSaving ? "soft" : "solid"}
               color="success"
-              type="submit"
-              onClick={handleSubmit}
-              disabled={isSaving}
-              className="min-w-20"
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving || !unsavedChanges}
+              className="flex items-center gap-1 min-w-20"
             >
               {isSaving ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 mr-2 animate-spin"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Saving
-                </div>
+                <>
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  <span>Saving</span>
+                </>
               ) : (
-                "Save"
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>Save</span>
+                </>
               )}
             </Button>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
           </div>
         </div>
       </header>
 
-      {/* Editor and Preview Panels */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Editor Panel */}
-        <div
-          className={`${
-            showPreview ? "w-1/2" : "w-full"
-          } h-full flex flex-col overflow-hidden border-r border-border`}
-        >
-          {/* Editor Header */}
-          <div className="flex items-center justify-between px-4 py-2 border-b shadow-md bg-background-level1 border-border">
-            <span className="text-xs font-medium text-text-secondary">
-              Editing in Markdown
-            </span>
-            <div className="flex items-center gap-2">
-              {isUploading && (
-                <span className="text-xs font-medium text-warning-500">
-                  Uploading image...
-                </span>
-              )}
+      {/* Metadata Section */}
+      <div className="px-6 py-4 border-b bg-background-level1 border-border">
+        <div className="flex flex-wrap gap-3 mb-2">
+          <Label className="flex items-center text-sm font-medium text-text-secondary">
+            Tags:
+          </Label>
+
+          <div className="flex items-center">
+            {/* Tag Input with Suggestions Popover */}
+            <div className="relative">
+              <Popover
+                open={
+                  showSuggestions &&
+                  tagInput.length > 0 &&
+                  tagSuggestions.length > 0
+                }
+                onOpenChange={setShowSuggestions}
+              >
+                {/* Anchor the popover to the input field */}
+                <PopoverAnchor asChild>
+                  <Input
+                    value={tagInput}
+                    onChange={(e) => {
+                      setTagInput(e.target.value);
+                      setShowSuggestions(true); // Try to show suggestions on input change
+                    }}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => setShowSuggestions(true)} // Show on focus
+                    onBlur={(event) => {
+                      // Check if focus moved to the popover content
+                      const relatedTarget =
+                        event.relatedTarget as HTMLElement | null;
+                      if (popoverContentRef.current?.contains(relatedTarget)) {
+                        return; // Don't hide if focus is inside popover
+                      }
+                      // Hide after delay if focus moves elsewhere
+                      setTimeout(() => setShowSuggestions(false), 150);
+                    }}
+                    placeholder="Add tag..."
+                    className="w-40 text-xs h-7"
+                    aria-autocomplete="list"
+                    aria-controls="tag-suggestions"
+                  />
+                </PopoverAnchor>
+
+                <PopoverContent
+                  ref={popoverContentRef}
+                  className="w-48 p-0 mt-1"
+                  align="start"
+                  side="bottom"
+                  id="tag-suggestions"
+                >
+                  <Command>
+                    <CommandList>
+                      <CommandEmpty>No matching tags found.</CommandEmpty>
+                      {tagSuggestions.map((suggestion) => (
+                        <CommandItem
+                          key={suggestion}
+                          value={suggestion}
+                          onSelect={() => {
+                            // Use the suggestion value directly
+                            if (suggestion && !tags.includes(suggestion)) {
+                              setTags([...tags, suggestion]);
+                              setTagInput("");
+                              setTagSuggestions([]);
+                              setShowSuggestions(false);
+                              setUnsavedChanges(true);
+                            }
+                          }}
+                        >
+                          {suggestion}
+                        </CommandItem>
+                      ))}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
+
+            <Button
+              type="button"
+              onClick={handleAddTag}
+              variant="ghost"
+              color="primary"
+              size="sm"
+              className="ml-1 text-xs h-7"
+              disabled={!tagInput.trim()}
+            >
+              Add
+            </Button>
           </div>
 
-          {/* CodeMirror editor */}
-          <CodeMirror
-            ref={editorRef}
-            value={content}
-            height="100%"
-            width="100%"
-            extensions={editorExtensions}
-            onChange={(value) => setContent(value)}
-            className="h-full overflow-hidden"
-            placeholder="Write your content using Markdown... Use the 'Upload Image' button to add images"
-            theme={editorTheme}
-            onPaste={handlePaste}
-            onDrop={handleDrop}
-          />
+          {tags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  color="primary"
+                  className="flex items-center gap-1 px-2 py-1"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="rounded-full hover:bg-primary-100 hover:text-primary-700"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center">
+              <span className="text-sm text-text-tertiary">No tags</span>
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Preview Panel */}
-        {showPreview && (
-          <div className="w-1/2 h-full overflow-auto bg-background-level1">
-            {/* Preview header */}
-            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-2 border-b shadow-md bg-background-level1 border-border">
-              <span className="text-xs font-medium text-text-secondary">
+      {/* Editor Tabs and Content */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="flex flex-col flex-1 overflow-hidden"
+        >
+          <div className="border-b border-border bg-card">
+            <TabsList className="p-0 mt-1 ml-4 bg-transparent">
+              <TabsTrigger value="editor" className="px-4 py-2">
+                Editor
+              </TabsTrigger>
+              <TabsTrigger value="preview" className="px-4 py-2">
                 Preview
-              </span>
-            </div>
-            <div className="overflow-auto">{renderMarkdown()}</div>
+              </TabsTrigger>
+              <TabsTrigger value="split" className="px-4 py-2">
+                Split View
+              </TabsTrigger>
+            </TabsList>
           </div>
-        )}
+
+          {/* Editor Tab */}
+          <TabsContent
+            value="editor"
+            className="flex-1 p-0 m-0 overflow-hidden"
+          >
+            <div className="h-full">
+              <CodeMirror
+                ref={editorRef}
+                value={content}
+                height="100%"
+                width="100%"
+                extensions={[...editorExtensions, cmEventHandlers]}
+                onChange={(value) => setContent(value)}
+                className="h-full overflow-hidden"
+                placeholder="Write your content using Markdown..."
+                theme={getEditorTheme()}
+                lang="markdown"
+              />
+            </div>
+          </TabsContent>
+
+          {/* Preview Tab */}
+          <TabsContent value="preview" className="flex-1 p-0 m-0 overflow-auto">
+            <div className="h-full p-6 overflow-auto bg-background-level1">
+              <MarkdownProse>
+                <HighlightedMarkdown
+                  content={content || "*No content to preview*"}
+                />
+              </MarkdownProse>
+            </div>
+          </TabsContent>
+
+          {/* Split View Tab */}
+          <TabsContent
+            value="split"
+            className="flex flex-1 p-0 m-0 overflow-hidden"
+          >
+            <div className="flex flex-1 h-full overflow-hidden">
+              {/* Editor Panel */}
+              <div className="w-1/2 h-full overflow-hidden border-r border-border">
+                <CodeMirror
+                  value={content}
+                  height="100%"
+                  width="100%"
+                  extensions={[...editorExtensions, cmEventHandlers]}
+                  onChange={(value) => setContent(value)}
+                  className="h-full overflow-hidden"
+                  placeholder="Write your content using Markdown..."
+                  theme={getEditorTheme()}
+                />
+              </div>
+
+              {/* Preview Panel */}
+              <div className="w-1/2 h-full overflow-auto bg-background-level1">
+                <div className="p-6">
+                  <MarkdownProse>
+                    <HighlightedMarkdown
+                      content={content || "*No content to preview*"}
+                    />
+                  </MarkdownProse>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Asset Manager Modal */}
       <AssetManager
         isOpen={showAssetManager}
         onClose={() => setShowAssetManager(false)}
-        onAssetSelect={handleAssetSelect}
+        onSelectAsset={handleAssetSelect}
         pageId={pageId}
       />
-
-      {/* Metadata Modal */}
-      {showMetaModal && (
-        <Modal
-          onClose={() => setShowMetaModal(false)}
-          size="lg"
-          backgroundClass="bg-card dark:bg-card"
-          closeOnEscape={true}
-          showCloseButton={true}
-        >
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-text-primary">
-              Edit Document Metadata
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="title"
-                  className="block mb-1 text-sm font-medium text-text-primary"
-                >
-                  Title
-                </label>
-                <input
-                  id="title"
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary border-input"
-                  placeholder="Page title"
-                  required
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="tags"
-                  className="block mb-1 text-sm font-medium text-text-primary"
-                >
-                  Tags
-                </label>
-                <div className="flex items-center">
-                  <input
-                    id="tags"
-                    type="text"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="flex-1 px-3 py-2 border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary border-input"
-                    placeholder="Add a tag and press Enter"
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleAddTag}
-                    variant="soft"
-                    color="accent"
-                    size="sm"
-                    className="ml-2"
-                  >
-                    Add
-                  </Button>
-                </div>
-
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {tags.map((tag) => (
-                      <div
-                        key={tag}
-                        className="flex items-center px-2 py-1 text-sm rounded-full bg-primary-100 text-primary-700"
-                      >
-                        {tag}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTag(tag)}
-                          className="ml-1 text-primary-400 hover:text-primary-600"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 h-4"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outlined"
-                color="secondary"
-                onClick={() => setShowMetaModal(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="solid"
-                color="primary"
-                onClick={() => setShowMetaModal(false)}
-              >
-                Done
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }

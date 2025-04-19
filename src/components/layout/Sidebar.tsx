@@ -4,7 +4,14 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { useTRPC } from "~/lib/trpc/client";
 import { useQuery } from "@tanstack/react-query";
-import { Folder, File, Loader2, ChevronRight, ChevronDown } from "lucide-react";
+import {
+  Folder,
+  File,
+  Loader2,
+  ChevronRight,
+  ChevronDown,
+  Search,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import {
@@ -14,6 +21,7 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
+import { SearchModal } from "./SearchModal";
 
 interface FolderNode {
   name: string;
@@ -360,12 +368,35 @@ export function Sidebar() {
   const [allNodes, setAllNodes] = useState<Map<string, FolderNode>>(new Map());
   const [isScrollable, setIsScrollable] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const scrollAreaContainerRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
 
   // Get current pathname and router
   const pathname = usePathname();
   const router = useRouter();
+  const [isMac, setIsMac] = useState(false);
+
+  // Detect OS for keyboard shortcut display
+  useEffect(() => {
+    setIsMac(
+      typeof window !== "undefined" &&
+        window.navigator.userAgent.includes("Mac")
+    );
+  }, []);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsSearchModalOpen(true);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Remove leading slash for comparison with path values
   const currentPath = pathname?.startsWith("/")
@@ -535,10 +566,32 @@ export function Sidebar() {
   return (
     <TooltipProvider>
       <div className="flex flex-col h-screen p-1 border-r shadow-sm w-72 bg-background-paper border-border text-text-primary">
-        <div className="p-3 mb-2">
+        <div className="flex items-center justify-between p-3 mb-2">
           <Link href="/" className="text-2xl font-bold text-primary">
             NextWiki
           </Link>
+        </div>
+
+        {/* Search Modal */}
+        <SearchModal
+          isOpen={isSearchModalOpen}
+          onClose={() => setIsSearchModalOpen(false)}
+        />
+
+        {/* Visual Search Bar */}
+        <div className="px-3 mb-4">
+          <div
+            className="flex items-center w-full px-3 py-2 text-sm border rounded-md cursor-pointer bg-background-level1 border-border-default hover:border-border-dark dark:hover:border-border-light text-text-secondary"
+            onClick={() => setIsSearchModalOpen(true)}
+          >
+            <Search className="w-4 h-4 mr-2 text-text-secondary" />
+            <span>Search wiki...</span>
+            <div className="flex items-center ml-auto">
+              <kbd className="flex items-center px-2 py-1 text-xs border rounded-md bg-background-level1 text-text-secondary border-border-default">
+                {isMac ? "⌘K" : "Ctrl+K"}
+              </kbd>
+            </div>
+          </div>
         </div>
 
         <nav className="space-y-1">

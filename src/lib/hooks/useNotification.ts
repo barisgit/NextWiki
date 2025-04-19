@@ -1,10 +1,8 @@
 import { toast, ToasterProps } from "sonner";
 
-// type NotificationType = "default" | "success" | "error" | "warning" | "info";
-
 export function useNotification() {
   const defaultOptions = {
-    position: "top-center" as const,
+    position: "bottom-right" as const,
     closeButton: true,
     duration: 4000,
   };
@@ -54,12 +52,23 @@ export function useNotification() {
     });
   };
 
+  const custom = (
+    message: string | React.ReactNode,
+    options?: ToasterProps
+  ) => {
+    return toast(message, {
+      ...defaultOptions,
+      ...options,
+    });
+  };
+
   return {
     success,
     error,
     warning,
     info,
     loading,
+    custom,
     dismiss: toast.dismiss,
   };
 }

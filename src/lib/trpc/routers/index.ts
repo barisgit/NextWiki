@@ -7,6 +7,7 @@ import { permissionsRouter } from "./permissions";
 import { groupsRouter } from "./groups";
 import { usersRouter } from "./users";
 import { authRouter } from "./auth";
+import { tagsRouter } from "./tags";
 
 export const appRouter = router({
   wiki: wikiRouter,
@@ -17,6 +18,7 @@ export const appRouter = router({
   permissions: permissionsRouter,
   groups: groupsRouter,
   auth: authRouter,
+  tags: tagsRouter,
 });
 
 // Export type router type signature,

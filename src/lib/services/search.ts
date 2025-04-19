@@ -1,6 +1,19 @@
 import { db } from "~/lib/db";
 import { wikiPages } from "~/lib/db/schema";
-import { sql } from "drizzle-orm";
+import { sql, count as drizzleCount } from "drizzle-orm";
+import { PaginationInput, getPaginationParams } from "~/lib/utils/pagination";
+
+// Define the structure of a search result item
+interface SearchResultItem {
+  id: number;
+  title: string;
+  path: string;
+  updatedAt: Date | null;
+  excerpt: string;
+  relevance: number;
+  similarity_title?: number; // Optional fields from similarity searches
+  similarity_content?: number; // Optional fields from similarity searches
+}
 
 /**
  * Search service - handles all search-related database operations
@@ -180,7 +193,204 @@ export const searchService = {
     }
   },
 
-  // FIXME: This is a temporary solution to the search problem. We need to handle adding extensions to the database n the server.
+  /**
+   * Paginated search
+   */
+  searchPaginated: async (
+    query: string,
+    pagination: PaginationInput
+  ): Promise<{ items: SearchResultItem[]; totalItems: number }> => {
+    const { take, skip } = getPaginationParams(pagination);
+
+    // Shared WHERE clause logic
+    const createWhereClause = (vectorQuery?: string) => {
+      const baseConditions = sql`
+        ${wikiPages.title} ILIKE ${"%" + query + "%"}
+        OR ${wikiPages.content} ILIKE ${"%" + query + "%"}
+        OR similarity(${wikiPages.title}, ${query}) > 0.3
+        OR similarity(${wikiPages.content}, ${query}) > 0.3
+      `;
+      if (vectorQuery) {
+        return sql`(${wikiPages.search} @@ to_tsquery('english', ${vectorQuery})) OR (${baseConditions})`;
+      }
+      return baseConditions;
+    };
+
+    // Shared ORDER BY clause logic
+    const orderByClause = sql`relevance DESC, similarity_title DESC, similarity_content DESC`;
+
+    // Try vector search first
+    try {
+      const vectorQueryTerms = query
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((term) => `${term}:*`)
+        .join(" & ");
+      const vectorQuery = vectorQueryTerms || `${query}:*`;
+      const whereClause = createWhereClause(vectorQuery);
+
+      const selectFields = {
+        id: wikiPages.id,
+        title: wikiPages.title,
+        path: wikiPages.path,
+        updatedAt: wikiPages.updatedAt,
+        excerpt: sql<string>`CASE WHEN ${wikiPages.content} ILIKE ${
+          "%" + query + "%"
+        } THEN substring(${
+          wikiPages.content
+        } from greatest(1, position(lower(${query}) in lower(${
+          wikiPages.content
+        })) - 100) for 300) ELSE substring(${
+          wikiPages.content
+        } from 1 for 200) END`.as("excerpt"),
+        relevance: sql<number>`CASE WHEN ${
+          wikiPages.search
+        } @@ to_tsquery('english', ${vectorQuery}) THEN 4 WHEN ${
+          wikiPages.title
+        } ILIKE ${"%" + query + "%"} THEN 3 WHEN ${wikiPages.content} ILIKE ${
+          "%" + query + "%"
+        } THEN 2 WHEN similarity(${
+          wikiPages.title
+        }, ${query}) > 0.3 OR similarity(${
+          wikiPages.content
+        }, ${query}) > 0.3 THEN 1 ELSE 0 END`.as("relevance"),
+        similarity_title:
+          sql<number>`similarity(${wikiPages.title}, ${query})`.as(
+            "similarity_title"
+          ),
+        similarity_content:
+          sql<number>`similarity(${wikiPages.content}, ${query})`.as(
+            "similarity_content"
+          ),
+      };
+
+      // Get total count
+      const countResult = await db
+        .select({ count: drizzleCount() })
+        .from(wikiPages)
+        .where(whereClause);
+      const totalItems = countResult[0]?.count ?? 0;
+
+      // Get paginated items
+      const items = await db
+        .select(selectFields)
+        .from(wikiPages)
+        .where(whereClause)
+        .orderBy(orderByClause)
+        .limit(take)
+        .offset(skip);
+
+      return { items, totalItems };
+    } catch (error) {
+      console.error("Vector search error (paginated):", error);
+
+      // Fallback to similarity search
+      try {
+        const whereClause = createWhereClause(); // No vector query here
+        const selectFields = {
+          id: wikiPages.id,
+          title: wikiPages.title,
+          path: wikiPages.path,
+          updatedAt: wikiPages.updatedAt,
+          excerpt: sql<string>`CASE WHEN ${wikiPages.content} ILIKE ${
+            "%" + query + "%"
+          } THEN substring(${
+            wikiPages.content
+          } from greatest(1, position(lower(${query}) in lower(${
+            wikiPages.content
+          })) - 100) for 300) ELSE substring(${
+            wikiPages.content
+          } from 1 for 200) END`.as("excerpt"),
+          relevance: sql<number>`
+            CASE
+              WHEN ${wikiPages.title} ILIKE ${"%" + query + "%"} THEN 3
+              WHEN ${wikiPages.content} ILIKE ${"%" + query + "%"} THEN 2
+              WHEN similarity(${
+                wikiPages.title
+              }, ${query}) > 0.3 OR similarity(${
+            wikiPages.content
+          }, ${query}) > 0.3 THEN 1
+              ELSE 0
+            END`.as("relevance"),
+          similarity_title:
+            sql<number>`similarity(${wikiPages.title}, ${query})`.as(
+              "similarity_title"
+            ),
+          similarity_content:
+            sql<number>`similarity(${wikiPages.content}, ${query})`.as(
+              "similarity_content"
+            ),
+        };
+
+        // Get total count
+        const countResult = await db
+          .select({ count: drizzleCount() })
+          .from(wikiPages)
+          .where(whereClause);
+        const totalItems = countResult[0]?.count ?? 0;
+
+        // Get paginated items
+        const items = await db
+          .select(selectFields)
+          .from(wikiPages)
+          .where(whereClause)
+          .orderBy(orderByClause)
+          .limit(take)
+          .offset(skip);
+
+        return { items, totalItems };
+      } catch (similarityError) {
+        console.error("Similarity search error (paginated):", similarityError);
+
+        // Last resort - just use ILIKE with no trigram
+        const whereClause = sql`
+          ${wikiPages.title} ILIKE ${"%" + query + "%"}
+          OR ${wikiPages.content} ILIKE ${"%" + query + "%"}
+        `;
+        const selectFields = {
+          id: wikiPages.id,
+          title: wikiPages.title,
+          path: wikiPages.path,
+          updatedAt: wikiPages.updatedAt,
+          excerpt: sql<string>`CASE WHEN ${wikiPages.content} ILIKE ${
+            "%" + query + "%"
+          } THEN substring(${
+            wikiPages.content
+          } from greatest(1, position(lower(${query}) in lower(${
+            wikiPages.content
+          })) - 100) for 300) ELSE substring(${
+            wikiPages.content
+          } from 1 for 200) END`.as("excerpt"),
+          relevance: sql<number>`
+            CASE
+              WHEN ${wikiPages.title} ILIKE ${"%" + query + "%"} THEN 2
+              WHEN ${wikiPages.content} ILIKE ${"%" + query + "%"} THEN 1
+              ELSE 0
+            END`.as("relevance"),
+        };
+
+        // Get total count
+        const countResult = await db
+          .select({ count: drizzleCount() })
+          .from(wikiPages)
+          .where(whereClause);
+        const totalItems = countResult[0]?.count ?? 0;
+
+        // Get paginated items
+        const items = await db
+          .select(selectFields)
+          .from(wikiPages)
+          .where(whereClause)
+          .orderBy(sql`relevance DESC`)
+          .limit(take)
+          .offset(skip);
+
+        return { items, totalItems };
+      }
+    }
+  },
+
   /**
    * Before using this search functionality, make sure to enable the pg_trgm extension in PostgreSQL:
    * CREATE EXTENSION IF NOT EXISTS pg_trgm;

@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useTRPC } from "~/lib/trpc/client";
 import { useMutation } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
+import { formatDistanceToNow } from "date-fns";
+import { Button } from "../ui/button";
 
 interface WikiLockInfoProps {
   pageId: number;
@@ -69,69 +71,51 @@ export function WikiLockInfo({
           </svg>
           Unlocked
         </span>
-        <button
-          onClick={handleEdit}
-          className="px-3 py-1 text-sm rounded bg-primary text-primary-foreground hover:bg-primary/90"
-        >
+        <Button onClick={handleEdit} variant="outlined" size="sm">
           Edit
-        </button>
+        </Button>
       </div>
     );
   }
 
+  // If locked, render the lock status and relevant actions
   return (
-    <div className="p-3 mb-4 border rounded bg-amber-50 text-amber-800">
-      <div className="flex items-start justify-between">
-        <div>
-          <h4 className="flex items-center font-medium">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+    <div className="flex items-center gap-3 p-2 border rounded-md shadow-md border-border">
+      <div className="flex-grow">
+        <h4 className="flex items-center text-sm font-medium text-warning-foreground">
+          {isCurrentUserLockOwner
+            ? "You are currently editing this page"
+            : `This page is being edited by ${lockedByName || "another user"}`}
+        </h4>
+        {lockedUntil && new Date(lockedUntil) > new Date() && (
+          <p className="mt-1 text-xs text-warning-foreground/60">
+            Lock expires{" "}
+            {formatDistanceToNow(new Date(lockedUntil), { addSuffix: true })}
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-shrink-0 gap-2">
+        {isCurrentUserLockOwner ? (
+          <>
+            <Button
+              onClick={handleEdit}
+              variant="outlined"
+              size="sm"
+              className="py-0 m-0"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
-              />
-            </svg>
-            {isCurrentUserLockOwner
-              ? "You are currently editing this page"
-              : `This page is being edited by ${
-                  lockedByName || "another user"
-                }`}
-          </h4>
-
-          <p className="mt-1 text-sm">Software lock with 30-minute timeout</p>
-
-          {lockedUntil && (
-            <p className="mt-1 text-xs text-amber-700">
-              Lock expires: {new Date(lockedUntil).toLocaleString()}
-            </p>
-          )}
-        </div>
-
-        <div className="space-x-2">
-          {isCurrentUserLockOwner ? (
-            <>
-              <button
-                onClick={handleEdit}
-                className="px-3 py-1 text-sm rounded bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                Continue Editing
-              </button>
-              <button
-                onClick={handleReleaseLock}
-                className="px-3 py-1 text-sm rounded bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Release Lock
-              </button>
-            </>
-          ) : null}
-        </div>
+              Continue Editing
+            </Button>
+            <Button
+              onClick={handleReleaseLock}
+              variant="destructive"
+              size="sm"
+              className="py-0 m-0"
+            >
+              Release Lock
+            </Button>
+          </>
+        ) : null}
       </div>
     </div>
   );

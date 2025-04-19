@@ -29,17 +29,23 @@ export const remarkPlugins: PluggableList = [
   ...customPlugins,
 ];
 
-async function tryLoadPlugin(pluginPath: string) {
+/**
+ * Try to load a plugin from a given path
+ * @param importedPlugin - The imported plugin to try to load
+ * @returns The loaded plugin or null if it fails
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function tryLoadPlugin(importedPlugin: Promise<any>) {
   if (!isServer) return [];
 
   try {
-    const pluginModule = await import(pluginPath);
+    const pluginModule = await importedPlugin;
     if (pluginModule.default) {
       return pluginModule.default;
     }
     return null;
   } catch (error) {
-    console.error(`Failed to load plugin from ${pluginPath}:`, error);
+    console.error(`Failed to load plugin from ${importedPlugin}:`, error);
     return null;
   }
 }
@@ -56,8 +62,8 @@ export async function loadServerRehypePlugins(): Promise<PluggableList> {
     // This avoids using fs which is not available in Next.js client bundles
     const serverPlugins: PluggableList = [];
     const plugins = await Promise.all([
-      tryLoadPlugin("../plugins/server-only/rehypeWikiLinks"),
-      tryLoadPlugin("../plugins/server-only/loggerPlugin"),
+      tryLoadPlugin(import("../plugins/server-only/rehypeWikiLinks")),
+      tryLoadPlugin(import("../plugins/server-only/loggerPlugin")),
       // Add additional server-only plugins here as they are created
     ]);
 
