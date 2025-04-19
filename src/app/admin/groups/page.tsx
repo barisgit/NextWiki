@@ -1,9 +1,10 @@
 import { Metadata } from "next";
 import { getServerAuthSession } from "~/lib/auth";
 import { redirect } from "next/navigation";
-import { dbService } from "~/lib/services";
+import { dbService, authorizationService } from "~/lib/services";
 import GroupsList from "./groups-list";
 import Link from "next/link";
+import { Button } from "~/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Admin - Groups | NextWiki",
@@ -31,6 +32,11 @@ export default async function GroupsPage() {
     isLocked: group.isLocked ?? false,
   }));
 
+  const canCreateGroups = await authorizationService.hasPermission(
+    parseInt(session.user.id, 10),
+    "system:groups:create"
+  );
+
   return (
     <div className="container p-6 mx-auto">
       <h1 className="mb-6 text-3xl font-bold">Groups Management</h1>
@@ -38,12 +44,11 @@ export default async function GroupsPage() {
       <div className="p-6 rounded-lg shadow-sm bg-card">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">User Groups</h2>
-          <Link
-            href="/admin/groups/new"
-            className="px-4 py-2 rounded-md bg-primary text-primary-foreground"
-          >
-            Create Group
-          </Link>
+          {canCreateGroups && (
+            <Button asChild>
+              <Link href="/admin/groups/new">Create Group</Link>
+            </Button>
+          )}
         </div>
         <p className="mb-6 text-muted-foreground">
           User groups allow you to organize users and assign permissions to them

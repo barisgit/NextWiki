@@ -25,6 +25,7 @@
     "@codemirror/language": "^6.11.0",
     "@codemirror/language-data": "^6.5.1",
     "@codemirror/state": "^6.5.2",
+    "@heroicons/react": "^2.2.0",
     "@lezer/highlight": "^1.2.1",
     "@neondatabase/serverless": "^1.0.0",
     "@radix-ui/react-dialog": "^1.1.10",

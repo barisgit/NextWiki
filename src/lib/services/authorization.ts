@@ -82,7 +82,7 @@ export const authorizationService = {
    * permission AND does not have a relevant module or action permission.
    */
   async hasPermission(
-    userId: number,
+    userId: number | undefined,
     permissionName: PermissionIdentifier
   ): Promise<boolean> {
     // Validate permission format
@@ -112,6 +112,11 @@ export const authorizationService = {
       return false; // Permission doesn't exist in the system
     }
     const permissionId = permission.id;
+
+    // FIXME: We need to handle the case where not logged in users are allowed to access some pages
+    if (!userId) {
+      return false;
+    }
 
     // 2. Get all groups the user belongs to, including their permissions and permissions
     const userGroupsData = await db.query.userGroups.findMany({

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { PageLocationEditor } from "~/components/wiki/PageLocationEditor";
 import { useRouter } from "next/navigation";
+import { RequirePermission } from "~/lib/hooks/usePermissions";
 
 export default function CreateWikiPage() {
   const [showEditor, setShowEditor] = useState(false);
@@ -28,7 +29,7 @@ export default function CreateWikiPage() {
 
   // Otherwise show the location picker
   return (
-    <>
+    <RequirePermission permission="wiki:page:create">
       <WikiEditor mode="create" pagePath={pagePath.toLowerCase()} />
       <PageLocationEditor
         mode="create"
@@ -37,6 +38,6 @@ export default function CreateWikiPage() {
           router.back();
         }}
       />
-    </>
+    </RequirePermission>
   );
 }

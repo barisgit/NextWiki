@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { MainLayout } from "~/components/layout/MainLayout";
 import { WikiPage } from "~/components/wiki/WikiPage";
 import { WikiEditor } from "~/components/wiki/WikiEditor";
@@ -11,6 +11,7 @@ import { authOptions } from "~/lib/auth";
 import { Suspense } from "react";
 import { PageLocationEditor } from "~/components/wiki/PageLocationEditor";
 import { renderWikiMarkdownToHtml } from "~/lib/services/markdown";
+import { authorizationService } from "~/lib/services/authorization";
 
 export const dynamic = "auto";
 export const revalidate = 300; // 5 minutes
@@ -70,11 +71,21 @@ export default async function WikiPageView({
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
 
-  const page = await getWikiPageByPath(resolvedParams.path);
   const session = await getServerSession(authOptions);
   const currentUserId = session?.user?.id
     ? parseInt(session.user.id)
     : undefined;
+
+  const canAccessPage = await authorizationService.hasPermission(
+    currentUserId,
+    "wiki:page:read"
+  );
+
+  if (!canAccessPage) {
+    redirect("/");
+  }
+
+  const page = await getWikiPageByPath(resolvedParams.path);
 
   if (!page) {
     notFound();
@@ -86,6 +97,13 @@ export default async function WikiPageView({
 
   // Edit mode
   if (isEditMode) {
+    const canEditPage = await authorizationService.hasPermission(
+      currentUserId,
+      "wiki:page:update"
+    );
+    if (!canEditPage) {
+      redirect("/");
+    }
     return (
       <WikiEditor
         mode="edit"
@@ -100,6 +118,13 @@ export default async function WikiPageView({
 
   // Move mode
   if (isMoveMode) {
+    const canMovePage = await authorizationService.hasPermission(
+      currentUserId,
+      "wiki:page:move"
+    );
+    if (!canMovePage) {
+      redirect("/");
+    }
     return (
       <MainLayout>
         <PageLocationEditor

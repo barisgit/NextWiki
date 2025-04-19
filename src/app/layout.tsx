@@ -10,6 +10,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Providers } from "~/providers";
 import { seed } from "~/lib/db/seed";
 import { PermissionGate } from "~/components/auth/permission";
+import { LogOutButton } from "~/components/auth/LogOutButton";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -134,6 +135,9 @@ export default function RootLayout({
                     <p className="mt-2">
                       Please contact an administrator for access.
                     </p>
+                    <div className="flex justify-center mt-4">
+                      <LogOutButton />
+                    </div>
                   </div>
                 </div>
               </PermissionGate.Unauthorized>
