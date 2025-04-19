@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { desc, eq, like, gt, and, sql } from "drizzle-orm";
-import { db, wikiPages, wikiPageRevisions } from "~/lib/db";
+import { db, wikiPages } from "~/lib/db";
 import { permissionProtectedProcedure, router } from "..";
 import { dbService, wikiService } from "~/lib/services";
 
@@ -11,6 +11,7 @@ const pageInputSchema = z.object({
   title: z.string().min(1).max(255),
   content: z.string().optional(),
   isPublished: z.boolean().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export const wikiRouter = router({
@@ -58,22 +59,29 @@ export const wikiRouter = router({
   create: permissionProtectedProcedure("wiki:page:create")
     .input(pageInputSchema)
     .mutation(async ({ input, ctx }) => {
-      const { path, title, content, isPublished } = input;
+      const { path, title, content, isPublished, tags } = input;
       const userId = parseInt(ctx.session.user.id);
 
-      const [page] = await db
-        .insert(wikiPages)
-        .values({
-          path,
-          title,
-          content,
-          isPublished: isPublished ?? false,
-          createdById: userId,
-          updatedById: userId,
-        })
-        .returning();
+      // Let the service handle the page creation and tag associations
+      const createdPage = await wikiService.create({
+        path,
+        title,
+        content,
+        isPublished: isPublished ?? false,
+        userId,
+        tags,
+      });
 
-      return page;
+      // Re-fetch the page using the cleaned-up service method
+      const page = await wikiService.getById(createdPage.id);
+      if (!page) {
+        // Should not happen, but handle defensively
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to retrieve created page",
+        });
+      }
+      return page; // Return the cleaned-up page data
     }),
 
   // Acquire a lock on a page for editing
@@ -185,7 +193,7 @@ export const wikiRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { id, path, title, content, isPublished } = input;
+      const { id, path, title, content, isPublished, tags } = input;
       const userId = parseInt(ctx.session.user.id);
 
       // First, check if the user has a valid software lock
@@ -198,52 +206,27 @@ export const wikiRouter = router({
         });
       }
 
-      // Use a transaction with a hardware lock for the update operation
       try {
-        return await db.transaction(async (tx) => {
-          // Set a short timeout for the hardware lock operation
-          await tx.execute(sql`SET LOCAL statement_timeout = 3000`);
-
-          // Acquire a hardware lock for the update
-          const result = await tx.execute(
-            sql`SELECT * FROM wiki_pages WHERE id = ${id} FOR UPDATE NOWAIT`
-          );
-
-          if (result.rows.length === 0) {
-            throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "Page not found",
-            });
-          }
-
-          const page = result.rows[0] as typeof wikiPages.$inferSelect;
-
-          // Create a page revision
-          await tx.insert(wikiPageRevisions).values({
-            pageId: id,
-            content: page.content || "",
-            createdById: userId,
-          });
-
-          // Update the page and clear the software lock
-          const [updatedPage] = await tx
-            .update(wikiPages)
-            .set({
-              path,
-              title,
-              content,
-              isPublished,
-              updatedById: userId,
-              updatedAt: new Date(),
-              lockedById: null,
-              lockedAt: null,
-              lockExpiresAt: null,
-            })
-            .where(eq(wikiPages.id, id))
-            .returning();
-
-          return updatedPage;
+        // Use the service method which now handles tags as well
+        const updatedPageRaw = await wikiService.update(id, {
+          path,
+          title,
+          content,
+          isPublished,
+          userId,
+          tags,
         });
+
+        // Re-fetch the page using the cleaned-up service method
+        const page = await wikiService.getById(updatedPageRaw.id);
+        if (!page) {
+          // Should not happen, but handle defensively
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to retrieve updated page",
+          });
+        }
+        return page; // Return the cleaned-up page data
       } catch (error) {
         console.error("Failed to update page:", error);
 
@@ -316,9 +299,31 @@ export const wikiRouter = router({
         where: whereConditions,
         orderBy: [orderBy],
         limit: limit + 1,
+        columns: {
+          id: true,
+          path: true,
+          title: true,
+          content: false,
+          renderedHtml: false,
+          editorType: true,
+          isPublished: true,
+          createdAt: true,
+          updatedAt: true,
+          renderedHtmlUpdatedAt: false,
+          search: false,
+          lockedById: false,
+          createdById: false,
+          updatedById: false,
+          lockedAt: true,
+          lockExpiresAt: true,
+        },
         with: {
-          updatedBy: true,
-          lockedBy: true,
+          updatedBy: {
+            columns: { id: true, name: true, email: true, image: true },
+          },
+          lockedBy: {
+            columns: { id: true, name: true, email: true, image: true },
+          },
           tags: {
             with: {
               tag: true,
@@ -544,7 +549,7 @@ export const wikiRouter = router({
       }
 
       // Create the page at the requested path
-      const [page] = await db
+      const [createdFolderPage] = await db
         .insert(wikiPages)
         .values({
           path: folderPath,
@@ -556,7 +561,16 @@ export const wikiRouter = router({
         })
         .returning();
 
-      return page;
+      // Re-fetch the page using the cleaned-up service method
+      const page = await wikiService.getById(createdFolderPage.id);
+      if (!page) {
+        // Should not happen, but handle defensively
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to retrieve created folder page",
+        });
+      }
+      return page; // Return the cleaned-up page data
     }),
 });
 

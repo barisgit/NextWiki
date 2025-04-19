@@ -12,9 +12,33 @@ export default async function TagPage({
 
   const filteredPages = await dbService.tags.getPagesByTagName(tag);
 
+  // Extract the actual page data from the relations
+  // Need to ensure the shape matches WikiPageListItem (dates might need conversion if inconsistent)
+  const pagesToDisplay =
+    filteredPages?.pages
+      .map((relation) => relation.page)
+      .filter(Boolean) // Filter out any potentially null pages
+      .map((page) => ({
+        ...page,
+        // Convert Date objects to ISO strings to match the expected type
+        createdAt: page.createdAt?.toISOString() || null,
+        updatedAt: page.updatedAt?.toISOString() || null,
+        lockedAt: page.lockedAt?.toISOString() || null, // Add conversion for lockedAt
+        lockExpiresAt: page.lockExpiresAt?.toISOString() || null, // Add conversion for lockExpiresAt
+        // Convert dates within the nested tags array
+        tags:
+          page.tags?.map((tagRelation) => ({
+            ...tagRelation,
+            tag: {
+              ...tagRelation.tag,
+              createdAt: tagRelation.tag.createdAt?.toISOString() || null,
+            },
+          })) || [],
+      })) || [];
+
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="p-4 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="flex items-center text-2xl font-bold">
@@ -31,7 +55,7 @@ export default async function TagPage({
           </div>
         </div>
 
-        <WikiPageList />
+        <WikiPageList pages={pagesToDisplay} isLoading={false} />
       </div>
     </MainLayout>
   );

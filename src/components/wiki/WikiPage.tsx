@@ -256,7 +256,8 @@ export function WikiPage({
             )}
           </div>
 
-          <div>{content}</div>
+          {/* FIXME: Temporary fix for content overflow */}
+          <div className="max-w-[calc(100vw-20rem)]">{content}</div>
         </div>
 
         {/* Subfolders sidebar - only shown if page has subpages */}

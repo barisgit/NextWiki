@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTRPC } from "~/lib/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { MarkdownProse } from "./MarkdownProse";
 import CodeMirror, {
@@ -24,9 +24,15 @@ import { AssetManager } from "./AssetManager";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
-import { Popover, PopoverTrigger, PopoverContent } from "../ui/popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverAnchor,
+} from "../ui/popover";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { ThemeToggle } from "../layout/theme-toggle";
 import {
   X,
   ChevronDown,
@@ -36,6 +42,29 @@ import {
   ArrowLeft,
   Loader2,
 } from "lucide-react";
+import {
+  Command,
+  CommandList,
+  CommandItem,
+  CommandEmpty,
+} from "~/components/ui/command";
+
+// Basic debounce hook implementation
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 // Custom highlight style for markdown
 // TODO: Try to use nested styles
@@ -98,6 +127,8 @@ export function WikiEditor({
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(initialTags);
   const [isLocked, setIsLocked] = useState(mode === "create");
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("editor");
   const [showAssetManager, setShowAssetManager] = useState(false);
@@ -106,12 +137,15 @@ export function WikiEditor({
   const editorRef = useRef<ReactCodeMirrorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const popoverContentRef = useRef<HTMLDivElement>(null);
   const lockAcquiredRef = useRef(false);
   const isDarkMode =
     typeof window !== "undefined"
       ? document.documentElement.classList.contains("dark")
       : false;
   const trpc = useTRPC();
+
+  const debouncedTagInput = useDebounce(tagInput, 300);
 
   const queryClient = useQueryClient();
   const assetsQueryKey = trpc.assets.getPaginated.queryKey();
@@ -366,6 +400,33 @@ export function WikiEditor({
     };
   }, [mode, isLocked, pageId]);
 
+  // Fetch tag suggestions when debounced input changes
+  const { data: fetchedSuggestions } = useQuery({
+    ...trpc.tags.search.queryOptions({
+      query: debouncedTagInput,
+      limit: 3, // Limit suggestions on the backend,
+    }),
+    enabled: debouncedTagInput.length > 0 && showSuggestions, // Other options merged here
+  });
+
+  // Update suggestions state when fetched data changes
+  useEffect(() => {
+    if (fetchedSuggestions) {
+      // Define expected tag type for suggestions
+      type TagSuggestion = { id: number; name: string };
+
+      // Filter out tags already added
+      setTagSuggestions(
+        (fetchedSuggestions as TagSuggestion[])
+          .map((tag: TagSuggestion) => tag.name)
+          .filter((name: string) => !tags.includes(name))
+      );
+    } else {
+      // Clear suggestions if fetched data is undefined (e.g., query disabled or loading)
+      setTagSuggestions([]);
+    }
+  }, [fetchedSuggestions, tags]);
+
   // Focus title input when editing title
   useEffect(() => {
     if (editingTitle && titleInputRef.current) {
@@ -378,6 +439,8 @@ export function WikiEditor({
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
       setTagInput("");
+      setTagSuggestions([]);
+      setShowSuggestions(false);
       setUnsavedChanges(true);
     }
   };
@@ -429,6 +492,7 @@ export function WikiEditor({
         content,
         path: pagePath,
         isPublished: true,
+        tags,
       });
     } else if (mode === "edit" && pageId) {
       updatePageMutation.mutate({
@@ -437,6 +501,7 @@ export function WikiEditor({
         title,
         content,
         isPublished: true,
+        tags,
       });
     }
   };
@@ -525,12 +590,12 @@ export function WikiEditor({
     <div className="flex flex-col h-screen bg-background">
       {/* Header Bar */}
       <header className="sticky top-0 z-10 border-b bg-card border-border">
-        <div className="flex items-center justify-between px-4 h-14">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between h-16 px-6 py-2">
+          <div className="flex items-center gap-4">
             <Button
               size="sm"
-              variant="ghost"
-              color="secondary"
+              variant="outlined"
+              color="neutral"
               onClick={handleCancel}
               className="flex items-center gap-1"
             >
@@ -619,12 +684,12 @@ export function WikiEditor({
               </PopoverContent>
             </Popover>
 
+            {/* Hidden File Input - Kept for triggerFileUpload functionality */}
             <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileInputChange}
-              accept="image/*"
-              className="hidden"
+              style={{ display: "none" }}
             />
 
             <Button
@@ -648,16 +713,104 @@ export function WikiEditor({
                 </>
               )}
             </Button>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
           </div>
         </div>
       </header>
 
       {/* Metadata Section */}
-      <div className="px-4 py-3 border-b bg-background-level1 border-border">
+      <div className="px-6 py-4 border-b bg-background-level1 border-border">
         <div className="flex flex-wrap gap-3 mb-2">
           <Label className="flex items-center text-sm font-medium text-text-secondary">
             Tags:
           </Label>
+
+          <div className="flex items-center">
+            {/* Tag Input with Suggestions Popover */}
+            <div className="relative">
+              <Popover
+                open={
+                  showSuggestions &&
+                  tagInput.length > 0 &&
+                  tagSuggestions.length > 0
+                }
+                onOpenChange={setShowSuggestions}
+              >
+                {/* Anchor the popover to the input field */}
+                <PopoverAnchor asChild>
+                  <Input
+                    value={tagInput}
+                    onChange={(e) => {
+                      setTagInput(e.target.value);
+                      setShowSuggestions(true); // Try to show suggestions on input change
+                    }}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => setShowSuggestions(true)} // Show on focus
+                    onBlur={(event) => {
+                      // Check if focus moved to the popover content
+                      const relatedTarget =
+                        event.relatedTarget as HTMLElement | null;
+                      if (popoverContentRef.current?.contains(relatedTarget)) {
+                        return; // Don't hide if focus is inside popover
+                      }
+                      // Hide after delay if focus moves elsewhere
+                      setTimeout(() => setShowSuggestions(false), 150);
+                    }}
+                    placeholder="Add tag..."
+                    className="w-40 text-xs h-7"
+                    aria-autocomplete="list"
+                    aria-controls="tag-suggestions"
+                  />
+                </PopoverAnchor>
+
+                <PopoverContent
+                  ref={popoverContentRef}
+                  className="w-48 p-0 mt-1"
+                  align="start"
+                  side="bottom"
+                  id="tag-suggestions"
+                >
+                  <Command>
+                    <CommandList>
+                      <CommandEmpty>No matching tags found.</CommandEmpty>
+                      {tagSuggestions.map((suggestion) => (
+                        <CommandItem
+                          key={suggestion}
+                          value={suggestion}
+                          onSelect={() => {
+                            // Use the suggestion value directly
+                            if (suggestion && !tags.includes(suggestion)) {
+                              setTags([...tags, suggestion]);
+                              setTagInput("");
+                              setTagSuggestions([]);
+                              setShowSuggestions(false);
+                              setUnsavedChanges(true);
+                            }
+                          }}
+                        >
+                          {suggestion}
+                        </CommandItem>
+                      ))}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <Button
+              type="button"
+              onClick={handleAddTag}
+              variant="ghost"
+              color="primary"
+              size="sm"
+              className="ml-1 text-xs h-7"
+              disabled={!tagInput.trim()}
+            >
+              Add
+            </Button>
+          </div>
 
           {tags.length > 0 ? (
             <div className="flex flex-wrap gap-2">
@@ -680,29 +833,10 @@ export function WikiEditor({
               ))}
             </div>
           ) : (
-            <span className="text-sm text-text-secondary">No tags</span>
+            <div className="flex items-center">
+              <span className="text-sm text-text-tertiary">No tags</span>
+            </div>
           )}
-
-          <div className="flex items-center">
-            <Input
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Add tag..."
-              className="w-32 text-xs h-7"
-            />
-            <Button
-              type="button"
-              onClick={handleAddTag}
-              variant="ghost"
-              color="primary"
-              size="sm"
-              className="ml-1 text-xs h-7"
-              disabled={!tagInput.trim()}
-            >
-              Add
-            </Button>
-          </div>
         </div>
       </div>
 
