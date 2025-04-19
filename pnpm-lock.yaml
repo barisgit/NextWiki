@@ -80,6 +80,9 @@ importers:
       '@uiw/codemirror-theme-tokyo-night-storm':
         specifier: ^4.23.10
         version: 4.23.10(@codemirror/language@6.11.0)(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)
+      '@uiw/codemirror-theme-xcode':
+        specifier: ^4.23.10
+        version: 4.23.10(@codemirror/language@6.11.0)(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)
       '@uiw/codemirror-themes':
         specifier: ^4.23.10
         version: 4.23.10(@codemirror/language@6.11.0)(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)
@@ -1660,6 +1663,9 @@ packages:
 
   '@uiw/codemirror-theme-tokyo-night-storm@4.23.10':
     resolution: {integrity: sha512-ZSWtQFKXl5M112HANpmMQljNB2H/M5mEO+KXMz+7+kMQB5+QIq5eNlCxFmDQIWvpMayXbjkubeB/QrqnHFxQZg==}
+
+  '@uiw/codemirror-theme-xcode@4.23.10':
+    resolution: {integrity: sha512-meYMRLr0mTqGZerihSTKpjceRkxbFfpnXX9RyDZFwloydxzWY/6iGEt1/RMY+cWoxgjBYSiunqtU0qgQH0WAuA==}
 
   '@uiw/codemirror-themes@4.23.10':
     resolution: {integrity: sha512-dU0UgEEgEXCAYpxuVDQ6fovE82XsqgHZckTJOH6Bs8xCi3Z7dwBKO4pXuiA8qGDwTOXOMjSzfi+pRViDm7OfWw==}
@@ -5478,6 +5484,14 @@ snapshots:
       '@codemirror/view': 6.36.5
 
   '@uiw/codemirror-theme-tokyo-night-storm@4.23.10(@codemirror/language@6.11.0)(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)':
+    dependencies:
+      '@uiw/codemirror-themes': 4.23.10(@codemirror/language@6.11.0)(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)
+    transitivePeerDependencies:
+      - '@codemirror/language'
+      - '@codemirror/state'
+      - '@codemirror/view'
+
+  '@uiw/codemirror-theme-xcode@4.23.10(@codemirror/language@6.11.0)(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)':
     dependencies:
       '@uiw/codemirror-themes': 4.23.10(@codemirror/language@6.11.0)(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)
     transitivePeerDependencies:

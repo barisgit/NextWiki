@@ -132,6 +132,12 @@ const PERMISSION_LIST: Permission[] = [
   {
     module: "assets",
     resource: "asset",
+    action: "update",
+    description: "Update assets",
+  },
+  {
+    module: "assets",
+    resource: "asset",
     action: "delete",
     description: "Delete assets",
   },

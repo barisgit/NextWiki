@@ -5,6 +5,7 @@ import { useTRPC } from "~/lib/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { Command } from "lucide-react";
 
 // Utility to highlight text
 function highlightText(text: string, query: string) {
@@ -31,10 +32,33 @@ export function SearchBar() {
   const pathname = usePathname();
   const router = useRouter();
   const initialHighlight = searchParams.get("highlight") || "";
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isMac, setIsMac] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState(initialHighlight);
   const [showResults, setShowResults] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Detect OS for keyboard shortcut display
+  useEffect(() => {
+    setIsMac(
+      typeof window !== "undefined" &&
+        window.navigator.userAgent.includes("Mac")
+    );
+  }, []);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Update search query if URL highlight parameter changes
   useEffect(() => {
@@ -56,17 +80,11 @@ export function SearchBar() {
   const updateHighlightParam = (query: string) => {
     setSearchQuery(query);
 
-    // If search is cleared, remove highlight parameter
     if (!query || query.length < 2) {
-      // Use Next.js searchParams to handle URL properly
       const params = new URLSearchParams(searchParams.toString());
       params.delete("highlight");
-
-      // Get the current path and construct a new URL without the highlight parameter
       const newUrl =
         pathname + (params.toString() ? `?${params.toString()}` : "");
-
-      // Use router.push to ensure the page updates properly
       router.push(newUrl);
     }
   };
@@ -88,25 +106,39 @@ export function SearchBar() {
 
   return (
     <div className="relative w-full max-w-5xl">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-text-secondary"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg>
-      <input
-        type="search"
-        placeholder="Search wiki..."
-        className="w-full py-2 pl-10 pr-4 text-sm transition-colors border rounded-lg dark:bg-background-level3 border-border-default hover:border-border-dark dark:hover:border-border-light focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary text-text-primary"
-        value={searchQuery}
-        onChange={(e) => updateHighlightParam(e.target.value)}
-        onFocus={() => setShowResults(true)}
-      />
+      <div className="relative flex items-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-text-secondary"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          ref={inputRef}
+          type="search"
+          placeholder="Search wiki..."
+          className="w-full py-2 pl-10 pr-24 text-sm transition-colors border rounded-lg dark:bg-background-level3 border-border-default hover:border-border-dark dark:hover:border-border-light focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary text-text-primary"
+          value={searchQuery}
+          onChange={(e) => updateHighlightParam(e.target.value)}
+          onFocus={() => setShowResults(true)}
+        />
+        <div className="absolute flex items-center space-x-1 right-2">
+          <kbd className="flex items-center px-2 py-1 text-xs border rounded-md bg-background-level1 text-text-secondary border-border-default">
+            {isMac ? (
+              <>
+                <Command className="w-3 h-3 mr-1" />K
+              </>
+            ) : (
+              "Ctrl+K"
+            )}
+          </kbd>
+        </div>
+      </div>
 
       {showResults && searchQuery.length >= 2 && (
         <div

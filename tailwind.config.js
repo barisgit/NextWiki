@@ -22,6 +22,7 @@ const config = {
         text: {
           primary: "var(--color-text-primary)",
           secondary: "var(--color-text-secondary)",
+          tertiary: "var(--color-text-tertiary)",
           accent: "var(--color-text-accent)",
         },
         border: {
@@ -157,23 +158,6 @@ const config = {
           1000: "var(--color-success-1000)",
           1100: "var(--color-success-1100)",
           1200: "var(--color-success-1200)",
-        },
-        warning: {
-          DEFAULT: "var(--color-warning)",
-          foreground: "var(--color-warning-foreground)",
-          50: "var(--color-warning-50)",
-          100: "var(--color-warning-100)",
-          200: "var(--color-warning-200)",
-          300: "var(--color-warning-300)",
-          400: "var(--color-warning-400)",
-          500: "var(--color-warning-500)",
-          600: "var(--color-warning-600)",
-          700: "var(--color-warning-700)",
-          800: "var(--color-warning-800)",
-          900: "var(--color-warning-900)",
-          1000: "var(--color-warning-1000)",
-          1100: "var(--color-warning-1100)",
-          1200: "var(--color-warning-1200)",
         },
         info: {
           DEFAULT: "var(--color-info)",

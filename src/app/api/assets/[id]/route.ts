@@ -1,17 +1,31 @@
 import { NextResponse } from "next/server";
 import { assetService } from "~/lib/services";
+import { z } from "zod";
+
+const ParamsSchema = z.object({
+  id: z.string().uuid("Invalid asset ID format"),
+});
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const resolvedParams = await params;
-  void resolvedParams;
   try {
-    const id = parseInt(resolvedParams.id, 10);
-    if (isNaN(id)) {
-      return NextResponse.json({ error: "Invalid asset ID" }, { status: 400 });
+    // Access params from the context
+    const params = context.params;
+    const resolvedParams = await params;
+
+    // Validate the ID format using Zod
+    const validationResult = ParamsSchema.safeParse(resolvedParams);
+    if (!validationResult.success) {
+      console.error("Zod Validation Error:", validationResult.error.format()); // Log detailed Zod error
+      return NextResponse.json(
+        { error: validationResult.error.errors[0].message },
+        { status: 400 }
+      );
     }
+
+    const { id } = validationResult.data;
 
     // Get asset from database using service
     const asset = await assetService.getById(id);
@@ -20,15 +34,21 @@ export async function GET(
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
 
-    // Decode base64 data
-    const buffer = Buffer.from(asset.data, "base64");
+    // Extract base64 data if it includes the data URI prefix
+    let base64Data = asset.data;
+    const prefixMatch = asset.data.match(/^data:.*;base64,/);
+    if (prefixMatch) {
+      base64Data = asset.data.substring(prefixMatch[0].length);
+    }
 
-    // Create response with appropriate Content-Type
+    // Decode base64 data
+    const buffer = Buffer.from(base64Data, "base64");
+
+    // Create response with appropriate Content-Type and Cache-Control
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": asset.fileType,
         "Content-Disposition": `inline; filename="${asset.fileName}"`,
-        "Cache-Control": "public, max-age=31536000", // Cache for 1 year
       },
     });
   } catch (error) {

@@ -14,6 +14,7 @@ import Modal from "~/components/ui/modal";
 import { PageLocationEditor } from "./PageLocationEditor";
 import { RequirePermission } from "~/lib/hooks/usePermissions";
 import { ScrollArea } from "~/components/ui/scroll-area";
+import { Button } from "../ui/button";
 interface WikiPageProps {
   id: number;
   title: string;
@@ -172,32 +173,37 @@ export function WikiPage({
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-3xl font-bold">{title}</h1>
 
-              <div className="flex items-center space-x-2">
-                {/* Actions dropdown - only show if user has permissions */}
+              {/* Combined Actions and Lock Info Area */}
+              <div className="flex items-center space-x-4">
+                {" "}
+                {/* Rename/Move Icons */}
                 <RequirePermission permission="wiki:page:update">
                   {hasPageUpdatePermission && (
-                    <div className="relative">
-                      <div className="flex items-center justify-start flex-shrink-0 ml-auto">
-                        <button
-                          onClick={handleRename}
-                          className="p-1"
-                          title="Rename"
-                        >
-                          <PencilIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
-                        </button>
-                        <button
-                          onClick={handleMove}
-                          className="p-1"
-                          title="Move"
-                        >
-                          <MoveIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
-                        </button>
-                      </div>
+                    <div className="flex items-center space-x-1">
+                      {" "}
+                      {/* Container for icons */}
+                      <Button
+                        onClick={handleRename}
+                        variant="ghost"
+                        size="sm"
+                        className="p-1 rounded hover:bg-muted"
+                        title="Rename"
+                      >
+                        <PencilIcon className="w-4 h-4 text-slate-500 hover:text-slate-700" />
+                      </Button>
+                      <Button
+                        onClick={handleMove}
+                        variant="ghost"
+                        size="sm"
+                        className="p-1 rounded hover:bg-muted"
+                        title="Move"
+                      >
+                        <MoveIcon className="w-4 h-4 text-slate-500 hover:text-slate-700" />
+                      </Button>
                     </div>
                   )}
                 </RequirePermission>
-
-                {/* Lock status and edit controls - only show if user has permissions */}
+                {/* Lock status - Moved here */}
                 <RequirePermission permission="wiki:page:update">
                   {hasPageUpdatePermission && (
                     <WikiLockInfo
@@ -269,9 +275,10 @@ export function WikiPage({
         {showRenameModal && (
           <Modal
             onClose={() => setShowRenameModal(false)}
-            size="sm"
+            size="md"
             closeOnEscape={true}
             showCloseButton={true}
+            className="w-full"
           >
             <div className="p-4">
               <h3 className="mb-4 text-lg font-medium">Rename Page</h3>
