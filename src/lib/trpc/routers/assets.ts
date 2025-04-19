@@ -141,7 +141,7 @@ export const assetsRouter = router({
     }),
 
   delete: permissionProtectedProcedure("assets:asset:delete")
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const userId = parseInt(ctx.session.user.id as string, 10);
       const isAdmin = ctx.session.user.isAdmin === true;

@@ -510,15 +510,17 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
                   </Button>
                 </div>
               </div>
-              {assets.length === 0 ? (
-                <div className="py-8 text-center text-text-secondary">
-                  No assets available
-                </div>
-              ) : viewMode === "grid" ? (
-                <GridView />
-              ) : (
-                <ListView />
-              )}
+              <ScrollArea className="flex-grow pr-4">
+                {assets.length === 0 ? (
+                  <div className="py-8 text-center text-text-secondary">
+                    No assets available
+                  </div>
+                ) : viewMode === "grid" ? (
+                  <GridView />
+                ) : (
+                  <ListView />
+                )}
+              </ScrollArea>
 
               <div className="mt-auto">
                 <Pagination />
