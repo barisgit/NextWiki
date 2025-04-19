@@ -10,7 +10,14 @@ import CodeMirror, {
   EditorView,
   type ReactCodeMirrorRef,
 } from "@uiw/react-codemirror";
-import { markdown } from "@codemirror/lang-markdown";
+import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+import { languages } from "@codemirror/language-data";
+import {
+  syntaxHighlighting,
+  defaultHighlightStyle,
+  HighlightStyle,
+} from "@codemirror/language";
+import { tags } from "@lezer/highlight";
 import { xcodeLight, xcodeDark } from "@uiw/codemirror-theme-xcode";
 import { HighlightedMarkdown } from "~/lib/markdown/client";
 import { AssetManager } from "./AssetManager";
@@ -30,8 +37,42 @@ import {
   Loader2,
 } from "lucide-react";
 
+// Custom highlight style for markdown
+// TODO: Try to use nested styles
+const markdownHighlightStyle = HighlightStyle.define([
+  { tag: tags.heading, fontWeight: "bold", color: "var(--color-primary)" },
+  { tag: tags.heading1, fontSize: "1.6em", color: "var(--color-accent)" },
+  { tag: tags.heading2, fontSize: "1.4em", color: "var(--color-accent)" },
+  { tag: tags.heading3, fontSize: "1.2em", color: "var(--color-secondary)" },
+  { tag: tags.strong, fontWeight: "bold", color: "var(--color-complementary)" },
+  {
+    tag: tags.emphasis,
+    fontStyle: "italic",
+    color: "var(--color-text-secondary)",
+  },
+  { tag: tags.link, color: "var(--color-complementary)" },
+  { tag: tags.url, color: "var(--color-complementary)" },
+  { tag: tags.escape, color: "var(--color-complementary)" },
+  { tag: tags.list, color: "var(--color-text-secondary)" },
+  { tag: tags.quote, color: "var(--color-primary)" },
+  { tag: tags.comment, color: "var(--color-accent)" },
+  {
+    tag: tags.monospace,
+    color: "var(--color-text-primary)",
+    backgroundColor: "var(--color-background-level3)",
+  },
+  { tag: tags.meta, color: "var(--color-text-secondary)" },
+]);
+
 // Enhanced extensions for better markdown handling
-const editorExtensions = [markdown()];
+const editorExtensions = [
+  markdown({
+    base: markdownLanguage,
+    codeLanguages: languages,
+  }),
+  syntaxHighlighting(markdownHighlightStyle),
+  syntaxHighlighting(defaultHighlightStyle),
+];
 
 interface WikiEditorProps {
   mode: "create" | "edit";
