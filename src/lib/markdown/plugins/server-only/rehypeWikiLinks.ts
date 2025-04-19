@@ -1,6 +1,9 @@
 /**
  * Rehype plugin for processing wiki links
  * Server-side only implementation that checks link existence and adds appropriate classes
+ *
+ * NOTE: This plugin can only be used in a server context - it requires database access.
+ * It is dynamically imported via the server-only plugin loader in core/plugins.ts.
  */
 
 import { visit } from "unist-util-visit";

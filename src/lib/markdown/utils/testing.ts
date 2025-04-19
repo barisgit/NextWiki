@@ -2,8 +2,8 @@
  * Testing utilities for markdown rendering consistency
  */
 
+import { createClientMarkdownProcessor } from "../client-factory";
 import { renderMarkdownToHtml } from "../server";
-import { createMarkdownProcessor } from "../factory";
 
 /**
  * Normalizes HTML structure to account for differences between server-rendered HTML
@@ -87,7 +87,7 @@ export async function compareRenderedOutput(markdown: string) {
   const serverHtml = await renderMarkdownToHtml(markdown);
 
   // Get the configuration used for client rendering
-  const clientConfig = createMarkdownProcessor("client");
+  const clientConfig = createClientMarkdownProcessor();
 
   return {
     serverOutput: normalizeHtml(serverHtml),

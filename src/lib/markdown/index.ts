@@ -6,7 +6,7 @@
 // Export core configuration
 export * from "./core/plugins";
 export * from "./core/config";
-export * from "./factory";
+export * from "./client-factory";
 
 // Export renderers
 export { HighlightedMarkdown, HighlightedContent } from "./client";

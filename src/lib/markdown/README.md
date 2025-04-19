@@ -46,7 +46,7 @@ export function MarkdownEditor({ content }: { content: string }) {
 
 ## How It Works
 
-1. **Factory Pattern**: Both renderers use the same configuration through `createMarkdownProcessor`
+1. **Factory Pattern**: Both renderers use the same configuration through `createClientMarkdownProcessor` and `createServerMarkdownProcessor`
 2. **Consistent Plugins**: All remark/rehype plugins are shared
 3. **Component Mapping**: All HTML elements are mapped to the same React components
 
