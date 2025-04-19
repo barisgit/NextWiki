@@ -4,6 +4,7 @@ import { getServerAuthSession } from "~/lib/auth";
 import type { Session } from "next-auth";
 import { authorizationService } from "../services/authorization";
 import { PermissionIdentifier, validatePermissionId } from "~/lib/permissions";
+import type { TRPCPanelMeta } from "trpc-ui";
 
 // Initialize context for tRPC
 export async function createContext(opts: FetchCreateContextFnOptions) {
@@ -20,7 +21,7 @@ export async function createContext(opts: FetchCreateContextFnOptions) {
 export type Context = Awaited<ReturnType<typeof createContext>>;
 
 // Initialize tRPC server instance
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().meta<TRPCPanelMeta>().create();
 
 // Create middlewares, procedures, and routers
 export const middleware = t.middleware;

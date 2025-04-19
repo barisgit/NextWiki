@@ -17,7 +17,16 @@ const pageInputSchema = z.object({
 export const wikiRouter = router({
   // Get a page by path
   getByPath: permissionProtectedProcedure("wiki:page:read")
-    .input(z.object({ path: z.string() }))
+    .meta({ description: "Fetches a specific wiki page by its full path." })
+    .input(
+      z.object({
+        path: z
+          .string()
+          .describe(
+            "The full path to the wiki page (e.g., 'folder/subfolder/page-name')"
+          ),
+      })
+    )
     .query(async ({ input }) => {
       const page = await db.query.wikiPages.findFirst({
         where: eq(wikiPages.path, input.path),
