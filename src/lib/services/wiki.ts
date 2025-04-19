@@ -8,6 +8,7 @@ import {
 import { desc, eq } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { lockService } from "~/lib/services";
+import { Transaction } from "~/types/db";
 
 /**
  * Wiki service - handles all wiki-related database operations
@@ -406,7 +407,7 @@ export const wikiService = {
    * @param pageId ID of the page to update tags for
    * @param tagNames Array of tag names to set on the page
    */
-  async updatePageTags(tx: any, pageId: number, tagNames: string[]) {
+  async updatePageTags(tx: Transaction, pageId: number, tagNames: string[]) {
     // Step 1: Get existing tag IDs for this page
     const existingTagAssociations: Array<{
       tagId: number;
