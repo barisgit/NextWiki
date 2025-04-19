@@ -56,6 +56,18 @@ export const authRouter = router({
       return hasPermission;
     }),
 
+  // Check if the current user has any of the specified permissions
+  hasAnyPermission: protectedProcedure
+    .input(z.object({ permissions: z.array(permissionIdentifierSchema) }))
+    .query(async ({ ctx, input }) => {
+      const userId = parseInt(ctx.session.user.id);
+      const hasAnyPermission = await authorizationService.hasAnyPermission(
+        userId,
+        input.permissions
+      );
+      return hasAnyPermission;
+    }),
+
   // Check if the current user has access to a specific page
   hasPagePermission: protectedProcedure
     .input(

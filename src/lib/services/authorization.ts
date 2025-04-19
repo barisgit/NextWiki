@@ -191,6 +191,29 @@ export const authorizationService = {
   },
 
   /**
+   * Check if a user has any of the specified permissions.
+   * Returns true if the user has at least one of the permissions.
+   */
+  async hasAnyPermission(
+    userId: number,
+    permissionNames: PermissionIdentifier[]
+  ): Promise<boolean> {
+    if (!permissionNames.length) {
+      return false;
+    }
+
+    // Check each permission and return true on the first match
+    for (const permission of permissionNames) {
+      const hasPermission = await this.hasPermission(userId, permission);
+      if (hasPermission) {
+        return true;
+      }
+    }
+
+    return false;
+  },
+
+  /**
    * Check if a user has permission to access a specific page
    */
   async hasPagePermission(

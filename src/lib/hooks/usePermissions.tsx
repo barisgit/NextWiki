@@ -45,6 +45,7 @@ interface PermissionContextType {
 
   // Helper functions
   hasPermission: (permission: PermissionIdentifier) => boolean;
+  hasAnyPermission: (permissions: PermissionIdentifier[]) => boolean;
 
   // Optional reload function
   reloadPermissions: () => Promise<void>;
@@ -57,11 +58,12 @@ const PermissionContext = createContext<PermissionContextType>({
   permissionMap: {} as Record<PermissionIdentifier, boolean>,
   isLoading: true,
   hasPermission: () => false,
+  hasAnyPermission: () => false,
   reloadPermissions: async () => {},
 });
 
 // Provider component
-export function PermissionProvider({ children }: { children: ReactNode }) {
+function PermissionProvider({ children }: { children: ReactNode }) {
   const [permissionsData, setPermissionsData] = useState<PermissionsData>({
     permissions: [],
     permissionNames: [],
@@ -98,11 +100,23 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
     return checkPermission(permissionsData.permissionMap, permission);
   };
 
+  // Helper function to check if user has any of the provided permissions
+  const hasAnyPermission = (permissions: PermissionIdentifier[]) => {
+    // Handle empty array or loading state
+    if (permissions.length === 0 || isLoading) return false;
+
+    // Check each permission, return true on first match
+    return permissions.some((permission) =>
+      checkPermission(permissionsData.permissionMap, permission)
+    );
+  };
+
   // Value to provide
   const value = {
     ...permissionsData,
     isLoading,
     hasPermission,
+    hasAnyPermission,
     reloadPermissions,
   };
 
@@ -131,7 +145,7 @@ interface RequirePermissionProps {
   fallback?: ReactNode;
 }
 
-export function RequirePermission({
+function RequirePermission({
   permission,
   children,
   fallback = null,
@@ -146,3 +160,37 @@ export function RequirePermission({
 
   return hasPermission(permission) ? <>{children}</> : <>{fallback}</>;
 }
+
+// Helper component for conditional rendering based on multiple permissions
+interface RequireAnyPermissionProps {
+  permissions: PermissionIdentifier[];
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+function RequireAnyPermission({
+  permissions,
+  children,
+  fallback = null,
+}: RequireAnyPermissionProps) {
+  const { hasAnyPermission } = usePermissions();
+
+  // Validate permissions
+  if (permissions.length === 0) {
+    console.warn("Empty permissions array provided to RequireAnyPermission");
+    return <>{fallback}</>;
+  }
+
+  // Check if any permission is invalid
+  const invalidPermissions = permissions.filter((p) => !isValidPermissionId(p));
+  if (invalidPermissions.length > 0) {
+    console.warn(
+      `Invalid permission identifiers: ${invalidPermissions.join(", ")}`
+    );
+    return <>{fallback}</>;
+  }
+
+  return hasAnyPermission(permissions) ? <>{children}</> : <>{fallback}</>;
+}
+
+export { RequirePermission, RequireAnyPermission, PermissionProvider };
