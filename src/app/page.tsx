@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MainLayout } from "~/components/layout/MainLayout";
 import { dbService } from "~/lib/services";
-import RegisterPage from "./register/page";
+import RegisterPage from "./(auth)/register/page";
 import {
   Card,
   CardContent,

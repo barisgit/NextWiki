@@ -8,7 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useTRPC } from "~/lib/trpc/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { usePermissions, RequirePermission } from "~/lib/hooks/usePermissions";
+import {
+  usePermissions,
+  ClientRequirePermission,
+} from "~/components/auth/permission/client";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 export default function AdminUsersPage() {
@@ -136,14 +139,14 @@ export default function AdminUsersPage() {
       <div>
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold">User Management</h1>
-          <RequirePermission permission="system:users:create">
+          <ClientRequirePermission permission="system:users:create">
             <Button
               onClick={() => toast.info("Create user not implemented yet.")}
             >
               <PlusIcon className="w-5 h-5 mr-2" />
               Create User
             </Button>
-          </RequirePermission>
+          </ClientRequirePermission>
         </div>
         <p className="text-text-secondary">
           Manage users and group assignments
@@ -257,7 +260,7 @@ export default function AdminUsersPage() {
                     </p>
                   </div>
                   <div className="pt-4 space-y-2">
-                    <RequirePermission permission="system:users:update">
+                    <ClientRequirePermission permission="system:users:update">
                       <Button
                         className="w-full"
                         variant="outlined"
@@ -267,8 +270,8 @@ export default function AdminUsersPage() {
                       >
                         Reset Password
                       </Button>
-                    </RequirePermission>
-                    <RequirePermission permission="system:users:delete">
+                    </ClientRequirePermission>
+                    <ClientRequirePermission permission="system:users:delete">
                       <Button
                         className="w-full"
                         variant="destructive"
@@ -279,7 +282,7 @@ export default function AdminUsersPage() {
                         <TrashIcon className="w-5 h-5 mr-2" />
                         Delete User
                       </Button>
-                    </RequirePermission>
+                    </ClientRequirePermission>
                   </div>
                 </TabsContent>
 
@@ -307,13 +310,13 @@ export default function AdminUsersPage() {
                             }
                             disabled={
                               !hasPermission("system:users:update") ||
-                              (group.isLocked ?? false)
+                              (group.isSystem ?? false)
                             }
                           />
                           <label
                             htmlFor={`group-${group.id}`}
                             className={`flex flex-col ${
-                              group.isLocked
+                              group.isSystem
                                 ? "cursor-not-allowed opacity-60"
                                 : ""
                             }`}
@@ -324,7 +327,7 @@ export default function AdminUsersPage() {
                                 {group.description}
                               </span>
                             )}
-                            {group.isLocked && (
+                            {group.isSystem && (
                               <span className="text-xs text-destructive">
                                 (Locked)
                               </span>
@@ -335,7 +338,7 @@ export default function AdminUsersPage() {
                     </div>
                   )}
 
-                  <RequirePermission
+                  <ClientRequirePermission
                     permission="system:users:update"
                     fallback={
                       <Button
@@ -365,7 +368,7 @@ export default function AdminUsersPage() {
                         ? "Saving..."
                         : "Save Group Assignments"}
                     </Button>
-                  </RequirePermission>
+                  </ClientRequirePermission>
                 </TabsContent>
 
                 <TabsContent value="permissions" className="mt-4">

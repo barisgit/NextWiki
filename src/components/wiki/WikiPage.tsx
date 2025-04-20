@@ -12,7 +12,7 @@ import { useTRPC } from "~/lib/trpc/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import Modal from "~/components/ui/modal";
 import { PageLocationEditor } from "./PageLocationEditor";
-import { RequirePermission } from "~/lib/hooks/usePermissions";
+import { ClientRequirePermission } from "~/components/auth/permission/client";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { Button } from "../ui/button";
 interface WikiPageProps {
@@ -177,7 +177,7 @@ export function WikiPage({
               <div className="flex items-center space-x-4">
                 {" "}
                 {/* Rename/Move Icons */}
-                <RequirePermission permission="wiki:page:update">
+                <ClientRequirePermission permission="wiki:page:update">
                   {hasPageUpdatePermission && (
                     <div className="flex items-center space-x-1">
                       {" "}
@@ -202,9 +202,9 @@ export function WikiPage({
                       </Button>
                     </div>
                   )}
-                </RequirePermission>
+                </ClientRequirePermission>
                 {/* Lock status - Moved here */}
-                <RequirePermission permission="wiki:page:update">
+                <ClientRequirePermission permission="wiki:page:update">
                   {hasPageUpdatePermission && (
                     <WikiLockInfo
                       pageId={id}
@@ -215,7 +215,7 @@ export function WikiPage({
                       editPath={`/${path}?edit=true`}
                     />
                   )}
-                </RequirePermission>
+                </ClientRequirePermission>
               </div>
             </div>
 

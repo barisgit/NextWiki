@@ -1,14 +1,14 @@
-import { PermissionGate } from "~/components/auth/permission";
+import { PermissionGate } from "~/components/auth/permission/server";
 import { Skeleton } from "~/components/ui/skeleton";
 import { AdminLayout } from "~/components/layout/AdminLayout";
 
-export default function AdminLayoutWrapper({
+export default async function AdminLayoutWrapper({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <PermissionGate.Root
+    <PermissionGate
       permission="system:settings:read" // Use this permission for general admin access
     >
       <PermissionGate.Authorized>
@@ -30,6 +30,6 @@ export default function AdminLayoutWrapper({
           <Skeleton className="w-full h-full" />
         </div>
       </PermissionGate.NotLoggedIn>
-    </PermissionGate.Root>
+    </PermissionGate>
   );
 }

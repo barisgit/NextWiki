@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PermissionGate } from "~/components/auth/permission";
+import { PermissionGate } from "~/components/auth/permission/server";
 import { PermissionsExample } from "~/components/auth/PermissionsExample";
 import { env } from "~/env";
 
@@ -21,7 +21,7 @@ export default function PermissionExamplesPage() {
       <div className="p-6 mb-6 rounded-lg shadow-sm bg-background-level1">
         <h2 className="mb-4 text-xl font-semibold">Single Permission Check</h2>
 
-        <PermissionGate.Root permission="wiki:page:read">
+        <PermissionGate permission="wiki:page:read">
           <PermissionGate.Authorized>
             <div className="p-4 rounded bg-success-light text-success">
               You have permission to read wiki pages.
@@ -32,7 +32,7 @@ export default function PermissionExamplesPage() {
               You do not have permission to read wiki pages.
             </div>
           </PermissionGate.Unauthorized>
-        </PermissionGate.Root>
+        </PermissionGate>
       </div>
 
       <div className="p-6 mb-6 rounded-lg shadow-sm bg-background-level1">
@@ -40,9 +40,7 @@ export default function PermissionExamplesPage() {
           Multiple Permissions Check (Any)
         </h2>
 
-        <PermissionGate.Root
-          permissions={["wiki:page:create", "wiki:page:update"]}
-        >
+        <PermissionGate permissions={["wiki:page:create", "wiki:page:update"]}>
           <PermissionGate.Authorized>
             <div className="p-4 rounded bg-success-light text-success">
               You have permission to create or update wiki pages.
@@ -53,7 +51,7 @@ export default function PermissionExamplesPage() {
               You do not have permission to create or update wiki pages.
             </div>
           </PermissionGate.Unauthorized>
-        </PermissionGate.Root>
+        </PermissionGate>
       </div>
 
       <div className="p-6 rounded-lg shadow-sm bg-background-level1">

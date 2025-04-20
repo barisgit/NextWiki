@@ -3,12 +3,12 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "highlight.js/styles/github.css";
 import "~/styles/globals.css";
 import { dbService } from "~/lib/services";
-import RegisterPage from "./register/page";
+import RegisterPage from "./(auth)/register/page";
 import { Suspense } from "react";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Providers } from "~/providers";
 import { seed } from "~/lib/db/seed";
-import { PermissionGate } from "~/components/auth/permission";
+import { PermissionGate } from "~/components/auth/permission/server";
 import { LogOutButton } from "~/components/auth/LogOutButton";
 
 const inter = Inter({
@@ -117,7 +117,7 @@ export default function RootLayout({
       >
         <Providers>
           <Suspense fallback={<Skeleton className="w-full h-full" />}>
-            <PermissionGate.Root
+            <PermissionGate
               permission="wiki:page:read"
               publicPaths={["/login", "/register", "/api/*"]}
               allowGuests={true}
@@ -150,7 +150,7 @@ export default function RootLayout({
                   </div>
                 </div>
               </PermissionGate.NotLoggedIn>
-            </PermissionGate.Root>
+            </PermissionGate>
           </Suspense>
         </Providers>
       </body>
