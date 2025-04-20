@@ -23,6 +23,9 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_DEV_MODE: z.enum(["true", "false"]).default("false"),
+    NEXT_PUBLIC_NODE_ENV: z
+      .enum(["development", "production"])
+      .default("development"),
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
   },
 
@@ -32,6 +35,7 @@ export const env = createEnv({
   runtimeEnv: {
     // Server-side env vars
     NEXT_PUBLIC_DEV_MODE: process.env.NEXT_PUBLIC_DEV_MODE,
+    NEXT_PUBLIC_NODE_ENV: process.env.NODE_ENV,
     NODE_ENV: process.env.NODE_ENV,
     DATABASE_URL: process.env.DATABASE_URL,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,

@@ -203,7 +203,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               </Link>
 
               {/* Permission Example */}
-              {env.NEXT_PUBLIC_DEV_MODE && (
+              {env.NEXT_PUBLIC_NODE_ENV === "development" && (
                 <Link
                   href="/admin/example"
                   className={`flex items-center px-3 py-2 rounded-md transition-colors ${

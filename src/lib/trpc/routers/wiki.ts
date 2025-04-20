@@ -262,7 +262,7 @@ export const wikiRouter = router({
     }),
 
   // List pages (paginated) with lock information
-  list: permissionProtectedProcedure("wiki:page:read")
+  list: permissionGuestProcedure("wiki:page:read")
     .input(
       z.object({
         limit: z.number().min(1).max(100).default(10),

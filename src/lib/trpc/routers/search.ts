@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "..";
+import { router, permissionGuestProcedure } from "..";
 import { dbService } from "~/lib/services";
 import {
   paginationSchema,
@@ -7,7 +7,7 @@ import {
 } from "~/lib/utils/pagination";
 
 export const searchRouter = router({
-  search: protectedProcedure
+  search: permissionGuestProcedure("wiki:page:read")
     .input(
       z.object({
         query: z.string().min(1),

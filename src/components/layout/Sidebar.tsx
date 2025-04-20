@@ -22,6 +22,7 @@ import {
 } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 import { SearchModal } from "./SearchModal";
+import { ClientRequirePermission } from "~/components/auth/permission/client";
 
 interface FolderNode {
   name: string;
@@ -709,26 +710,29 @@ export function Sidebar() {
           )}
         </div>
 
+        {/* Create Page Button */}
         <div className="p-3 mt-4">
-          <Link href="/create">
-            <Button className="w-full">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4 mr-2"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              New Page
-            </Button>
-          </Link>
+          <ClientRequirePermission permission="wiki:page:create">
+            <Link href="/create">
+              <Button className="w-full">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4 mr-2"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                New Page
+              </Button>
+            </Link>
+          </ClientRequirePermission>
         </div>
       </div>
     </TooltipProvider>
