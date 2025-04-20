@@ -4,10 +4,12 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { WikiFolderTree } from "./WikiFolderTree";
 import { SearchIcon, PlusIcon } from "lucide-react";
-import { trpc } from "~/lib/trpc/client";
+import { useTRPC } from "~/lib/trpc/client";
+import { useQuery } from "@tanstack/react-query";
 import { PageLocationEditor } from "./PageLocationEditor";
 import { Button } from "~/components/ui/button";
 import { SkeletonText } from "~/components/ui/skeleton";
+import { ClientRequirePermission } from "../auth/permission/client";
 
 interface WikiBrowserProps {
   /**
@@ -33,9 +35,11 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
     }, 300);
   };
 
+  const trpc = useTRPC();
+
   // Fetch search results if search is active
-  const { data: searchResults, isLoading: isSearching } =
-    trpc.wiki.list.useQuery(
+  const { data: searchResults, isLoading: isSearching } = useQuery(
+    trpc.wiki.list.queryOptions(
       {
         limit: 20,
         search: debouncedSearch,
@@ -45,31 +49,34 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
       {
         enabled: debouncedSearch.length > 0,
       }
-    );
+    )
+  );
 
   return (
     <div className="space-y-6">
       {/* Search bar */}
       <div className="flex items-center mb-6">
         <div className="relative flex-1 max-w-md">
-          <SearchIcon className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-muted-foreground" />
+          <SearchIcon className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-text-secondary" />
           <input
             type="search"
             placeholder="Search wiki..."
-            className="w-full py-2 pl-10 pr-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full py-2 pl-10 pr-4 border rounded-md border-border-default focus:outline-none focus:ring-2 focus:ring-primary"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
 
-        <Button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="ml-4"
-          size="default"
-        >
-          <PlusIcon className="w-4 h-4 mr-2" />
-          New Page
-        </Button>
+        <ClientRequirePermission permission="wiki:page:create">
+          <Button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="ml-4"
+            size="default"
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            New Page
+          </Button>
+        </ClientRequirePermission>
       </div>
 
       {/* Search results */}

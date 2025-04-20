@@ -1,22 +1,27 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { MainLayout } from "~/components/layout/MainLayout";
 import { WikiPage } from "~/components/wiki/WikiPage";
 import { WikiEditor } from "~/components/wiki/WikiEditor";
-import { HighlightedMarkdown } from "~/components/wiki/HighlightedMarkdown";
-import { db } from "~/lib/db";
+import { HighlightedContent } from "~/lib/markdown/client";
+import { db } from "~/lib/db/index";
 import { wikiPages } from "~/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "~/lib/auth";
 import { Suspense } from "react";
 import { PageLocationEditor } from "~/components/wiki/PageLocationEditor";
+import { renderWikiMarkdownToHtml } from "~/lib/services/markdown";
+import { authorizationService } from "~/lib/services/authorization";
+
+export const dynamic = "auto";
+export const revalidate = 300; // 5 minutes
+export const fetchCache = "force-cache";
 
 async function getWikiPageByPath(path: string[]) {
   // Decode each path segment individually
   const decodedPath = path.map((segment) => decodeURIComponent(segment));
   const joinedPath = decodedPath.join("/").replace("%20", " ");
 
-  // FIXME: Use dbService to get the page
   const page = await db.query.wikiPages.findFirst({
     where: eq(wikiPages.path, joinedPath),
     with: {
@@ -31,7 +36,21 @@ async function getWikiPageByPath(path: string[]) {
     },
   });
 
-  // Return null if page is not found
+  if (
+    page?.renderedHtml &&
+    page?.renderedHtmlUpdatedAt &&
+    page?.renderedHtmlUpdatedAt > (page?.updatedAt ?? new Date())
+  ) {
+    return page;
+  }
+
+  // If page is found and has content, pre-render the markdown to HTML with wiki link validation
+  if (page && page.content) {
+    const renderedHtml = await renderWikiMarkdownToHtml(page.content, page.id);
+    page.renderedHtml = renderedHtml;
+    page.renderedHtmlUpdatedAt = new Date();
+  }
+
   return page;
 }
 
@@ -52,11 +71,21 @@ export default async function WikiPageView({
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
 
-  const page = await getWikiPageByPath(resolvedParams.path);
   const session = await getServerSession(authOptions);
   const currentUserId = session?.user?.id
     ? parseInt(session.user.id)
     : undefined;
+
+  const canAccessPage = await authorizationService.hasPermission(
+    currentUserId,
+    "wiki:page:read"
+  );
+
+  if (!canAccessPage) {
+    redirect("/");
+  }
+
+  const page = await getWikiPageByPath(resolvedParams.path);
 
   if (!page) {
     notFound();
@@ -68,6 +97,13 @@ export default async function WikiPageView({
 
   // Edit mode
   if (isEditMode) {
+    const canEditPage = await authorizationService.hasPermission(
+      currentUserId,
+      "wiki:page:update"
+    );
+    if (!canEditPage) {
+      redirect("/");
+    }
     return (
       <WikiEditor
         mode="edit"
@@ -82,6 +118,13 @@ export default async function WikiPageView({
 
   // Move mode
   if (isMoveMode) {
+    const canMovePage = await authorizationService.hasPermission(
+      currentUserId,
+      "wiki:page:move"
+    );
+    if (!canMovePage) {
+      redirect("/");
+    }
     return (
       <MainLayout>
         <PageLocationEditor
@@ -112,7 +155,10 @@ export default async function WikiPageView({
         title={page.title}
         content={
           <Suspense fallback={<div>Loading...</div>}>
-            <HighlightedMarkdown content={page.content || ""} />
+            <HighlightedContent
+              content={page.content || ""}
+              renderedHtml={page.renderedHtml}
+            />
           </Suspense>
         }
         createdAt={new Date(page.createdAt ?? new Date())}

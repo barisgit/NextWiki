@@ -10,7 +10,10 @@ ul.links-list {
 }
 
 ul.links-list li {
-  @apply bg-background-level1 p-4 rounded-lg shadow-md dark:shadow-black dark:shadow-sm hover:border-primary/50 hover:bg-background-level2/80 border border-transparent transition-all duration-200 flex items-start;
+  @apply bg-background-paper/50 dark:bg-background-level2 rounded-lg shadow-lg dark:shadow-none 
+  hover:border-primary/50 dark:hover:bg-background-level3 border hover:shadow-xl
+  border-transparent dark:border-border-dark transition-all duration-200 flex items-start border-l-4
+  border-l-primary dark:border-l-primary hover:border-l-primary;
 }
 
 /* Emoji styling */
@@ -20,7 +23,11 @@ ul.links-list li {
 
 /* Specific styling for links with emojis */
 ul.links-list li a {
-  @apply flex items-center gap-8 no-underline text-text-primary hover:no-underline;
+  @apply flex items-center gap-8 p-4 no-underline text-primary hover:no-underline font-bold w-full;
+}
+
+ul.links-list li a em {
+  @apply border-l border-border pl-2 -ml-6;
 }
 
 ul.links-list li .emoji {
@@ -33,6 +40,23 @@ ul.links-list li a > :not(.emoji) {
 
 ul.links-list li em {
   @apply text-sm text-text-secondary font-normal not-italic;
+}
+
+a.wiki-link-exists {
+  @apply text-primary no-underline hover:underline;
+}
+
+a.wiki-link-missing {
+  @apply !text-error;
+}
+
+ul.links-list li:has(a.wiki-link-missing) {
+  @apply hover:border-error/50 border border-l-4 border-l-error hover:border-l-error;
+}
+
+ul.links-list li a.wiki-link-missing::after {
+  @apply text-text-secondary/50 font-normal text-xs;
+  content: "Page missing";
 }
 
 blockquote {
@@ -56,7 +80,6 @@ blockquote.is-info {
 }
 
 blockquote.is-info::before {
-  content: "Info";
   @apply text-info;
 }
 
@@ -65,7 +88,6 @@ blockquote.is-warning {
 }
 
 blockquote.is-warning::before {
-  content: "Warning";
   @apply text-warning;
 }
 
@@ -74,7 +96,6 @@ blockquote.is-danger {
 }
 
 blockquote.is-danger::before {
-  content: "Danger";
   @apply text-error;
 }
 
@@ -83,7 +104,6 @@ blockquote.is-success {
 }
 
 blockquote.is-success::before {
-  content: "Success";
   @apply text-success;
 }
 
@@ -102,4 +122,29 @@ blockquote.is-quote p::before {
 
 blockquote.is-quote p::after {
   content: "”";
+}
+
+/* Lists */
+ul {
+  @apply list-disc list-inside gap-0 pl-4;
+}
+
+ol {
+  @apply list-decimal list-inside gap-0 pl-4;
+}
+
+ul li {
+  @apply p-[0.1rem];
+}
+
+ul li p {
+  @apply py-0 my-0;
+}
+
+ol li {
+  @apply p-[0.1rem];
+}
+
+ol li p {
+  @apply py-0 my-0;
 }

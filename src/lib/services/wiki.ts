@@ -1,8 +1,14 @@
 import { db } from "~/lib/db";
-import { wikiPages, wikiPageRevisions } from "~/lib/db/schema";
+import {
+  wikiPages,
+  wikiPageRevisions,
+  wikiPageToTag,
+  wikiTags,
+} from "~/lib/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { lockService } from "~/lib/services";
+import { Transaction } from "~/types/db";
 
 /**
  * Wiki service - handles all wiki-related database operations
@@ -13,11 +19,23 @@ export const wikiService = {
    */
   async getByPath(path: string) {
     return db.query.wikiPages.findFirst({
+      columns: {
+        search: false, // Exclude search vector
+        lockedById: false, // Exclude raw foreign key if lockedBy object is included
+        createdById: false,
+        updatedById: false,
+      },
       where: eq(wikiPages.path, path),
       with: {
-        createdBy: true,
-        updatedBy: true,
-        lockedBy: true,
+        createdBy: {
+          columns: { id: true, name: true, email: true, image: true },
+        },
+        updatedBy: {
+          columns: { id: true, name: true, email: true, image: true },
+        },
+        lockedBy: {
+          columns: { id: true, name: true, email: true, image: true },
+        },
         tags: {
           with: {
             tag: true,
@@ -46,22 +64,32 @@ export const wikiService = {
     content?: string;
     isPublished?: boolean;
     userId: number;
+    tags?: string[];
   }) {
-    const { path, title, content, isPublished, userId } = data;
+    const { path, title, content, isPublished, userId, tags = [] } = data;
 
-    const [page] = await db
-      .insert(wikiPages)
-      .values({
-        path: path.toLowerCase(),
-        title,
-        content,
-        isPublished: isPublished ?? false,
-        createdById: userId,
-        updatedById: userId,
-      })
-      .returning();
+    // Use a transaction to create the page and associate tags
+    return await db.transaction(async (tx) => {
+      // Create the page
+      const [page] = await tx
+        .insert(wikiPages)
+        .values({
+          path: path.toLowerCase(),
+          title,
+          content,
+          isPublished: isPublished ?? false,
+          createdById: userId,
+          updatedById: userId,
+        })
+        .returning();
 
-    return page;
+      // If there are tags to add, process them
+      if (tags.length > 0) {
+        await this.updatePageTags(tx, page.id, tags);
+      }
+
+      return page;
+    });
   },
 
   /**
@@ -75,35 +103,44 @@ export const wikiService = {
       content?: string;
       isPublished?: boolean;
       userId: number;
+      tags?: string[];
     }
   ) {
-    const { path, title, content, isPublished, userId } = data;
+    const { path, title, content, isPublished, userId, tags } = data;
 
-    // Create a page revision before updating
-    const page = await this.getById(id);
-    if (page) {
-      await db.insert(wikiPageRevisions).values({
-        pageId: id,
-        content: page.content || "",
-        createdById: userId,
-      });
-    }
+    // Use a transaction to update the page and handle tags
+    return await db.transaction(async (tx) => {
+      // Create a page revision before updating
+      const page = await this.getById(id);
+      if (page) {
+        await tx.insert(wikiPageRevisions).values({
+          pageId: id,
+          content: page.content || "",
+          createdById: userId,
+        });
+      }
 
-    // Update the page
-    const [updatedPage] = await db
-      .update(wikiPages)
-      .set({
-        path: path.toLowerCase(),
-        title,
-        content,
-        isPublished,
-        updatedById: userId,
-        updatedAt: new Date(),
-      })
-      .where(eq(wikiPages.id, id))
-      .returning();
+      // Update the page
+      const [updatedPage] = await tx
+        .update(wikiPages)
+        .set({
+          path: path.toLowerCase(),
+          title,
+          content,
+          isPublished,
+          updatedById: userId,
+          updatedAt: new Date(),
+        })
+        .where(eq(wikiPages.id, id))
+        .returning();
 
-    return updatedPage;
+      // If tags were provided, update the page's tags
+      if (tags !== undefined) {
+        await this.updatePageTags(tx, id, tags);
+      }
+
+      return updatedPage;
+    });
   },
 
   /**
@@ -111,11 +148,23 @@ export const wikiService = {
    */
   async getById(id: number) {
     return db.query.wikiPages.findFirst({
+      columns: {
+        search: false, // Exclude search vector
+        lockedById: false, // Exclude raw foreign key if lockedBy object is included
+        createdById: false,
+        updatedById: false,
+      },
       where: eq(wikiPages.id, id),
       with: {
-        createdBy: true,
-        updatedBy: true,
-        lockedBy: true,
+        createdBy: {
+          columns: { id: true, name: true, email: true, image: true },
+        },
+        updatedBy: {
+          columns: { id: true, name: true, email: true, image: true },
+        },
+        lockedBy: {
+          columns: { id: true, name: true, email: true, image: true },
+        },
         tags: {
           with: {
             tag: true,
@@ -152,29 +201,30 @@ export const wikiService = {
       params;
 
     try {
-      // First fetch all pages to check if they exist and aren't locked by others
-      const pagesToMove = await Promise.all(
-        pageIds.map(async (pageId) => {
-          const page = await this.getById(pageId);
-          if (!page) {
-            throw new Error(`Page with ID ${pageId} not found`);
-          }
+      let updatedPageIds: number[] = [];
 
-          // Check if page is locked by another user
-          // We'll reuse dbService.locks.isLocked here to be consistent
-          const { isLocked, lockedByUserId } = await lockService.isLocked(
-            pageId
-          );
-          if (isLocked && lockedByUserId !== userId) {
-            throw new Error(`Page "${page.title}" is locked by another user`);
-          }
+      await db.transaction(async (tx) => {
+        // First fetch all pages to check if they exist and aren't locked by others
+        const pagesToMove = await Promise.all(
+          pageIds.map(async (pageId) => {
+            const page = await this.getById(pageId);
+            if (!page) {
+              throw new Error(`Page with ID ${pageId} not found`);
+            }
 
-          return page;
-        })
-      );
+            // Check if page is locked by another user
+            // We'll reuse dbService.locks.isLocked here to be consistent
+            const { isLocked, lockedByUserId } = await lockService.isLocked(
+              pageId
+            );
+            if (isLocked && lockedByUserId !== userId) {
+              throw new Error(`Page "${page.title}" is locked by another user`);
+            }
 
-      // Now use a transaction to move all pages atomically
-      return await db.transaction(async (tx) => {
+            return page;
+          })
+        );
+
         // Set a reasonable timeout
         await tx.execute(sql`SET LOCAL statement_timeout = 10000`);
 
@@ -318,7 +368,8 @@ export const wikiService = {
           }
 
           // Transaction will automatically commit and release hardware locks
-          return updatedPages;
+          // Return only the IDs of the updated pages
+          updatedPageIds = updatedPages.map((p) => p.id);
         } catch (error) {
           // In case of error, explicitly release any software locks
           // that might have been acquired outside this transaction
@@ -334,9 +385,88 @@ export const wikiService = {
           throw error;
         }
       });
+
+      // After the transaction, fetch the cleaned-up data for the moved pages
+      const finalUpdatedPages = await Promise.all(
+        updatedPageIds.map((id: number) => this.getById(id))
+      );
+
+      // Filter out any nulls in case a page couldn't be fetched (shouldn't happen)
+      return finalUpdatedPages.filter((p) => p !== null) as NonNullable<
+        (typeof finalUpdatedPages)[number]
+      >[];
     } catch (error) {
       console.error("Error in movePages service:", error);
       throw error;
+    }
+  },
+
+  /**
+   * Helper method to update a page's tags
+   * @param tx Database transaction
+   * @param pageId ID of the page to update tags for
+   * @param tagNames Array of tag names to set on the page
+   */
+  async updatePageTags(tx: Transaction, pageId: number, tagNames: string[]) {
+    // Step 1: Get existing tag IDs for this page
+    const existingTagAssociations: Array<{
+      tagId: number;
+      tag: { id: number; name: string };
+    }> = await tx.query.wikiPageToTag.findMany({
+      where: eq(wikiPageToTag.pageId, pageId),
+      with: {
+        tag: true,
+      },
+    });
+
+    const existingTagNames = existingTagAssociations.map(
+      (assoc) => assoc.tag.name
+    );
+
+    // Step 2: Determine which tags to add and which to remove
+    const tagsToAdd = tagNames.filter(
+      (name) => !existingTagNames.includes(name)
+    );
+    const tagsToRemove: typeof existingTagAssociations =
+      existingTagAssociations.filter(
+        (assoc) => !tagNames.includes(assoc.tag.name)
+      );
+
+    // Step 3: Remove tags that are no longer associated with the page
+    if (tagsToRemove.length > 0) {
+      for (const assoc of tagsToRemove) {
+        await tx
+          .delete(wikiPageToTag)
+          .where(
+            eq(wikiPageToTag.tagId, assoc.tagId) &&
+              eq(wikiPageToTag.pageId, pageId)
+          );
+      }
+    }
+
+    // Step 4: Add new tags
+    if (tagsToAdd.length > 0) {
+      for (const tagName of tagsToAdd) {
+        // Get or create the tag
+        let tag = await tx.query.wikiTags.findFirst({
+          where: eq(wikiTags.name, tagName),
+        });
+
+        if (!tag) {
+          // Create new tag if it doesn't exist
+          const [newTag] = await tx
+            .insert(wikiTags)
+            .values({ name: tagName })
+            .returning();
+          tag = newTag;
+        }
+
+        // Add association between page and tag
+        await tx
+          .insert(wikiPageToTag)
+          .values({ pageId, tagId: tag.id })
+          .onConflictDoNothing(); // Ignore if already exists
+      }
     }
   },
 };

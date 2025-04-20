@@ -15,6 +15,7 @@
   --color-background-dark: var(--color-light-background-dark);
   --color-text-primary: var(--color-light-text-primary);
   --color-text-secondary: var(--color-light-text-secondary);
+  --color-text-tertiary: var(--color-light-text-tertiary);
   --color-text-accent: var(--color-light-text-accent);
   --color-border-default: var(--color-light-border-default);
   --color-border-light: var(--color-light-border-light);
@@ -25,39 +26,41 @@
 
   /* Light mode theme variables */
   --color-light-background-default: #ffffff;
-  --color-light-background-paper: #f7f7f7;
-  --color-light-background-level1: #f0f0f0;
-  --color-light-background-level2: #e8e8e8;
-  --color-light-background-level3: #e0e0e0;
-  --color-light-background-light: #f5f5f5;
-  --color-light-background-dark: #121212;
-  --color-light-text-primary: #1a1a1a;
-  --color-light-text-secondary: #616161;
-  --color-light-text-accent: var(--color-primary-600);
-  --color-light-border-default: #c0c0c0;
-  --color-light-border-light: #e0e0e0;
-  --color-light-border-dark: #a0a0a0;
-  --color-light-border-accent: var(--color-primary-500);
-  --color-light-scrollbar-track: #f0f0f0;
-  --color-light-scrollbar-thumb: #c0c0c0;
+  --color-light-background-paper: #f8f9fa;
+  --color-light-background-level1: #f1f3f5;
+  --color-light-background-level2: #e9ecef;
+  --color-light-background-level3: #dee2e6;
+  --color-light-background-light: #ffffff;
+  --color-light-background-dark: #212529;
+  --color-light-text-primary: #212529;
+  --color-light-text-secondary: #495057;
+  --color-light-text-tertiary: #6c757d;
+  --color-light-text-accent: var(--color-primary-700);
+  --color-light-border-default: #adb5bd;
+  --color-light-border-light: #ced4da;
+  --color-light-border-dark: #868e96;
+  --color-light-border-accent: var(--color-primary-600);
+  --color-light-scrollbar-track: #f1f3f5;
+  --color-light-scrollbar-thumb: #adb5bd;
 
   /* Dark mode theme variables */
-  --color-dark-background-default: #121212;
-  --color-dark-background-paper: #1e1e1e;
-  --color-dark-background-level1: #2c2c2c;
-  --color-dark-background-level2: #333333;
-  --color-dark-background-level3: #424242;
-  --color-dark-background-light: #1e1e1e;
+  --color-dark-background-default: #131313; /* Near black */
+  --color-dark-background-paper: #1c1c1c; /* Slightly lighter paper */
+  --color-dark-background-level1: #262626; /* Darker level 1 */
+  --color-dark-background-level2: #2c2c2c; /* Darker level 2 */
+  --color-dark-background-level3: #333333; /* Slightly lighter level 3 for better contrast */
+  --color-dark-background-light: #0a0a0a;
   --color-dark-background-dark: #000000;
-  --color-dark-text-primary: #ffffff;
-  --color-dark-text-secondary: #b0b0b0;
-  --color-dark-text-accent: var(--color-primary-400);
-  --color-dark-border-default: #424242;
-  --color-dark-border-light: #616161;
-  --color-dark-border-dark: #212121;
-  --color-dark-border-accent: var(--color-primary-400);
-  --color-dark-scrollbar-track: #333333;
-  --color-dark-scrollbar-thumb: #666666;
+  --color-dark-text-primary: #f8f9fa;
+  --color-dark-text-secondary: #e0e0e0;
+  --color-dark-text-tertiary: #a0a7ae;
+  --color-dark-text-accent: var(--color-primary-300);
+  --color-dark-border-default: #303030;
+  --color-dark-border-light: #4a4a4a;
+  --color-dark-border-dark: #202020;
+  --color-dark-border-accent: var(--color-primary-300);
+  --color-dark-scrollbar-track: #1f1f1f;
+  --color-dark-scrollbar-thumb: #4a4a4a;
 
   /* Card colors */
   --color-card: var(--color-background-level1);
@@ -67,16 +70,16 @@
   --color-card-foreground: var(--color-text-primary);
 
   /* Code colors */
-  --color-code: #333338;
-  --color-code-foreground: #dedede;
+  --color-code: #f1f3f5;
+  --color-code-foreground: #343a40;
   --color-inline-code: var(--color-primary-100);
-  --color-inline-code-foreground: var(--color-primary-1000);
+  --color-inline-code-foreground: var(--color-primary-900);
 
   /* Dark code colors */
-  --color-dark-code: #28282b;
-  --color-dark-code-foreground: #c0c0c0;
+  --color-dark-code: #151515; /* Align with new dark bg */
+  --color-dark-code-foreground: #e9ecef;
   --color-dark-inline-code: var(--color-background-level2);
-  --color-dark-inline-code-foreground: var(--color-primary-300);
+  --color-dark-inline-code-foreground: var(--color-primary-200);
 
   /* Popover colors */
   --color-popover: var(--color-background-default);
@@ -84,13 +87,13 @@
   --color-popover-border: var(--color-border-default);
 
   /* Font sizes */
-  --font-size-xs: 0.75rem; /* 12px */
-  --font-size-sm: 0.875rem; /* 14px */
-  --font-size-md: 1rem; /* 16px */
-  --font-size-lg: 1.125rem; /* 18px */
-  --font-size-xl: 1.25rem; /* 20px */
-  --font-size-2xl: 1.5rem; /* 24px */
-  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-xs: 0.8125rem;
+  --font-size-sm: 0.9375rem;
+  --font-size-md: 1.0625rem;
+  --font-size-lg: 1.1875rem;
+  --font-size-xl: 1.3125rem;
+  --font-size-2xl: 1.625rem;
+  --font-size-3xl: 2rem;
 
   /* Line heights */
   --line-height-tight: 1.25;
@@ -161,12 +164,12 @@
   --color-accent-foreground: #ffffff;
 
   /* Muted colors */
-  --color-muted: #f0f0f2;
-  --color-muted-darker: #e0e0e6;
-  --color-muted-lighter: #f7f7f9;
-  --color-muted-foreground: #71717a;
-  --color-muted-foreground-darker: #52525b;
-  --color-muted-foreground-lighter: #a1a1aa;
+  --color-muted: #f5f5f5;
+  --color-muted-darker: #e8e8e8;
+  --color-muted-lighter: #fafafa;
+  --color-muted-foreground: #4a4a52;
+  --color-muted-foreground-darker: #2f2f35;
+  --color-muted-foreground-lighter: #7d7d85;
 
   /* Complementary colors - expanded with darker tones */
   --color-complementary-50: #fde6e8;
@@ -350,8 +353,8 @@
   --radius-full: 9999px;
 
   /* Font families */
-  --font-sans: "Inter", "sans-serif";
-  --font-mono: "JetBrains Mono", "monospace";
+  --font-sans: var(--font-inter, "Inter", "sans-serif");
+  --font-mono: var(--font-jetbrains-mono, "JetBrains Mono", "monospace");
 }
 
 @layer base {
@@ -365,6 +368,7 @@
     --color-background-dark: var(--color-dark-background-dark);
     --color-text-primary: var(--color-dark-text-primary);
     --color-text-secondary: var(--color-dark-text-secondary);
+    --color-text-tertiary: var(--color-dark-text-tertiary);
     --color-text-accent: var(--color-dark-text-accent);
     --color-border-default: var(--color-dark-border-default);
     --color-border-light: var(--color-dark-border-light);
@@ -383,8 +387,12 @@
     --color-popover: var(--color-background-level1);
     --color-popover-foreground: var(--color-text-primary);
 
-    --color-code: #1e1e1e;
-    --color-code-foreground: #e0e0e0;
+    --color-code: var(--color-dark-code);
+    --color-code-foreground: var(--color-dark-code-foreground);
+
+    /* Adjust Muted colors for dark mode */
+    --color-muted: var(--color-background-level1);
+    --color-muted-foreground: #adb5bd;
 
     /* Update markdown-specific colors for dark mode */
     --color-markdown-h1: var(--color-primary-400);
@@ -405,4 +413,28 @@
     --color-input-hover: var(--color-background-level2);
     --color-input-focus: var(--color-background-level2);
   }
+}
+
+/* Style for the scroll indicator container */
+.scroll-indicator-container::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 10rem; /* Adjust height as needed */
+  background: linear-gradient(
+    to top,
+    var(--color-background-paper),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0.4s ease-in-out;
+}
+
+/* Show the indicator only when scrollable AND not at the bottom */
+.scroll-indicator-container.is-scrollable[data-scroll-bottom="false"]::after {
+  opacity: 1;
 }

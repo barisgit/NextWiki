@@ -4,21 +4,22 @@ This directory contains utility scripts for setting up and managing your NextWik
 
 ## Database Setup Scripts
 
-### `setup-db.js` (Node.js)
+### `setup-db.ts` (TypeScript)
 
-A Node.js script that creates a PostgreSQL database in Docker and configures your `.env` file with the connection string.
+A TypeScript script that creates a PostgreSQL database in Docker and configures your `.env` file with the connection string.
 
 ```bash
 # Run with npm script
-npm run db:setup
+pnpm run db:setup
 
 # Or directly
-node scripts/setup-db.js
+tsx scripts/setup-db.ts
 ```
 
 ### `setup-db.sh` (Bash)
 
-A bash script that does the same as the Node.js version but for users who prefer shell scripts.
+A bash script that does the same as the TypeScript version but for users who prefer shell scripts.
+Note: This script as of now does not migrate or seed the database.
 
 ```bash
 # Make sure it's executable first (only needed once)

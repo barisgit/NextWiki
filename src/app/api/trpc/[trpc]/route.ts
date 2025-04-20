@@ -2,6 +2,8 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "~/lib/trpc/routers";
 import { createContext } from "~/lib/trpc";
 
+import { env } from "~/env";
+
 // Set CORS headers for API routes
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,7 +32,7 @@ export async function GET(
     router: appRouter,
     createContext,
     onError:
-      process.env.NODE_ENV === "development"
+      env.NODE_ENV === "development"
         ? ({ path, error }) => {
             console.error(
               `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
@@ -52,7 +54,7 @@ export async function POST(
     router: appRouter,
     createContext,
     onError:
-      process.env.NODE_ENV === "development"
+      env.NODE_ENV === "development"
         ? ({ path, error }) => {
             console.error(
               `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`

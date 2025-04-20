@@ -1,16 +1,28 @@
 import { db } from "~/lib/db";
-import { users } from "~/lib/db/schema";
+import { users, userGroups, groups } from "~/lib/db/schema";
 import { NextAuthOptions, getServerSession } from "next-auth";
 import { Adapter } from "next-auth/adapters";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { compare } from "bcrypt";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { env } from "~/env";
 
-// Create auth options without the adapter initially
+// Helper function to handle provider import differences between environments
+// Ignore any type errors here, we know the providers are valid
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function createProvider(provider: any, options: any) {
+  // Use provider directly if it's a function, otherwise use provider.default
+  return typeof provider === "function"
+    ? provider(options)
+    : provider.default(options);
+}
+
+// Create auth options with the adapter set directly
 export const authOptions: NextAuthOptions = {
-  adapter: undefined as unknown as Adapter, // Will be set dynamically
+  adapter: DrizzleAdapter(db) as Adapter,
   session: {
     strategy: "jwt",
   },
@@ -22,21 +34,21 @@ export const authOptions: NextAuthOptions = {
     newUser: "/auth/new-user",
   },
   providers: [
-    GitHubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID || "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
+    createProvider(GitHubProvider, {
+      clientId: env.GITHUB_CLIENT_ID || "",
+      clientSecret: env.GITHUB_CLIENT_SECRET || "",
     }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    createProvider(GoogleProvider, {
+      clientId: env.GOOGLE_CLIENT_ID || "",
+      clientSecret: env.GOOGLE_CLIENT_SECRET || "",
     }),
-    CredentialsProvider({
+    createProvider(CredentialsProvider, {
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials: Record<string, string> | undefined) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -58,11 +70,27 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Check if user is in Administrators group
+        const adminGroup = await db.query.groups.findFirst({
+          where: eq(groups.name, "Administrators"),
+        });
+
+        let isAdmin = false;
+        if (adminGroup) {
+          const adminGroupMembership = await db.query.userGroups.findFirst({
+            where: and(
+              eq(userGroups.userId, user.id),
+              eq(userGroups.groupId, adminGroup.id)
+            ),
+          });
+          isAdmin = !!adminGroupMembership;
+        }
+
         return {
           id: user.id.toString(),
           name: user.name,
           email: user.email,
-          isAdmin: user.isAdmin,
+          isAdmin: isAdmin,
         };
       },
     }),
@@ -82,22 +110,27 @@ export const authOptions: NextAuthOptions = {
         token.sub = user.id;
         // @ts-expect-error - we know isAdmin exists on our custom user
         token.isAdmin = user.isAdmin || false;
+      } else if (token.sub) {
+        // Check admin status on each token refresh to keep it updated
+        const adminGroup = await db.query.groups.findFirst({
+          where: eq(groups.name, "Administrators"),
+        });
+
+        let isAdmin = false;
+        if (adminGroup) {
+          const adminGroupMembership = await db.query.userGroups.findFirst({
+            where: and(
+              eq(userGroups.userId, parseInt(token.sub)),
+              eq(userGroups.groupId, adminGroup.id)
+            ),
+          });
+          isAdmin = !!adminGroupMembership;
+          token.isAdmin = isAdmin;
+        }
       }
       return token;
     },
   },
 };
-
-// Dynamically import and set the adapter
-// This import happens at runtime, not in the module scope
-(async () => {
-  try {
-    const { DrizzleAdapter } = await import("@auth/drizzle-adapter");
-    // @ts-expect-error - we're setting it after initialization
-    authOptions.adapter = DrizzleAdapter(db) as Adapter;
-  } catch (error) {
-    console.error("Failed to load DrizzleAdapter:", error);
-  }
-})();
 
 export const getServerAuthSession = () => getServerSession(authOptions);

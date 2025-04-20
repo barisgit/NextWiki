@@ -1,56 +1,47 @@
 import Link from "next/link";
 import { MainLayout } from "~/components/layout/MainLayout";
+import { CodeBlock } from "~/components/ui/code-block";
 
 export default function GettingStartedPage() {
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="p-4 space-y-6">
         <h1 className="text-2xl font-bold">Getting Started with NextWiki</h1>
 
-        <section className="p-6 border rounded-lg bg-background-default border-border">
+        <section className="p-6 border rounded-lg shadow-lg bg-background-paper border-border-default">
           <h2 className="mb-4 text-xl font-semibold">Installation</h2>
           <div className="space-y-4">
             <div className="space-y-2">
               <h3 className="font-medium">1. Clone the repository</h3>
-              <pre className="p-4 rounded bg-muted text-muted-foreground">
-                <code>
-                  git clone https://github.com/yourusername/nextwiki.git
-                </code>
-              </pre>
+              <CodeBlock language="bash">
+                git clone https://github.com/barisgit/nextwiki.git
+              </CodeBlock>
             </div>
 
             <div className="space-y-2">
               <h3 className="font-medium">2. Install dependencies</h3>
-              <pre className="p-4 rounded bg-muted text-muted-foreground">
-                <code>npm install</code>
-              </pre>
+              <CodeBlock language="bash">pnpm install</CodeBlock>
             </div>
 
             <div className="space-y-2">
               <h3 className="font-medium">3. Configure environment</h3>
-              <pre className="p-4 rounded bg-muted text-muted-foreground">
-                <code>cp .env.example .env.local</code>
-              </pre>
+              <CodeBlock language="bash">cp .env.example .env.local</CodeBlock>
             </div>
 
             <div className="space-y-2">
               <h3 className="font-medium">4. Database setup</h3>
-              <pre className="p-4 rounded bg-muted text-muted-foreground">
-                <code>
-                  pnpm run db:generate
-                  <br />
-                  pnpm run db:migrate
-                  <br />
-                  pnpm run db:setup
-                </code>
-              </pre>
+              <CodeBlock language="bash" className="my-4">
+                pnpm run db:generate
+                <br />
+                pnpm run db:migrate
+                <br />
+                pnpm run db:setup
+              </CodeBlock>
             </div>
 
             <div className="space-y-2">
               <h3 className="font-medium">5. Start development server</h3>
-              <pre className="p-4 rounded bg-muted text-muted-foreground">
-                <code>pnpm run dev</code>
-              </pre>
+              <CodeBlock language="bash">pnpm run dev</CodeBlock>
             </div>
           </div>
         </section>

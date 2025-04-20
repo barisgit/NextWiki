@@ -1,8 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { desc, eq, like, gt, and, sql } from "drizzle-orm";
-import { db, wikiPages, wikiPageRevisions } from "~/lib/db";
-import { publicProcedure, protectedProcedure, router } from "..";
+import { db, wikiPages } from "~/lib/db";
+import {
+  permissionGuestProcedure,
+  permissionProtectedProcedure,
+  router,
+} from "..";
 import { dbService, wikiService } from "~/lib/services";
 
 // Wiki page input validation schema
@@ -11,12 +15,22 @@ const pageInputSchema = z.object({
   title: z.string().min(1).max(255),
   content: z.string().optional(),
   isPublished: z.boolean().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export const wikiRouter = router({
   // Get a page by path
-  getByPath: publicProcedure
-    .input(z.object({ path: z.string() }))
+  getByPath: permissionGuestProcedure("wiki:page:read")
+    .meta({ description: "Fetches a specific wiki page by its full path." })
+    .input(
+      z.object({
+        path: z
+          .string()
+          .describe(
+            "The full path to the wiki page (e.g., 'folder/subfolder/page-name')"
+          ),
+      })
+    )
     .query(async ({ input }) => {
       const page = await db.query.wikiPages.findFirst({
         where: eq(wikiPages.path, input.path),
@@ -43,7 +57,7 @@ export const wikiRouter = router({
     }),
 
   // Check if a page exists at a path without throwing an error
-  pageExists: publicProcedure
+  pageExists: permissionProtectedProcedure("wiki:page:read")
     .input(z.object({ path: z.string() }))
     .query(async ({ input }) => {
       const page = await db.query.wikiPages.findFirst({
@@ -55,29 +69,36 @@ export const wikiRouter = router({
     }),
 
   // Create a new page
-  create: protectedProcedure
+  create: permissionProtectedProcedure("wiki:page:create")
     .input(pageInputSchema)
     .mutation(async ({ input, ctx }) => {
-      const { path, title, content, isPublished } = input;
+      const { path, title, content, isPublished, tags } = input;
       const userId = parseInt(ctx.session.user.id);
 
-      const [page] = await db
-        .insert(wikiPages)
-        .values({
-          path,
-          title,
-          content,
-          isPublished: isPublished ?? false,
-          createdById: userId,
-          updatedById: userId,
-        })
-        .returning();
+      // Let the service handle the page creation and tag associations
+      const createdPage = await wikiService.create({
+        path,
+        title,
+        content,
+        isPublished: isPublished ?? false,
+        userId,
+        tags,
+      });
 
-      return page;
+      // Re-fetch the page using the cleaned-up service method
+      const page = await wikiService.getById(createdPage.id);
+      if (!page) {
+        // Should not happen, but handle defensively
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to retrieve created page",
+        });
+      }
+      return page; // Return the cleaned-up page data
     }),
 
   // Acquire a lock on a page for editing
-  acquireLock: protectedProcedure
+  acquireLock: permissionProtectedProcedure("wiki:page:update")
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
@@ -118,7 +139,7 @@ export const wikiRouter = router({
     }),
 
   // Release a software lock on a page
-  releaseLock: protectedProcedure
+  releaseLock: permissionProtectedProcedure("wiki:page:update")
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
@@ -149,7 +170,7 @@ export const wikiRouter = router({
     }),
 
   // Refresh a software lock to prevent timeout
-  refreshLock: protectedProcedure
+  refreshLock: permissionProtectedProcedure("wiki:page:update")
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
@@ -178,14 +199,14 @@ export const wikiRouter = router({
     }),
 
   // Update an existing page
-  update: protectedProcedure
+  update: permissionProtectedProcedure("wiki:page:update")
     .input(
       pageInputSchema.extend({
         id: z.number(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { id, path, title, content, isPublished } = input;
+      const { id, path, title, content, isPublished, tags } = input;
       const userId = parseInt(ctx.session.user.id);
 
       // First, check if the user has a valid software lock
@@ -198,52 +219,27 @@ export const wikiRouter = router({
         });
       }
 
-      // Use a transaction with a hardware lock for the update operation
       try {
-        return await db.transaction(async (tx) => {
-          // Set a short timeout for the hardware lock operation
-          await tx.execute(sql`SET LOCAL statement_timeout = 3000`);
-
-          // Acquire a hardware lock for the update
-          const result = await tx.execute(
-            sql`SELECT * FROM wiki_pages WHERE id = ${id} FOR UPDATE NOWAIT`
-          );
-
-          if (result.rows.length === 0) {
-            throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "Page not found",
-            });
-          }
-
-          const page = result.rows[0] as typeof wikiPages.$inferSelect;
-
-          // Create a page revision
-          await tx.insert(wikiPageRevisions).values({
-            pageId: id,
-            content: page.content || "",
-            createdById: userId,
-          });
-
-          // Update the page and clear the software lock
-          const [updatedPage] = await tx
-            .update(wikiPages)
-            .set({
-              path,
-              title,
-              content,
-              isPublished,
-              updatedById: userId,
-              updatedAt: new Date(),
-              lockedById: null,
-              lockedAt: null,
-              lockExpiresAt: null,
-            })
-            .where(eq(wikiPages.id, id))
-            .returning();
-
-          return updatedPage;
+        // Use the service method which now handles tags as well
+        const updatedPageRaw = await wikiService.update(id, {
+          path,
+          title,
+          content,
+          isPublished,
+          userId,
+          tags,
         });
+
+        // Re-fetch the page using the cleaned-up service method
+        const page = await wikiService.getById(updatedPageRaw.id);
+        if (!page) {
+          // Should not happen, but handle defensively
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to retrieve updated page",
+          });
+        }
+        return page; // Return the cleaned-up page data
       } catch (error) {
         console.error("Failed to update page:", error);
 
@@ -266,7 +262,7 @@ export const wikiRouter = router({
     }),
 
   // List pages (paginated) with lock information
-  list: publicProcedure
+  list: permissionGuestProcedure("wiki:page:read")
     .input(
       z.object({
         limit: z.number().min(1).max(100).default(10),
@@ -316,9 +312,31 @@ export const wikiRouter = router({
         where: whereConditions,
         orderBy: [orderBy],
         limit: limit + 1,
+        columns: {
+          id: true,
+          path: true,
+          title: true,
+          content: false,
+          renderedHtml: false,
+          editorType: true,
+          isPublished: true,
+          createdAt: true,
+          updatedAt: true,
+          renderedHtmlUpdatedAt: false,
+          search: false,
+          lockedById: false,
+          createdById: false,
+          updatedById: false,
+          lockedAt: true,
+          lockExpiresAt: true,
+        },
         with: {
-          updatedBy: true,
-          lockedBy: true,
+          updatedBy: {
+            columns: { id: true, name: true, email: true, image: true },
+          },
+          lockedBy: {
+            columns: { id: true, name: true, email: true, image: true },
+          },
           tags: {
             with: {
               tag: true,
@@ -343,7 +361,7 @@ export const wikiRouter = router({
     }),
 
   // Delete a page
-  delete: protectedProcedure
+  delete: permissionProtectedProcedure("wiki:page:delete")
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
@@ -407,26 +425,28 @@ export const wikiRouter = router({
     }),
 
   // Get folder structure
-  getFolderStructure: publicProcedure.query(async () => {
-    // Get all pages from database
-    const pages = await db.query.wikiPages.findMany({
-      orderBy: [wikiPages.path],
-      columns: {
-        id: true,
-        path: true,
-        title: true,
-        updatedAt: true,
-        isPublished: true,
-      },
-    });
+  getFolderStructure: permissionGuestProcedure("wiki:page:read").query(
+    async () => {
+      // Get all pages from database
+      const pages = await db.query.wikiPages.findMany({
+        orderBy: [wikiPages.path],
+        columns: {
+          id: true,
+          path: true,
+          title: true,
+          updatedAt: true,
+          isPublished: true,
+        },
+      });
 
-    // Build folder structure
-    const folderStructure = buildFolderStructure(pages);
-    return folderStructure;
-  }),
+      // Build folder structure
+      const folderStructure = buildFolderStructure(pages);
+      return folderStructure;
+    }
+  ),
 
   // Get subfolders for a specific path
-  getSubfolders: publicProcedure
+  getSubfolders: permissionGuestProcedure("wiki:page:read")
     .input(
       z.object({
         path: z.string().optional(),
@@ -453,7 +473,7 @@ export const wikiRouter = router({
     }),
 
   // Move or rename pages
-  movePages: protectedProcedure
+  movePages: permissionProtectedProcedure("wiki:page:move")
     .input(
       z.object({
         pageIds: z.array(z.number()),
@@ -515,7 +535,7 @@ export const wikiRouter = router({
     }),
 
   // Create a new folder (this actually creates an empty index page in the folder)
-  createFolder: protectedProcedure
+  createFolder: permissionProtectedProcedure("wiki:page:create")
     .input(
       z.object({
         path: z.string().min(1),
@@ -542,7 +562,7 @@ export const wikiRouter = router({
       }
 
       // Create the page at the requested path
-      const [page] = await db
+      const [createdFolderPage] = await db
         .insert(wikiPages)
         .values({
           path: folderPath,
@@ -554,7 +574,16 @@ export const wikiRouter = router({
         })
         .returning();
 
-      return page;
+      // Re-fetch the page using the cleaned-up service method
+      const page = await wikiService.getById(createdFolderPage.id);
+      if (!page) {
+        // Should not happen, but handle defensively
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to retrieve created folder page",
+        });
+      }
+      return page; // Return the cleaned-up page data
     }),
 });
 

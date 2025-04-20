@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MainLayout } from "~/components/layout/MainLayout";
 import { dbService } from "~/lib/services";
-import RegisterPage from "./register/page";
+import RegisterPage from "./(auth)/register/page";
 import {
   Card,
   CardContent,
@@ -10,7 +10,7 @@ import {
 } from "~/components/ui/card";
 import { WikiBrowser } from "~/components/wiki/WikiBrowser";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { WikiPageList } from "~/components/wiki/WikiPageList";
+import { AllPagesList } from "~/components/wiki/AllPagesList";
 
 export default async function Home() {
   // Server-side data fetching - using our centralized service
@@ -20,7 +20,7 @@ export default async function Home() {
   const isFirstUser = userCount === 0;
 
   if (isFirstUser) {
-    return RegisterPage();
+    return RegisterPage({});
   }
 
   return (
@@ -49,7 +49,7 @@ export default async function Home() {
             </TabsContent>
 
             <TabsContent value="all">
-              <WikiPageList initialSortBy="title" initialSortOrder="asc" />
+              <AllPagesList />
             </TabsContent>
           </Tabs>
 

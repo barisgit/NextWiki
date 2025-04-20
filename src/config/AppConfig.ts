@@ -22,40 +22,9 @@ const AppConfig = {
   ],
   forceThemeMode: "dark" as ThemeMode,
   maxNotifications: 5,
-  // navigation: [
-  //   {
-  //     i18nkey: "home", // This should match the key in the messages file pages.{i18nkey}
-  //     href: "/",
-  //   },
-  //   {
-  //     i18nkey: "dashboard",
-  //     href: "/dashboard",
-  //     protected: true,
-  //   },
-  //   {
-  //     i18nkey: "features",
-  //     href: "/features",
-  //     feature: "features",
-  //   },
-  //   {
-  //     i18nkey: "admin",
-  //     href: "/admin",
-  //     feature: "adminDashboard",
-  //     admin: true,
-  //     subroutes: [
-  //       {
-  //         i18nkey: "mail",
-  //         href: "/admin/mail",
-  //         feature: "emailSystem",
-  //       },
-  //       {
-  //         i18nkey: "reservations",
-  //         href: "/admin/reservations",
-  //         feature: "reservationSystem",
-  //       },
-  //     ],
-  //   },
-  // ],
+  initialAppConfig: {
+    allowPublicViewers: false,
+  },
 };
 
 export default AppConfig;
