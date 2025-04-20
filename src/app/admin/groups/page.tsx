@@ -29,7 +29,9 @@ export default async function GroupsPage() {
   // Ensure isLocked is always a boolean
   const formattedGroups = groups.map((group) => ({
     ...group,
-    isLocked: group.isLocked ?? false,
+    isSystem: group.isSystem ?? false,
+    isEditable: group.isEditable ?? true,
+    allowUserAssignment: group.allowUserAssignment ?? true,
   }));
 
   const canCreateGroups = await authorizationService.hasPermission(

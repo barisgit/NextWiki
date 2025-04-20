@@ -5,6 +5,7 @@ import { createContext, useContext } from "react";
 export interface PermissionContextValue {
   isLoggedIn: boolean;
   isAuthorized: boolean;
+  isGuest: boolean;
   publicPaths?: string[];
 }
 

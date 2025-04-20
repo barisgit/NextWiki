@@ -22,7 +22,9 @@ interface GroupsListProps {
     id: number;
     name: string;
     description: string | null;
-    isLocked: boolean;
+    isSystem: boolean;
+    isEditable: boolean;
+    allowUserAssignment: boolean;
   }[];
 }
 
@@ -62,7 +64,7 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
               <TableCell className="font-medium">{group.name}</TableCell>
               <TableCell>{group.description}</TableCell>
               <TableCell>
-                {group.isLocked ? (
+                {group.isSystem ? (
                   <Badge
                     variant="outline"
                     color={group.name === "Administrators" ? "primary" : "info"}
@@ -104,7 +106,7 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
                       </Button>
                     </Link>
                   </RequirePermission>
-                  {!group.isLocked && (
+                  {!group.isSystem && (
                     <RequirePermission permission="system:groups:delete">
                       <Button
                         variant="ghost"

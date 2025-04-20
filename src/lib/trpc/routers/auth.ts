@@ -3,7 +3,12 @@
  */
 import "server-only";
 import { z } from "zod";
-import { router, protectedProcedure } from "~/lib/trpc";
+import {
+  router,
+  protectedProcedure,
+  guestProcedure,
+  publicProcedure,
+} from "~/lib/trpc";
 import { authorizationService } from "~/lib/services";
 import { PermissionIdentifier, validatePermissionId } from "~/lib/permissions";
 
@@ -20,8 +25,11 @@ const permissionIdentifierSchema = z.string().refine(
 
 export const authRouter = router({
   // Get the current user's permissions
-  getMyPermissions: protectedProcedure.query(async ({ ctx }) => {
-    const userId = parseInt(ctx.session.user.id);
+  getMyPermissions: publicProcedure.query(async ({ ctx }) => {
+    let userId = undefined;
+    if (ctx.session) {
+      userId = parseInt(ctx.session.user.id);
+    }
 
     // Get all permissions for the current user
     const permissions = await authorizationService.getUserPermissions(userId);
@@ -84,5 +92,48 @@ export const authRouter = router({
         input.permission
       );
       return hasPermission;
+    }),
+
+  // Create a procedure to get guest permissions
+  getGuestPermissions: guestProcedure
+    .meta({
+      description: "Get permissions for guest users",
+    })
+    .query(async () => {
+      // Get guest permissions using the authorization service
+      const guestGroupId = await authorizationService.getGuestGroupId();
+
+      if (!guestGroupId) {
+        // Return empty permissions if no guest group defined
+        return {
+          permissions: [],
+          permissionNames: [],
+          permissionMap: {},
+        };
+      }
+
+      // Guest users have userId undefined
+      const permissions = await authorizationService.getUserPermissions(
+        undefined
+      );
+
+      // Collect permission names
+      const permissionNames = permissions.map(
+        (p) => `${p.module}:${p.resource}:${p.action}` as PermissionIdentifier
+      );
+
+      // Create a map for easy lookup
+      const permissionMap = permissions.reduce((acc, permission) => {
+        const id =
+          `${permission.module}:${permission.resource}:${permission.action}` as PermissionIdentifier;
+        acc[id] = true;
+        return acc;
+      }, {} as Record<PermissionIdentifier, boolean>);
+
+      return {
+        permissions,
+        permissionNames,
+        permissionMap,
+      };
     }),
 });

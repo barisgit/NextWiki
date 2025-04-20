@@ -30,15 +30,19 @@ interface AuthorizedProps {
 
 /**
  * Renders children if the user is logged in AND authorized,
+ * OR if the user is a guest AND authorized,
  * OR if the current path is in publicPaths from context.
  */
 export function Authorized({ children }: AuthorizedProps) {
-  const { isLoggedIn, isAuthorized, publicPaths } = usePermissionContext();
+  const { isLoggedIn, isAuthorized, isGuest, publicPaths } =
+    usePermissionContext();
   const pathname = usePathname();
   const isPublic = isPublicPath(pathname, publicPaths);
 
-  // Render if public OR if logged in and authorized
-  return isPublic || (isLoggedIn && isAuthorized) ? <>{children}</> : null;
+  // Render if public OR if (logged in OR guest) AND authorized
+  return isPublic || (isAuthorized && (isLoggedIn || isGuest)) ? (
+    <>{children}</>
+  ) : null;
 }
 
 // --- Unauthorized Slot ---
@@ -58,6 +62,7 @@ export function Unauthorized({ children, redirectTo }: UnauthorizedProps) {
   const pathname = usePathname();
   const isPublic = isPublicPath(pathname, publicPaths);
 
+  // User is present (logged in or guest) but not authorized
   const shouldRender = !isPublic && isLoggedIn && !isAuthorized;
 
   useEffect(() => {
@@ -79,17 +84,21 @@ interface NotLoggedInProps {
 }
 
 /**
- * Renders children only if the user is NOT logged in,
+ * Renders children only if the user is NOT logged in AND is NOT a guest with permissions,
  * AND the current path is NOT in publicPaths from context.
  * Optionally redirects the user if `redirectTo` is provided.
+ *
+ * Note: This is rarely used with guest permissions, as guests would be treated similarly
+ * to logged-in users if they have access permissions.
  */
 export function NotLoggedIn({ children, redirectTo }: NotLoggedInProps) {
-  const { isLoggedIn, publicPaths } = usePermissionContext();
+  const { isLoggedIn, isAuthorized, publicPaths } = usePermissionContext();
   const router = useRouter();
   const pathname = usePathname();
   const isPublic = isPublicPath(pathname, publicPaths);
 
-  const shouldRender = !isPublic && !isLoggedIn;
+  // Only show this if not a public path, not logged in, and the guest is not authorized
+  const shouldRender = !isPublic && !isLoggedIn && !isAuthorized;
 
   useEffect(() => {
     // Redirect only applies if this component is active (shouldRender is true)

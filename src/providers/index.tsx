@@ -7,7 +7,7 @@ import { ModalProvider } from "~/components/ui/modal-provider";
 import { PermissionProvider } from "~/lib/hooks/usePermissions";
 import { Toaster } from "sonner";
 import { useTheme } from "~/providers/theme-provider";
-
+import { AuthProvider } from "~/components/auth/AuthProvider";
 interface ProvidersProps {
   children: ReactNode;
 }
@@ -35,14 +35,16 @@ export function Providers({ children }: ProvidersProps) {
   // Removed useTheme() call from here
   return (
     <ThemeProvider>
-      <TRPCClientProvider>
-        <PermissionProvider>
-          <ModalProvider>
-            {children}
-            <ToasterWithTheme />
-          </ModalProvider>
-        </PermissionProvider>
-      </TRPCClientProvider>
+      <AuthProvider>
+        <TRPCClientProvider>
+          <PermissionProvider>
+            <ModalProvider>
+              {children}
+              <ToasterWithTheme />
+            </ModalProvider>
+          </PermissionProvider>
+        </TRPCClientProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

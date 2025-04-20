@@ -21,6 +21,11 @@ interface PermissionRootProps {
   publicPaths?: string[];
 
   /**
+   * Whether to allow guest access (non-authenticated users)
+   */
+  allowGuests?: boolean;
+
+  /**
    * The children to render if the permission check passes.
    */
   children: ReactNode;
@@ -31,11 +36,13 @@ interface PermissionRootProps {
  * Fetches auth session and permission status, then provides it via context
  * by using a client-side provider component.
  * Handles either a single permission or checks for any of multiple permissions.
+ * Can also handle guest users (non-authenticated) when allowGuests is true.
  */
 export async function PermissionRoot({
   permission,
   permissions,
   publicPaths,
+  allowGuests = false,
   children,
 }: PermissionRootProps) {
   if (permission && permissions) {
@@ -51,10 +58,12 @@ export async function PermissionRoot({
 
   const session = await getServerAuthSession();
   const isLoggedIn = !!session?.user;
+  const isGuest = !isLoggedIn;
   let isAuthorized = false;
 
-  if (isLoggedIn) {
-    const userId = parseInt(session!.user.id);
+  // If user is logged in, check permissions normally
+  if (isLoggedIn && session?.user) {
+    const userId = parseInt(session.user.id);
     if (permission) {
       isAuthorized = await authorizationService.hasPermission(
         userId,
@@ -67,11 +76,27 @@ export async function PermissionRoot({
       );
     }
   }
+  // If guests are allowed, check permissions for the guest user (undefined userId)
+  else if (allowGuests) {
+    // Check permissions for guest user (undefined userId)
+    if (permission) {
+      isAuthorized = await authorizationService.hasPermission(
+        undefined,
+        permission
+      );
+    } else if (permissions) {
+      isAuthorized = await authorizationService.hasAnyPermission(
+        undefined,
+        permissions
+      );
+    }
+  }
 
   return (
     <PermissionProvider
       isLoggedIn={isLoggedIn}
       isAuthorized={isAuthorized}
+      isGuest={isGuest}
       publicPaths={publicPaths}
     >
       {children}

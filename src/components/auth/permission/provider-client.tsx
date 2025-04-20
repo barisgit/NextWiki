@@ -6,6 +6,7 @@ import { PermissionContext } from "./context";
 export interface PermissionProviderProps {
   isLoggedIn: boolean;
   isAuthorized: boolean;
+  isGuest: boolean;
   publicPaths?: string[];
   children: ReactNode;
 }
@@ -17,12 +18,13 @@ export interface PermissionProviderProps {
 export function PermissionProvider({
   isLoggedIn,
   isAuthorized,
+  isGuest,
   publicPaths,
   children,
 }: PermissionProviderProps) {
   return (
     <PermissionContext.Provider
-      value={{ isLoggedIn, isAuthorized, publicPaths }}
+      value={{ isLoggedIn, isAuthorized, isGuest, publicPaths }}
     >
       {children}
     </PermissionContext.Provider>

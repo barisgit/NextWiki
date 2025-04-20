@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import { AuthProvider } from "~/components/auth/AuthProvider";
 import "highlight.js/styles/github.css";
 import "~/styles/globals.css";
 import { dbService } from "~/lib/services";
@@ -69,7 +68,7 @@ async function RootLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   // Normal case: Wrap children in AuthProvider for session context
-  return <AuthProvider>{children}</AuthProvider>;
+  return children;
 }
 
 export default function RootLayout({
@@ -121,6 +120,7 @@ export default function RootLayout({
             <PermissionGate.Root
               permission="wiki:page:read"
               publicPaths={["/login", "/register", "/api/*"]}
+              allowGuests={true}
             >
               <PermissionGate.Authorized>
                 <RootLayoutContent>{children}</RootLayoutContent>

@@ -11,6 +11,7 @@ import { useTRPC } from "~/lib/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 import { PermissionIdentifier } from "~/lib/permissions";
 import { isValidPermissionId, checkPermission } from "~/lib/permissions/client";
+import { useSession } from "next-auth/react";
 
 // Define permission type with typed identifier
 interface Permission {
@@ -43,6 +44,9 @@ interface PermissionContextType {
   // Loading state
   isLoading: boolean;
 
+  // Guest state (not authenticated)
+  isGuest: boolean;
+
   // Helper functions
   hasPermission: (permission: PermissionIdentifier) => boolean;
   hasAnyPermission: (permissions: PermissionIdentifier[]) => boolean;
@@ -57,6 +61,7 @@ const PermissionContext = createContext<PermissionContextType>({
   permissionNames: [],
   permissionMap: {} as Record<PermissionIdentifier, boolean>,
   isLoading: true,
+  isGuest: false,
   hasPermission: () => false,
   hasAnyPermission: () => false,
   reloadPermissions: async () => {},
@@ -71,11 +76,20 @@ function PermissionProvider({ children }: { children: ReactNode }) {
   });
 
   const [isLoading, setIsLoading] = useState(true);
-
+  const { status: authStatus } = useSession();
   const trpc = useTRPC();
 
+  // Determine if user is a guest
+  const isGuest = authStatus === "unauthenticated";
+
   // Query user permissions using tRPC
-  const { data, refetch } = useQuery(trpc.auth.getMyPermissions.queryOptions());
+  const { data: authUserData, refetch: refetchAuthUser } = useQuery(
+    trpc.auth.getMyPermissions.queryOptions()
+  );
+
+  // Combine data and refetch based on auth status
+  const data = authUserData;
+  const refetch = refetchAuthUser;
 
   // Update state when data changes
   useEffect(() => {
@@ -85,7 +99,7 @@ function PermissionProvider({ children }: { children: ReactNode }) {
     }
   }, [data]);
 
-  // Reload function
+  // Reload function - will fetch either guest or user permissions based on auth state
   const reloadPermissions = async () => {
     setIsLoading(true);
     await refetch();
@@ -114,7 +128,8 @@ function PermissionProvider({ children }: { children: ReactNode }) {
   // Value to provide
   const value = {
     ...permissionsData,
-    isLoading,
+    isLoading: isLoading || authStatus === "loading",
+    isGuest,
     hasPermission,
     hasAnyPermission,
     reloadPermissions,
@@ -143,18 +158,25 @@ interface RequirePermissionProps {
   permission: PermissionIdentifier;
   children: ReactNode;
   fallback?: ReactNode;
+  allowGuests?: boolean;
 }
 
 function RequirePermission({
   permission,
   children,
   fallback = null,
+  allowGuests = false,
 }: RequirePermissionProps) {
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isGuest } = usePermissions();
 
   // Validate the permission using client-safe utility
   if (!isValidPermissionId(permission)) {
     console.warn(`Invalid permission identifier: ${permission}`);
+    return <>{fallback}</>;
+  }
+
+  // If user is a guest and guests are not allowed, show fallback
+  if (isGuest && !allowGuests) {
     return <>{fallback}</>;
   }
 
@@ -166,14 +188,16 @@ interface RequireAnyPermissionProps {
   permissions: PermissionIdentifier[];
   children: ReactNode;
   fallback?: ReactNode;
+  allowGuests?: boolean;
 }
 
 function RequireAnyPermission({
   permissions,
   children,
   fallback = null,
+  allowGuests = false,
 }: RequireAnyPermissionProps) {
-  const { hasAnyPermission } = usePermissions();
+  const { hasAnyPermission, isGuest } = usePermissions();
 
   // Validate permissions
   if (permissions.length === 0) {
@@ -187,6 +211,11 @@ function RequireAnyPermission({
     console.warn(
       `Invalid permission identifiers: ${invalidPermissions.join(", ")}`
     );
+    return <>{fallback}</>;
+  }
+
+  // If user is a guest and guests are not allowed, show fallback
+  if (isGuest && !allowGuests) {
     return <>{fallback}</>;
   }
 
