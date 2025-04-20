@@ -8,9 +8,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useTRPC } from "~/lib/trpc/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import {
+  usePermissions,
+  ClientRequirePermission,
+} from "~/components/auth/permission/client";
+import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { hasPermission } = usePermissions();
+
   // Fetch users
   const trpc = useTRPC();
   const { data: users, isLoading: usersLoading } = useQuery(
@@ -130,7 +137,17 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">User Management</h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-bold">User Management</h1>
+          <ClientRequirePermission permission="system:users:create">
+            <Button
+              onClick={() => toast.info("Create user not implemented yet.")}
+            >
+              <PlusIcon className="w-5 h-5 mr-2" />
+              Create User
+            </Button>
+          </ClientRequirePermission>
+        </div>
         <p className="text-text-secondary">
           Manage users and group assignments
         </p>
@@ -242,10 +259,30 @@ export default function AdminUsersPage() {
                         : "Regular User"}
                     </p>
                   </div>
-                  <div className="pt-2">
-                    <Button className="w-full" variant="outlined">
-                      Reset Password
-                    </Button>
+                  <div className="pt-4 space-y-2">
+                    <ClientRequirePermission permission="system:users:update">
+                      <Button
+                        className="w-full"
+                        variant="outlined"
+                        onClick={() =>
+                          toast.info("Password reset not implemented yet.")
+                        }
+                      >
+                        Reset Password
+                      </Button>
+                    </ClientRequirePermission>
+                    <ClientRequirePermission permission="system:users:delete">
+                      <Button
+                        className="w-full"
+                        variant="destructive"
+                        onClick={() =>
+                          toast.info("Delete user not implemented yet.")
+                        }
+                      >
+                        <TrashIcon className="w-5 h-5 mr-2" />
+                        Delete User
+                      </Button>
+                    </ClientRequirePermission>
                   </div>
                 </TabsContent>
 
@@ -271,12 +308,15 @@ export default function AdminUsersPage() {
                             onChange={(e) =>
                               handleGroupChange(group.id, e.target.checked)
                             }
-                            disabled={group.isLocked ?? false} // Disable checkbox for locked groups
+                            disabled={
+                              !hasPermission("system:users:update") ||
+                              (group.isSystem ?? false)
+                            }
                           />
                           <label
                             htmlFor={`group-${group.id}`}
                             className={`flex flex-col ${
-                              group.isLocked
+                              group.isSystem
                                 ? "cursor-not-allowed opacity-60"
                                 : ""
                             }`}
@@ -287,7 +327,7 @@ export default function AdminUsersPage() {
                                 {group.description}
                               </span>
                             )}
-                            {group.isLocked && (
+                            {group.isSystem && (
                               <span className="text-xs text-destructive">
                                 (Locked)
                               </span>
@@ -298,25 +338,37 @@ export default function AdminUsersPage() {
                     </div>
                   )}
 
-                  <Button
-                    variant="default"
-                    className="w-full"
-                    onClick={handleSaveGroupAssignments}
-                    disabled={
-                      addToGroupMutation.isPending ||
-                      removeFromGroupMutation.isPending ||
-                      // Disable if no changes were made
-                      JSON.stringify(selectedGroups.sort()) ===
-                        JSON.stringify(
-                          selectedUser.userGroups.map((g) => g.groupId).sort()
-                        )
+                  <ClientRequirePermission
+                    permission="system:users:update"
+                    fallback={
+                      <Button
+                        variant="default"
+                        className="w-full"
+                        disabled={true}
+                      >
+                        Save Group Assignments
+                      </Button>
                     }
                   >
-                    {addToGroupMutation.isPending ||
-                    removeFromGroupMutation.isPending
-                      ? "Saving..."
-                      : "Save Group Assignments"}
-                  </Button>
+                    <Button
+                      variant="default"
+                      className="w-full"
+                      onClick={handleSaveGroupAssignments}
+                      disabled={
+                        addToGroupMutation.isPending ||
+                        removeFromGroupMutation.isPending ||
+                        JSON.stringify(selectedGroups.sort()) ===
+                          JSON.stringify(
+                            selectedUser.userGroups.map((g) => g.groupId).sort()
+                          )
+                      }
+                    >
+                      {addToGroupMutation.isPending ||
+                      removeFromGroupMutation.isPending
+                        ? "Saving..."
+                        : "Save Group Assignments"}
+                    </Button>
+                  </ClientRequirePermission>
                 </TabsContent>
 
                 <TabsContent value="permissions" className="mt-4">

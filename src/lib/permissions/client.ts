@@ -41,3 +41,27 @@ export function checkPermission(
 
   return !!permissionMap[permission];
 }
+
+/**
+ * Client-side helper to check if user has any of the specified permissions
+ */
+export function checkAnyPermission(
+  permissionMap: Record<PermissionIdentifier, boolean> | undefined,
+  permissions: PermissionIdentifier[]
+): boolean {
+  if (!permissionMap || permissions.length === 0) return false;
+
+  // Check if any invalid permissions
+  const invalidPermissions = permissions.filter(
+    (p) => !validatePermissionId(p)
+  );
+  if (invalidPermissions.length > 0) {
+    console.warn(
+      `Invalid permission identifiers: ${invalidPermissions.join(", ")}`
+    );
+    return false;
+  }
+
+  // Return true if any permission is found in the map
+  return permissions.some((permission) => !!permissionMap[permission]);
+}

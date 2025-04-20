@@ -88,19 +88,10 @@ export const groupsRouter = router({
         });
       }
 
-      // Check if this is the Viewers group (non-deletable but not locked)
-      if (groupToCheck.name === "Viewers") {
+      if (groupToCheck.isSystem) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message:
-            "The Viewers group cannot be deleted as it is required by the system.",
-        });
-      }
-
-      if (groupToCheck.isLocked) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Cannot delete a locked group.",
+          message: "Cannot delete a system group.",
         });
       }
 

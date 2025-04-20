@@ -15,13 +15,16 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useTRPC } from "~/lib/trpc/client";
 import { useMutation } from "@tanstack/react-query";
+import { ClientRequirePermission } from "~/components/auth/permission/client";
 
 interface GroupsListProps {
   groups: {
     id: number;
     name: string;
     description: string | null;
-    isLocked: boolean;
+    isSystem: boolean;
+    isEditable: boolean;
+    allowUserAssignment: boolean;
   }[];
 }
 
@@ -61,7 +64,7 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
               <TableCell className="font-medium">{group.name}</TableCell>
               <TableCell>{group.description}</TableCell>
               <TableCell>
-                {group.isLocked ? (
+                {group.isSystem ? (
                   <Badge
                     variant="outline"
                     color={group.name === "Administrators" ? "primary" : "info"}
@@ -79,28 +82,41 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <Link href={`/admin/groups/${group.id}/users`}>
-                    <Button variant="ghost" size="icon">
-                      <Users className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                  <Link href={`/admin/groups/${group.id}/edit`}>
-                    <Button variant="ghost" size="icon">
-                      {group.name === "Administrators" ? (
-                        <Eye className="w-4 h-4" />
-                      ) : (
-                        <Pencil className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </Link>
-                  {!group.isLocked && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(group.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                  <ClientRequirePermission permission="system:groups:update">
+                    <Link href={`/admin/groups/${group.id}/users`}>
+                      <Button variant="ghost" size="icon" title="Manage Users">
+                        <Users className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                  </ClientRequirePermission>
+                  <ClientRequirePermission permission="system:groups:update">
+                    <Link href={`/admin/groups/${group.id}/edit`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={
+                          group.name === "Administrators" ? "View" : "Edit"
+                        }
+                      >
+                        {group.name === "Administrators" ? (
+                          <Eye className="w-4 h-4" />
+                        ) : (
+                          <Pencil className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </Link>
+                  </ClientRequirePermission>
+                  {!group.isSystem && (
+                    <ClientRequirePermission permission="system:groups:delete">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(group.id)}
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </ClientRequirePermission>
                   )}
                 </div>
               </TableCell>

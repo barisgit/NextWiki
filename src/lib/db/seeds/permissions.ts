@@ -73,13 +73,17 @@ export async function createDefaultGroups() {
       .values({
         name: "Administrators",
         description: "Full access to all wiki features",
-        isLocked: true,
+        isEditable: false,
+        allowUserAssignment: true,
+        isSystem: true,
       })
       .onConflictDoUpdate({
         target: groups.name,
         set: {
           description: "Full access to all wiki features",
-          isLocked: true,
+          isEditable: false,
+          allowUserAssignment: true,
+          isSystem: true,
         },
       })
       .returning();
@@ -90,11 +94,17 @@ export async function createDefaultGroups() {
       .values({
         name: "Editors",
         description: "Can edit, create, and manage wiki content",
+        isEditable: true,
+        allowUserAssignment: true,
+        isSystem: false,
       })
       .onConflictDoUpdate({
         target: groups.name,
         set: {
           description: "Can edit, create, and manage wiki content",
+          isEditable: true,
+          allowUserAssignment: true,
+          isSystem: false,
         },
       })
       .returning();
@@ -105,13 +115,38 @@ export async function createDefaultGroups() {
       .values({
         name: "Viewers",
         description: "Can only view wiki content",
-        isLocked: false,
+        isEditable: true,
+        allowUserAssignment: true,
+        isSystem: true,
       })
       .onConflictDoUpdate({
         target: groups.name,
         set: {
           description: "Can only view wiki content",
-          isLocked: false,
+          isEditable: true,
+          allowUserAssignment: true,
+          isSystem: true,
+        },
+      })
+      .returning();
+
+    // 4. Create Guests group
+    const guestGroup = await db
+      .insert(groups)
+      .values({
+        name: "Guests",
+        description: "Default group for non-authenticated users",
+        isEditable: true,
+        allowUserAssignment: false,
+        isSystem: true,
+      })
+      .onConflictDoUpdate({
+        target: groups.name,
+        set: {
+          description: "Default group for non-authenticated users",
+          isEditable: true,
+          allowUserAssignment: false,
+          isSystem: true,
         },
       })
       .returning();
@@ -209,6 +244,41 @@ export async function createDefaultGroups() {
         .onConflictDoNothing();
 
       console.log("Added read permission and permissions to Viewers group");
+    }
+
+    // Assignment - Guests get limited read permissions
+    if (guestGroup[0] && wikiReadPermission) {
+      await db
+        .insert(groupPermissions)
+        .values([
+          {
+            groupId: guestGroup[0].id,
+            permissionId: wikiReadPermission.id,
+          },
+        ])
+        .onConflictDoNothing();
+
+      // Add module permissions - only allow wiki module
+      await db
+        .insert(groupModulePermissions)
+        .values([
+          {
+            groupId: guestGroup[0].id,
+            module: "wiki",
+          },
+        ])
+        .onConflictDoNothing();
+
+      // Add action permissions - only allow read action
+      await db
+        .insert(groupActionPermissions)
+        .values({
+          groupId: guestGroup[0].id,
+          action: "read",
+        })
+        .onConflictDoNothing();
+
+      console.log("Added minimal read permissions to Guests group");
     }
 
     console.log("Default groups created successfully!");

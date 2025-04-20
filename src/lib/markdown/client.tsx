@@ -4,11 +4,12 @@ import { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { highlightTextInDOM, clearHighlightsFromDOM } from "./utils/highlight";
-import { createMarkdownProcessor } from "./factory";
+import { createClientMarkdownProcessor } from "./client-factory";
 import { MarkdownProse } from "~/components/wiki/MarkdownProse";
 
 // Get client-side markdown configuration
-const clientMarkdownConfig = createMarkdownProcessor("client");
+// This is guaranteed to only use browser-safe code
+const clientMarkdownConfig = createClientMarkdownProcessor();
 
 interface HighlightedMarkdownProps {
   content: string;

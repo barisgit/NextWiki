@@ -4,9 +4,10 @@ import { ReactNode } from "react";
 import { TRPCClientProvider } from "~/lib/trpc/providers";
 import { ThemeProvider } from "~/providers/theme-provider";
 import { ModalProvider } from "~/components/ui/modal-provider";
-import { PermissionProvider } from "~/lib/hooks/usePermissions";
+import { PermissionProvider } from "~/components/auth/permission/client";
 import { Toaster } from "sonner";
 import { useTheme } from "~/providers/theme-provider";
+import { AuthProvider } from "~/components/auth/AuthProvider";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -32,17 +33,18 @@ function ToasterWithTheme() {
 }
 
 export function Providers({ children }: ProvidersProps) {
-  // Removed useTheme() call from here
   return (
     <ThemeProvider>
-      <TRPCClientProvider>
-        <PermissionProvider>
-          <ModalProvider>
-            {children}
-            <ToasterWithTheme />
-          </ModalProvider>
-        </PermissionProvider>
-      </TRPCClientProvider>
+      <AuthProvider>
+        <TRPCClientProvider>
+          <PermissionProvider>
+            <ModalProvider>
+              {children}
+              <ToasterWithTheme />
+            </ModalProvider>
+          </PermissionProvider>
+        </TRPCClientProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

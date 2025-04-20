@@ -22,7 +22,9 @@ interface GroupFormProps {
     id: number;
     name: string;
     description: string | null;
-    isLocked?: boolean;
+    isSystem?: boolean;
+    isEditable?: boolean;
+    allowUserAssignment?: boolean;
   };
   permissions: {
     id: number;
@@ -56,7 +58,10 @@ export default function GroupForm({
     groupActionPermissions
   );
 
-  const isLocked = group?.isLocked ?? false;
+  const isSystem = group?.isSystem ?? false;
+  // const isEditable = group?.isEditable ?? true;
+  // const allowUserAssignment = group?.allowUserAssignment ?? true;
+
   const trpc = useTRPC();
 
   // Fetch available modules and actions
@@ -245,7 +250,7 @@ export default function GroupForm({
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            disabled={isLocked}
+            disabled={isSystem}
           />
         </div>
         <div>
@@ -254,10 +259,10 @@ export default function GroupForm({
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            disabled={isLocked}
+            disabled={isSystem}
           />
         </div>
-        {isLocked && (
+        {isSystem && (
           <div className="p-4 text-sm border rounded-lg bg-muted">
             <p className="font-medium">This is a system group</p>
             <p>

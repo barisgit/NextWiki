@@ -15,6 +15,7 @@ import { useTRPC } from "~/lib/trpc/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Modal from "~/components/ui/modal";
 import { PageLocationEditor } from "./PageLocationEditor";
+import { ClientRequirePermission } from "../auth/permission/client";
 
 // Recursive interface for folder structure
 interface FolderNode {
@@ -385,30 +386,36 @@ export function WikiFolderTree({
 
         {showActions && node.path !== "" && (
           <div className="flex items-center justify-end flex-shrink-0 ml-1 space-x-1">
-            <button
-              onClick={(e) => handleRename(node, e)}
-              className="p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-              title="Rename"
-            >
-              <PencilIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
-            </button>
-            {showMove && (
+            <ClientRequirePermission permission="wiki:page:update">
               <button
-                onClick={(e) => handleMove(node, e)}
+                onClick={(e) => handleRename(node, e)}
                 className="p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Move"
+                title="Rename"
               >
-                <MoveIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
+                <PencilIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
               </button>
-            )}
+            </ClientRequirePermission>
+            <ClientRequirePermission permission="wiki:page:move">
+              {showMove && (
+                <button
+                  onClick={(e) => handleMove(node, e)}
+                  className="p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Move"
+                >
+                  <MoveIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
+                </button>
+              )}
+            </ClientRequirePermission>
 
-            <button
-              onClick={(e) => handleNewFolder(node.path, e)}
-              className="p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-              title="Create new folder"
-            >
-              <PlusCircleIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
-            </button>
+            <ClientRequirePermission permission="wiki:page:create">
+              <button
+                onClick={(e) => handleNewFolder(node.path, e)}
+                className="p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Create new folder"
+              >
+                <PlusCircleIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
+              </button>
+            </ClientRequirePermission>
           </div>
         )}
       </>
@@ -505,15 +512,17 @@ export function WikiFolderTree({
       {!hideHeader && (
         <div className="flex items-center justify-between p-3 border-b border-border-default bg-background-level1">
           <h3 className="font-medium text-md text-text-primary">{title}</h3>
-          {showActions && (
-            <button
-              onClick={(e) => handleNewFolder("", e)}
-              className="p-1 rounded-md hover:bg-background-level2"
-              title="Create new root folder"
-            >
-              <PlusCircleIcon className="w-4 h-4 text-text-secondary" />
-            </button>
-          )}
+          <ClientRequirePermission permission="wiki:page:create">
+            {showActions && (
+              <button
+                onClick={(e) => handleNewFolder("", e)}
+                className="p-1 rounded-md hover:bg-background-level2"
+                title="Create new root folder"
+              >
+                <PlusCircleIcon className="w-4 h-4 text-text-secondary" />
+              </button>
+            )}
+          </ClientRequirePermission>
         </div>
       )}
       <div className="p-2 overflow-y-auto">

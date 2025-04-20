@@ -82,13 +82,13 @@ export function WikiLockInfo({
   return (
     <div className="flex items-center gap-3 p-2 border rounded-md shadow-md border-border">
       <div className="flex-grow">
-        <h4 className="flex items-center text-sm font-medium text-warning-foreground">
+        <h4 className="flex items-center text-sm font-medium text-text-primary">
           {isCurrentUserLockOwner
             ? "You are currently editing this page"
             : `This page is being edited by ${lockedByName || "another user"}`}
         </h4>
         {lockedUntil && new Date(lockedUntil) > new Date() && (
-          <p className="mt-1 text-xs text-warning-foreground/60">
+          <p className="mt-1 text-xs text-text-secondary">
             Lock expires{" "}
             {formatDistanceToNow(new Date(lockedUntil), { addSuffix: true })}
           </p>

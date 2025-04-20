@@ -4,6 +4,7 @@ import {
   groupPermissions,
   permissions,
   pagePermissions,
+  groups,
 } from "~/lib/db/schema";
 import { eq, and, inArray, or, isNull } from "drizzle-orm";
 import { PermissionIdentifier, validatePermissionId } from "~/lib/permissions";
@@ -15,9 +16,51 @@ import { PermissionIdentifier, validatePermissionId } from "~/lib/permissions";
  */
 export const authorizationService = {
   /**
+   * Get guest group ID from the database
+   * This is cached to avoid repeated database lookups
+   */
+  _cachedGuestGroupId: null as number | null,
+
+  async getGuestGroupId(): Promise<number | null> {
+    // If we already have the ID cached, return it
+    if (this._cachedGuestGroupId !== null) {
+      return this._cachedGuestGroupId;
+    }
+
+    // Look up the "Guests" group in the database
+    const guestGroup = await db.query.groups.findFirst({
+      where: eq(groups.name, "Guests"),
+      columns: { id: true },
+    });
+
+    // Cache the result (even if null)
+    this._cachedGuestGroupId = guestGroup?.id ?? null;
+    return this._cachedGuestGroupId;
+  },
+
+  /**
+   * Reset the cached guest group ID (useful after seeding)
+   */
+  resetGuestGroupCache() {
+    this._cachedGuestGroupId = null;
+  },
+
+  /**
    * Get all groups for a user
    */
-  async getUserGroups(userId: number) {
+  async getUserGroups(userId: number | undefined) {
+    // If userId is undefined, return the guest group if available
+    if (userId === undefined) {
+      const guestGroupId = await this.getGuestGroupId();
+      if (guestGroupId) {
+        const guestGroup = await db.query.groups.findFirst({
+          where: eq(groups.id, guestGroupId),
+        });
+        return guestGroup ? [guestGroup] : [];
+      }
+      return [];
+    }
+
     const userGroupsData = await db.query.userGroups.findMany({
       where: eq(userGroups.userId, userId),
       with: {
@@ -33,7 +76,23 @@ export const authorizationService = {
    * Note: This only considers direct group permissions, not module/action permissions.
    * For comprehensive checks, use hasPermission.
    */
-  async getUserPermissionIds(userId: number) {
+  async getUserPermissionIds(userId: number | undefined) {
+    // If userId is undefined, use the guest group
+    if (userId === undefined) {
+      const guestGroupId = await this.getGuestGroupId();
+      if (!guestGroupId) {
+        return [];
+      }
+
+      // Get permissions for the guest group
+      const guestGroupPermissions = await db.query.groupPermissions.findMany({
+        where: eq(groupPermissions.groupId, guestGroupId),
+        columns: { permissionId: true },
+      });
+
+      return guestGroupPermissions.map((gp) => gp.permissionId);
+    }
+
     // Get all groups the user belongs to
     const userGroupsData = await db.query.userGroups.findMany({
       where: eq(userGroups.userId, userId),
@@ -61,7 +120,7 @@ export const authorizationService = {
    * Note: This only considers direct group permissions, not module/action permissions.
    * For comprehensive checks, use hasPermission.
    */
-  async getUserPermissions(userId: number) {
+  async getUserPermissions(userId: number | undefined) {
     const permissionIds = await this.getUserPermissionIds(userId);
 
     if (permissionIds.length === 0) {
@@ -80,9 +139,11 @@ export const authorizationService = {
    * to those groups, and any module/action permissions applied to those groups.
    * Permission is granted if *at least one* of the user's groups grants the
    * permission AND does not have a relevant module or action permission.
+   *
+   * For non-authenticated users (userId is undefined), it checks the guest group.
    */
   async hasPermission(
-    userId: number,
+    userId: number | undefined,
     permissionName: PermissionIdentifier
   ): Promise<boolean> {
     // Validate permission format
@@ -112,6 +173,68 @@ export const authorizationService = {
       return false; // Permission doesn't exist in the system
     }
     const permissionId = permission.id;
+
+    // For non-authenticated users (userId is undefined), check the guest group
+    if (userId === undefined) {
+      const guestGroupId = await this.getGuestGroupId();
+      if (!guestGroupId) {
+        return false; // No guest group defined
+      }
+
+      // Get the guest group with its permissions
+      const guestGroup = await db.query.groups.findFirst({
+        where: eq(groups.id, guestGroupId),
+        with: {
+          groupPermissions: {
+            columns: { permissionId: true },
+          },
+          groupModulePermissions: {
+            columns: { module: true },
+          },
+          groupActionPermissions: {
+            columns: { action: true },
+          },
+        },
+      });
+
+      if (!guestGroup) {
+        return false;
+      }
+
+      // Check if the guest group has this permission
+      const hasGroupPermission = guestGroup.groupPermissions.some(
+        (gp) => gp.permissionId === permissionId
+      );
+
+      if (!hasGroupPermission) {
+        return false;
+      }
+
+      // Check module permissions
+      const hasModulePermission = guestGroup.groupModulePermissions.some(
+        (mp) => mp.module === module
+      );
+      if (
+        !hasModulePermission &&
+        guestGroup.groupModulePermissions.length > 0
+      ) {
+        return false;
+      }
+
+      // Check action permissions
+      const hasActionPermission = guestGroup.groupActionPermissions.some(
+        (ap) => ap.action === action
+      );
+      if (
+        !hasActionPermission &&
+        guestGroup.groupActionPermissions.length > 0
+      ) {
+        return false;
+      }
+
+      // If we get here, the guest has permission
+      return true;
+    }
 
     // 2. Get all groups the user belongs to, including their permissions and permissions
     const userGroupsData = await db.query.userGroups.findMany({
@@ -191,10 +314,35 @@ export const authorizationService = {
   },
 
   /**
+   * Check if a user has any of the specified permissions.
+   * Returns true if the user has at least one of the permissions.
+   * For non-authenticated users (userId is undefined), it checks the guest group.
+   */
+  async hasAnyPermission(
+    userId: number | undefined,
+    permissionNames: PermissionIdentifier[]
+  ): Promise<boolean> {
+    if (!permissionNames.length) {
+      return false;
+    }
+
+    // Check each permission and return true on the first match
+    for (const permission of permissionNames) {
+      const hasPermission = await this.hasPermission(userId, permission);
+      if (hasPermission) {
+        return true;
+      }
+    }
+
+    return false;
+  },
+
+  /**
    * Check if a user has permission to access a specific page
+   * For non-authenticated users (userId is undefined), it checks the guest group.
    */
   async hasPagePermission(
-    userId: number,
+    userId: number | undefined,
     pageId: number,
     permissionName: PermissionIdentifier
   ) {
@@ -225,6 +373,48 @@ export const authorizationService = {
       return false;
     }
     const permissionId = permission.id;
+
+    // Special handling for non-authenticated users
+    if (userId === undefined) {
+      const guestGroupId = await this.getGuestGroupId();
+      if (!guestGroupId) {
+        return false; // No guest group defined
+      }
+
+      // Check for explicit page permissions for guest group
+      const pagePermissionData = await db.query.pagePermissions.findMany({
+        where: and(
+          eq(pagePermissions.pageId, pageId),
+          eq(pagePermissions.permissionId, permissionId),
+          or(
+            eq(pagePermissions.groupId, guestGroupId),
+            isNull(pagePermissions.groupId)
+          )
+        ),
+        columns: { permissionType: true },
+      });
+
+      // If there are explicit page permissions, use those
+      if (pagePermissionData.length > 0) {
+        const hasDenyPermission = pagePermissionData.some(
+          (pp) => pp.permissionType === "deny"
+        );
+
+        if (hasDenyPermission) {
+          return false; // Explicit deny takes precedence
+        }
+
+        const hasAllowPermission = pagePermissionData.some(
+          (pp) => pp.permissionType === "allow"
+        );
+        if (hasAllowPermission) {
+          return true; // Explicit allow
+        }
+      }
+
+      // Otherwise, check regular guest permissions
+      return this.hasPermission(undefined, permissionName);
+    }
 
     // Get all groups the user belongs to (only need IDs here)
     const userGroupsData = await db.query.userGroups.findMany({

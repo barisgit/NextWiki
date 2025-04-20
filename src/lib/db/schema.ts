@@ -66,7 +66,9 @@ export const groups = pgTable("groups", {
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  isLocked: boolean("is_locked").default(false),
+  isSystem: boolean("is_system").default(false), // Is this a system group that cannot be deleted
+  isEditable: boolean("is_editable").default(true), // Can the group's permissions be modified
+  allowUserAssignment: boolean("allow_user_assignment").default(true), // Can users be assigned to this group
 });
 
 // User to groups many-to-many relationship

@@ -2,7 +2,11 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { desc, eq, like, gt, and, sql } from "drizzle-orm";
 import { db, wikiPages } from "~/lib/db";
-import { permissionProtectedProcedure, router } from "..";
+import {
+  permissionGuestProcedure,
+  permissionProtectedProcedure,
+  router,
+} from "..";
 import { dbService, wikiService } from "~/lib/services";
 
 // Wiki page input validation schema
@@ -16,8 +20,17 @@ const pageInputSchema = z.object({
 
 export const wikiRouter = router({
   // Get a page by path
-  getByPath: permissionProtectedProcedure("wiki:page:read")
-    .input(z.object({ path: z.string() }))
+  getByPath: permissionGuestProcedure("wiki:page:read")
+    .meta({ description: "Fetches a specific wiki page by its full path." })
+    .input(
+      z.object({
+        path: z
+          .string()
+          .describe(
+            "The full path to the wiki page (e.g., 'folder/subfolder/page-name')"
+          ),
+      })
+    )
     .query(async ({ input }) => {
       const page = await db.query.wikiPages.findFirst({
         where: eq(wikiPages.path, input.path),
@@ -249,7 +262,7 @@ export const wikiRouter = router({
     }),
 
   // List pages (paginated) with lock information
-  list: permissionProtectedProcedure("wiki:page:read")
+  list: permissionGuestProcedure("wiki:page:read")
     .input(
       z.object({
         limit: z.number().min(1).max(100).default(10),
@@ -412,7 +425,7 @@ export const wikiRouter = router({
     }),
 
   // Get folder structure
-  getFolderStructure: permissionProtectedProcedure("wiki:page:read").query(
+  getFolderStructure: permissionGuestProcedure("wiki:page:read").query(
     async () => {
       // Get all pages from database
       const pages = await db.query.wikiPages.findMany({
@@ -433,7 +446,7 @@ export const wikiRouter = router({
   ),
 
   // Get subfolders for a specific path
-  getSubfolders: permissionProtectedProcedure("wiki:page:read")
+  getSubfolders: permissionGuestProcedure("wiki:page:read")
     .input(
       z.object({
         path: z.string().optional(),

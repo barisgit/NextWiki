@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MainLayout } from "~/components/layout/MainLayout";
 import { dbService } from "~/lib/services";
-import RegisterPage from "./register/page";
+import RegisterPage from "./(auth)/register/page";
 import {
   Card,
   CardContent,
@@ -20,7 +20,7 @@ export default async function Home() {
   const isFirstUser = userCount === 0;
 
   if (isFirstUser) {
-    return RegisterPage();
+    return RegisterPage({});
   }
 
   return (

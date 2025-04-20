@@ -7,10 +7,7 @@ import { unified } from "unified";
 import remarkParse from "remark-parse";
 import rehypeStringify from "rehype-stringify";
 import remarkRehype from "remark-rehype";
-import { createMarkdownProcessor } from "./factory";
-
-// Get server-side markdown configuration
-const serverMarkdownConfig = createMarkdownProcessor("server");
+import { createServerMarkdownProcessor } from "./server-factory";
 
 /**
  * Renders Markdown content to HTML string for server-side rendering
@@ -23,10 +20,11 @@ export async function renderMarkdownToHtml(
   content: string,
   pagePath?: string
 ): Promise<string> {
-  // Get all plugins including async server plugins
-  let rehypePlugins =
-    (await serverMarkdownConfig.getAsyncRehypePlugins?.()) ||
-    serverMarkdownConfig.rehypePlugins;
+  // Await the server configuration first
+  const serverConfig = await createServerMarkdownProcessor();
+
+  // Access the already loaded plugins from the resolved config
+  let rehypePlugins = serverConfig.rehypePlugins;
 
   // If we have a page path, configure any wiki link plugins with the path
   if (pagePath) {
@@ -75,16 +73,16 @@ export async function renderMarkdownToHtml(
   // Create the processing pipeline
   const processor = unified()
     .use(remarkParse)
-    .use(serverMarkdownConfig.remarkPlugins)
+    .use(serverConfig.remarkPlugins)
     // Convert to rehype (HTML), allow dangerous HTML
     .use(remarkRehype, {
-      allowDangerousHtml: serverMarkdownConfig.allowDangerousHtml,
+      allowDangerousHtml: serverConfig.allowDangerousHtml,
     })
     // Add rehype plugins
     .use(rehypePlugins)
     // Convert to string
     .use(rehypeStringify, {
-      allowDangerousHtml: serverMarkdownConfig.allowDangerousHtml,
+      allowDangerousHtml: serverConfig.allowDangerousHtml,
     });
 
   // Process the content asynchronously
