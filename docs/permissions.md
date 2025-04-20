@@ -80,44 +80,35 @@ import RootLayoutContent from "./RootLayoutContent"; // Example main content
 
 **Location:** `src/components/auth/permission/server/require.tsx`
 
-A simpler asynchronous Server Component for conditionally rendering a specific piece of UI based on a *single* permission check. It uses the `authorizationService` directly.
+A simpler asynchronous Server Component for conditionally rendering a specific piece of UI based on permission checks. It uses the `authorizationService` directly and automatically detects the current pathname using request headers if `publicPaths` is used.
 
 **Props:**
 
-*   `permission` (`PermissionIdentifier`): The permission required.
-*   `pathname` (`string`): **Required.** The *current* pathname must be explicitly provided to check against `publicPaths`.
-*   `publicPaths` (Optional `string[]`): An array of pathnames exempt from the permission check.
+*   `permission` (Optional `PermissionIdentifier`): The single permission required. Use either this or `permissions`, not both.
+*   `permissions` (Optional `PermissionIdentifier[]`): An array of permissions. Access is granted if the user has *any* of these. Use either this or `permission`, not both.
+*   `publicPaths` (Optional `string[]`): An array of pathnames exempt from the permission check. If provided, the component will automatically check the current path from headers against this list.
 *   `allowGuests` (Optional `boolean`, default: `false`): Considers guest permissions.
 *   `children`: The content to render if permission is granted (or path is public).
 
-**Behavior:** Renders `children` if the user has the permission or the `pathname` is in `publicPaths`. Otherwise, it renders `null`.
+**Behavior:** Renders `children` if the user has the required permission(s) or the current path is in `publicPaths`. Otherwise, it renders `null`. Throws an error if both `permission` and `permissions` are provided, or if neither is provided.
 
 **Usage Example (Inside a Server Component):**
 
 ```tsx
 import { RequirePermission } from "~/components/auth/permission/server";
-import { headers } from "next/headers"; // Needed to get pathname
 
 async function MyServerComponent() {
-  const headersList = headers();
-  const pathname = headersList.get("x-url") || "/"; // Get current path
-
+  // No need to manually get pathname for publicPaths check
   return (
     <div>
       <h2>Admin Section</h2>
-      <RequirePermission
-        permission="system:settings:update"
-        pathname={pathname} // Pass the current path
-      >
+      <RequirePermission permission="system:settings:update">
         <p>You can update settings.</p>
         {/* <SettingsForm /> */}
       </RequirePermission>
-      <RequirePermission
-        permission="system:users:read"
-        pathname={pathname}
-      >
-        <p>You can view users.</p>
-        {/* <UserList /> */}
+      <RequirePermission permissions={["system:users:read", "system:groups:read"]}>
+        <p>You can view users OR groups.</p>
+        {/* <UserList /> / <GroupList /> */}
       </RequirePermission>
     </div>
   );
@@ -241,30 +232,33 @@ A client-side equivalent to `PermissionGate`, using the same slot-based approach
 
 **Location:** `src/components/auth/permission/client/require.tsx`
 
-A simpler Client Component for conditionally rendering a specific piece of UI based on a *single* permission check.
+A simpler Client Component for conditionally rendering a specific piece of UI based on permission checks using the `usePermissions` context.
 
 **Props:**
 
-*   `permission` (`PermissionIdentifier`): The permission required.
-*   `publicPaths` (Optional `string[]`): Client-side path check.
-*   `allowGuests` (Optional `boolean`, default: `false`): Considers guest status.
+*   `permission` (Optional `PermissionIdentifier`): The single permission required. Use either this or `permissions`, not both.
+*   `permissions` (Optional `PermissionIdentifier[]`): An array of permissions. Access is granted if the user has *any* of these. Use either this or `permission`, not both.
+*   `publicPaths` (Optional `string[]`): Client-side path check using `usePathname`.
+*   `allowGuests` (Optional `boolean`, default: `false`): Considers guest status from context.
 *   `children`: The content to render if permission is granted (or path is public).
 *   `fallback` (Optional `ReactNode`): Content to render if permission is denied or during loading. Defaults to `null`.
+
+**Behavior:** Renders `children` if the user has the required permission(s) from context or the current path is in `publicPaths`. Renders `fallback` (or `null`) otherwise. Logs a warning if both `permission` and `permissions` are provided, or if neither is provided.
 
 **Usage Example:**
 
 ```tsx
 import { ClientRequirePermission } from "~/components/auth/permission/client";
 import { DeleteButton } from "./DeleteButton";
+import { EditButton } from "./EditButton";
 
 function PageActions({ pageId }: { pageId: string }) {
   return (
     <div>
-      {/* Other actions */}
-      <ClientRequirePermission
-        permission="wiki:page:delete"
-        fallback={<p>You cannot delete this page.</p>}
-      >
+      <ClientRequirePermission permission="wiki:page:edit">
+        <EditButton pageId={pageId} />
+      </ClientRequirePermission>
+      <ClientRequirePermission permissions={["wiki:page:delete", "admin:page:delete"]}>
         <DeleteButton pageId={pageId} />
       </ClientRequirePermission>
     </div>
@@ -275,10 +269,10 @@ function PageActions({ pageId }: { pageId: string }) {
 ## Relationship & Use Cases
 
 *   **`PermissionGate` (Server):** Use in layouts (`layout.tsx`) for primary, secure access control to pages/routes. Handles initial load protection and server-side redirects. Best for gating entire pages/sections.
-*   **`RequirePermission` (Server):** Use within Server Components when you need to conditionally render smaller parts of the UI based on permissions, without the complexity of slots or redirects. Requires manual path checking if `publicPaths` is used.
+*   **`RequirePermission` (Server):** Use within Server Components when you need to conditionally render smaller parts of the UI based on permissions, without the complexity of slots or redirects. Automatically checks path if `publicPaths` is used.
 *   **`PermissionProvider` (Client):** Essential setup component. Wrap your application (in `src/providers/index.tsx`) to enable client-side permission checks. Fetches and provides the context.
 *   **`usePermissions` (Client Hook):** Use within Client Components (that are descendants of `PermissionProvider`) to get fine-grained access to permission state (`isLoading`, `isGuest`, `hasPermission`, etc.) for conditional logic or rendering.
 *   **`ClientPermissionGate` (Client):** Use within Client Components when you need the slot-based pattern (`Authorized`, `Unauthorized`, `NotLoggedIn`) for larger UI sections, potentially with client-side redirects. UI only.
-*   **`ClientRequirePermission` (Client):** Use within Client Components for the common case of simply showing/hiding a small element (like a button or menu item) based on a single permission. UI only.
+*   **`ClientRequirePermission` (Client):** Use within Client Components for the common case of simply showing/hiding a small element (like a button or menu item) based on a single permission or a set of permissions (any match). UI only.
 
 **Security Note:** Client-side checks (`usePermissions`, `ClientPermissionGate`, `ClientRequirePermission`) are for UI convenience only. Always enforce critical security rules and data access on the server-side using `PermissionGate`, `RequirePermission`, or directly within your API routes/server actions using `authorizationService`.

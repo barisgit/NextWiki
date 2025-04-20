@@ -3,9 +3,8 @@
 import Link from "next/link";
 import {
   usePermissions,
-  RequirePermission,
-  RequireAnyPermission,
-} from "~/lib/hooks/usePermissions";
+  ClientRequirePermission,
+} from "~/components/auth/permission/client";
 
 export function PermissionsExample() {
   const { hasPermission, hasAnyPermission, isLoading } = usePermissions();
@@ -44,16 +43,16 @@ export function PermissionsExample() {
       )}
 
       {/* Using the component approach */}
-      <RequirePermission permission="system:settings:read">
+      <ClientRequirePermission permission="system:settings:read">
         <Link
           href="/admin/settings"
           className="flex items-center px-3 py-2 text-sm font-medium text-white transition-colors rounded-md bg-accent hover:bg-accent-600"
         >
           Settings
         </Link>
-      </RequirePermission>
+      </ClientRequirePermission>
 
-      <RequireAnyPermission
+      <ClientRequirePermission
         permissions={["system:users:read", "system:groups:read"]}
       >
         <Link
@@ -62,7 +61,7 @@ export function PermissionsExample() {
         >
           User Management
         </Link>
-      </RequireAnyPermission>
+      </ClientRequirePermission>
     </div>
   );
 }

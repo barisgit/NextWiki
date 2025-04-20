@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { headers } from "next/headers";
 import { getServerAuthSession } from "~/lib/auth";
 import { authorizationService } from "~/lib/services";
 import { PermissionIdentifier } from "~/lib/permissions";
@@ -6,14 +7,16 @@ import { isPublicPath } from "../utils/path-utils";
 
 interface RequirePermissionProps {
   /**
-   * The permission to check for.
+   * The single permission to check for.
+   * Use either this or `permissions`, not both.
    */
-  permission: PermissionIdentifier;
+  permission?: PermissionIdentifier;
 
   /**
-   * The current pathname to check against publicPaths
+   * An array of permissions to check for. Access is granted if the user has *any* of these.
+   * Use either this or `permission`, not both.
    */
-  pathname: string;
+  permissions?: PermissionIdentifier[];
 
   /**
    * Paths that are exempt from the permission check.
@@ -33,39 +36,66 @@ interface RequirePermissionProps {
 
 /**
  * Simplified server-side permission component that only renders content
- * if the user is authorized. Returns null otherwise.
+ * if the user is authorized (based on single permission or any in a list).
+ * Returns null otherwise.
  */
 export async function RequirePermission({
   permission,
-  pathname,
+  permissions,
   publicPaths,
   allowGuests = false,
   children,
 }: RequirePermissionProps) {
-  // Check if path is public
-  const isPublic = isPublicPath(pathname, publicPaths);
+  // --- Validation ---
+  if (permission && permissions) {
+    throw new Error(
+      "RequirePermission requires either 'permission' or 'permissions' prop, not both."
+    );
+  }
+  if (!permission && !permissions) {
+    throw new Error(
+      "RequirePermission requires either 'permission' or 'permissions' prop."
+    );
+  }
+
+  // --- Path Check ---
+  let isPublic = false;
+  if (publicPaths) {
+    const headersList = await headers();
+    // Try various headers to get the path
+    const referer = headersList.get("referer") || "";
+    const xUrl = headersList.get("x-url") || "";
+    const pathname = referer ? new URL(referer).pathname : xUrl ? xUrl : "/";
+    isPublic = isPublicPath(pathname, publicPaths);
+  }
+
+  // If path is public, always render children
   if (isPublic) {
     return <>{children}</>;
   }
 
-  // Get session and check auth status
+  // --- Authorization Check ---
   const session = await getServerAuthSession();
   const isLoggedIn = !!session?.user;
   let isAuthorized = false;
+  const userId = session?.user ? parseInt(session.user.id) : undefined;
 
-  // If user is logged in, check permissions normally
-  if (isLoggedIn && session?.user) {
-    const userId = parseInt(session.user.id);
-    isAuthorized = await authorizationService.hasPermission(userId, permission);
-  }
-  // If guests are allowed, check permissions for the guest user
-  else if (allowGuests) {
-    isAuthorized = await authorizationService.hasPermission(
-      undefined,
-      permission
-    );
+  // Check permissions based on whether user is logged in or guest access is allowed
+  if (isLoggedIn || (allowGuests && userId === undefined)) {
+    if (permission) {
+      isAuthorized = await authorizationService.hasPermission(
+        userId, // undefined for guests if allowGuests is true
+        permission
+      );
+    } else if (permissions) {
+      isAuthorized = await authorizationService.hasAnyPermission(
+        userId, // undefined for guests if allowGuests is true
+        permissions
+      );
+    }
   }
 
-  // Only render children if authorized
+  // --- Rendering ---
+  // Only render children if authorized (and not public, handled above)
   return isAuthorized ? <>{children}</> : null;
 }
