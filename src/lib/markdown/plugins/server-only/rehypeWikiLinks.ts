@@ -121,6 +121,7 @@ export enum LinkType {
   PAGE = "page",
   DOCUMENT = "document",
   EXTERNAL = "external",
+  ASSET = "asset",
 }
 
 /**
@@ -139,10 +140,20 @@ export const allowedLinkExtensions = {
  * @returns The type of the link
  */
 export function getLinkType(href: string): LinkType {
-  // If the link doesn't contain a dot, it can't be an external link
+  // Check for asset links first
+  if (href.startsWith("/api/assets/")) {
+    return LinkType.ASSET;
+  }
+
+  // If the link doesn't contain a dot (and isn't an asset link), it can't be an external link
   if (!href.includes(".")) {
-    const extension = href.split(".").pop();
-    if (!extension) return LinkType.PAGE;
+    // Treat links without extensions and not starting with /api/assets/ as internal pages
+    return LinkType.PAGE;
+  }
+
+  // Check for file extensions if it contains a dot but wasn't an asset link
+  const extension = href.split(".").pop()?.toLowerCase();
+  if (extension) {
     if (allowedLinkExtensions[LinkType.IMAGE].includes(extension)) {
       return LinkType.IMAGE;
     }
@@ -155,9 +166,22 @@ export function getLinkType(href: string): LinkType {
     if (allowedLinkExtensions[LinkType.DOCUMENT].includes(extension)) {
       return LinkType.DOCUMENT;
     }
-    return LinkType.PAGE;
   }
-  return LinkType.EXTERNAL;
+
+  // If it contains a dot but doesn't match known internal types, assume external
+  // Or if it doesn't have an extension but contains a dot (e.g., domain name without path)
+  // Only classify as external if it contains '://' or starts with '//' or 'www.'
+  if (
+    href.includes("://") ||
+    href.startsWith("//") ||
+    href.startsWith("www.")
+  ) {
+    return LinkType.EXTERNAL;
+  }
+
+  // Fallback for relative paths with dots but no recognized extension (treat as page)
+  // Example: ../some/other/page
+  return LinkType.PAGE;
 }
 
 /**
@@ -206,6 +230,12 @@ export interface RehypeWikiLinksOptions {
   internalLinksClass?: string;
 
   /**
+   * Class to add to asset links
+   * @default 'asset-link'
+   */
+  assetLinkClass?: string;
+
+  /**
    * Current page path for resolving relative links
    */
   currentPagePath?: string;
@@ -221,6 +251,7 @@ export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], Root> = (
   const internalLinksClass = options.internalLinksClass || "internal-link";
   const existsClass = options.existsClass || "wiki-link-exists";
   const missingClass = options.missingClass || "wiki-link-missing";
+  const assetLinkClass = options.assetLinkClass || "asset-link";
   const currentPagePath = options.currentPagePath || "";
 
   return async function transformer(tree: Root): Promise<void> {
@@ -229,8 +260,9 @@ export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], Root> = (
       node: Element;
       path: string;
     }> = [];
+    const assetLinks: Element[] = [];
 
-    // Find all internal links
+    // Find all internal links and asset links
     visit(tree, "element", (node: Element) => {
       if (
         node.tagName === "a" &&
@@ -243,12 +275,14 @@ export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], Root> = (
         if (type === LinkType.PAGE) {
           const path = renderInternalLink(href, currentPagePath);
           wikiLinks.push({ node, path });
+        } else if (type === LinkType.ASSET) {
+          assetLinks.push(node);
         }
       }
     });
 
     // If no wiki links, return early
-    if (wikiLinks.length === 0) return;
+    if (wikiLinks.length === 0 && assetLinks.length === 0) return;
 
     // Get unique paths to check
     const uniquePaths = Array.from(new Set(wikiLinks.map((link) => link.path)));
@@ -266,6 +300,19 @@ export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], Root> = (
       }`;
       if (!node.properties) node.properties = {};
 
+      if (Array.isArray(node.properties.className)) {
+        node.properties.className.push(className);
+      } else if (typeof node.properties.className === "string") {
+        node.properties.className = [node.properties.className, className];
+      } else {
+        node.properties.className = [className];
+      }
+    }
+
+    // Apply class to all asset links
+    for (const node of assetLinks) {
+      if (!node.properties) node.properties = {};
+      const className = assetLinkClass;
       if (Array.isArray(node.properties.className)) {
         node.properties.className.push(className);
       } else if (typeof node.properties.className === "string") {

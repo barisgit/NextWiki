@@ -9,7 +9,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const assetId = params.id;
+    const resolvedParams = await params;
+    const assetId = resolvedParams.id;
 
     // 1. Check Session and Permission using the helper
     const permissionResult = await checkServerPermission("assets:asset:read");

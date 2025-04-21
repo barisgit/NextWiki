@@ -40,7 +40,11 @@ export interface AssetType {
 
 interface AssetManagerProps {
   pageId?: number;
-  onSelectAsset?: (assetUrl: string, assetName: string) => void;
+  onSelectAsset?: (
+    assetUrl: string,
+    assetName: string,
+    fileType: string
+  ) => void;
   onClose?: () => void;
   isOpen?: boolean;
 }
@@ -190,7 +194,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
   const handleSelectAsset = (asset: AssetType) => {
     setSelectedAsset(asset);
     if (onSelectAsset) {
-      onSelectAsset(`/api/assets/${asset.id}`, asset.fileName);
+      onSelectAsset(`/api/assets/${asset.id}`, asset.fileName, asset.fileType);
       if (onClose) {
         onClose();
       }

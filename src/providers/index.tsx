@@ -26,7 +26,7 @@ function ToasterWithTheme() {
       theme={theme}
       richColors
       toastOptions={{
-        duration: 3000,
+        duration: 5000,
       }}
     />
   );

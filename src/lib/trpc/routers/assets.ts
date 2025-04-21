@@ -4,6 +4,8 @@ import { permissionProtectedProcedure, router } from "~/lib/trpc";
 import { TRPCError } from "@trpc/server";
 import { paginationSchema } from "~/lib/utils/pagination";
 
+const FILE_SIZE_LIMIT_MB = 100; // 100MB
+
 export const assetsRouter = router({
   getAll: permissionProtectedProcedure("assets:asset:read")
     .input(z.object({}).optional())
@@ -58,11 +60,10 @@ export const assetsRouter = router({
         const userId = parseInt(ctx.session.user.id as string, 10);
 
         // Size validation
-        const maxSize = 10 * 1024 * 1024; // 10MB limit
-        if (input.fileSize > maxSize) {
+        if (input.fileSize > FILE_SIZE_LIMIT_MB * 1024 * 1024) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "File size exceeds 10MB limit",
+            message: `File size exceeds ${FILE_SIZE_LIMIT_MB}MB limit`,
           });
         }
 
@@ -87,6 +88,13 @@ export const assetsRouter = router({
         return asset;
       } catch (error) {
         console.error("[ASSET UPLOAD ERROR]", error);
+
+        // If the error is already a TRPCError, re-throw it to preserve the specific code/message
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
+        // Otherwise, wrap it in a generic internal server error
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to upload asset",
