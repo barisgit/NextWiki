@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { WikiFolderTree } from "./WikiFolderTree";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import Modal from "~/components/ui/modal";

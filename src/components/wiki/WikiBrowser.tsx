@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { WikiFolderTree } from "./WikiFolderTree";
 import { SearchIcon, PlusIcon } from "lucide-react";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { useQuery } from "@tanstack/react-query";
 import { PageLocationEditor } from "./PageLocationEditor";
 import { Button } from "~/components/ui/button";

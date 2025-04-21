@@ -6,7 +6,7 @@ import { Button } from "~/components/ui/button";
 import Modal from "~/components/ui/modal";
 import { Input } from "~/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 

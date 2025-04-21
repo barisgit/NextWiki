@@ -12,7 +12,7 @@ import {
   GridIcon,
   ListIcon,
 } from "lucide-react";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { formatFileSize } from "~/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { assetService } from "~/lib/services";
-import { permissionProtectedProcedure, router } from "~/lib/trpc";
+import { permissionProtectedProcedure, router } from "~/server";
 import { TRPCError } from "@trpc/server";
 import { paginationSchema } from "~/lib/utils/pagination";
 

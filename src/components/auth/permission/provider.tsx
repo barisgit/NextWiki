@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { useQuery } from "@tanstack/react-query";
 import { checkPermission } from "~/lib/permissions/client";
 import { PermissionIdentifier } from "~/lib/permissions";

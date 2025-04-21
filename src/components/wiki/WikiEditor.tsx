@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { MarkdownProse } from "./MarkdownProse";

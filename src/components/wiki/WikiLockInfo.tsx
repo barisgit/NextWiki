@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { useMutation } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { formatDistanceToNow } from "date-fns";

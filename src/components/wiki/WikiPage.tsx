@@ -8,7 +8,7 @@ import { MoveIcon, PencilIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { WikiSubfolders } from "./WikiSubfolders";
 import { Breadcrumbs } from "./Breadcrumbs";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import Modal from "~/components/ui/modal";
 import { PageLocationEditor } from "./PageLocationEditor";

@@ -4,7 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { Skeleton } from "~/components/ui/skeleton";
 import type { inferRouterOutputs } from "@trpc/server";
-import type { AppRouter } from "~/lib/trpc/routers";
+import type { AppRouter } from "~/server/routers";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
 type WikiPageListItem = RouterOutput["wiki"]["list"]["pages"][number];

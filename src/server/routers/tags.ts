@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { tagService } from "~/lib/services";
-import { protectedProcedure, router } from "~/lib/trpc";
+import { protectedProcedure, router } from "~/server";
 import { TRPCError } from "@trpc/server";
 
 /**

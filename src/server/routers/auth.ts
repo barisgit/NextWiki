@@ -8,7 +8,7 @@ import {
   protectedProcedure,
   guestProcedure,
   publicProcedure,
-} from "~/lib/trpc";
+} from "~/server";
 import { authorizationService } from "~/lib/services";
 import { PermissionIdentifier, validatePermissionId } from "~/lib/permissions";
 
