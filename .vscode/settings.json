@@ -3,5 +3,10 @@
     {
       "mode": "auto"
     }
-  ]
+  ],
+  "files.associations": {
+    "globals.css": "tailwindcss",
+    "markdown.css": "tailwindcss",
+    "*.scss": "tailwindcss"
+  }
 }
