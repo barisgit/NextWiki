@@ -13,7 +13,7 @@ import { Badge } from "~/components/ui/badge";
 import { Eye, Pencil, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { useMutation } from "@tanstack/react-query";
 import { ClientRequirePermission } from "~/components/auth/permission/client";
 

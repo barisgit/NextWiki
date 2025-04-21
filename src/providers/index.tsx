@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { TRPCClientProvider } from "~/lib/trpc/providers";
+import { TRPCClientProvider } from "~/server/providers";
 import { ThemeProvider } from "~/providers/theme-provider";
 import { ModalProvider } from "~/components/ui/modal-provider";
 import { PermissionProvider } from "~/components/auth/permission/client";

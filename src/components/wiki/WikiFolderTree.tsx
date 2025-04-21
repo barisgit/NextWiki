@@ -11,7 +11,7 @@ import {
   PencilIcon,
   MoveIcon,
 } from "lucide-react";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Modal from "~/components/ui/modal";
 import { PageLocationEditor } from "./PageLocationEditor";

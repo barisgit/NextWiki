@@ -2,7 +2,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { getServerAuthSession } from "~/lib/auth";
 import type { Session } from "next-auth";
-import { authorizationService } from "../services/authorization";
+import { authorizationService } from "~/lib/services/authorization";
 import { PermissionIdentifier, validatePermissionId } from "~/lib/permissions";
 import type { TRPCPanelMeta } from "trpc-ui";
 

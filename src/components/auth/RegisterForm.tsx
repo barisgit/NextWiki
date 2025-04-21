@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { signIn } from "next-auth/react";
 import { Input } from "../ui/input";
 import { useMutation } from "@tanstack/react-query";

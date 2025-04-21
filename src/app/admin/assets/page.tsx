@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTRPC } from "~/lib/trpc/client";
+import { useTRPC } from "~/server/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { Input } from "~/components/ui/input";

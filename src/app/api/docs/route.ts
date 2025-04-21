@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { appRouter } from "~/lib/trpc/routers"; // Import your main tRPC router
+import { appRouter } from "~/server/routers"; // Import your main tRPC router
 
 export async function GET() {
   // Only allow access in development environment
