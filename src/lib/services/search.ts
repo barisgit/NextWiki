@@ -2,6 +2,7 @@ import { db } from "~/lib/db";
 import { wikiPages } from "~/lib/db/schema";
 import { sql, count as drizzleCount } from "drizzle-orm";
 import { PaginationInput, getPaginationParams } from "~/lib/utils/pagination";
+import { logger } from "~/lib/utils/logger";
 
 // Define the structure of a search result item
 interface SearchResultItem {
@@ -96,7 +97,7 @@ export const searchService = {
 
       return results;
     } catch (error) {
-      console.error("Vector search error:", error);
+      logger.error("Vector search error:", error);
 
       // Fallback to similarity search
       try {
@@ -152,7 +153,7 @@ export const searchService = {
 
         return results;
       } catch (similarityError) {
-        console.error("Similarity search error:", similarityError);
+        logger.error("Similarity search error:", similarityError);
 
         // Last resort - just use ILIKE with no trigram
         const results = await db
@@ -283,7 +284,7 @@ export const searchService = {
 
       return { items, totalItems };
     } catch (error) {
-      console.error("Vector search error (paginated):", error);
+      logger.error("Vector search error (paginated):", error);
 
       // Fallback to similarity search
       try {
@@ -341,7 +342,7 @@ export const searchService = {
 
         return { items, totalItems };
       } catch (similarityError) {
-        console.error("Similarity search error (paginated):", similarityError);
+        logger.error("Similarity search error (paginated):", similarityError);
 
         // Last resort - just use ILIKE with no trigram
         const whereClause = sql`

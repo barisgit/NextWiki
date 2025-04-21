@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { assetService } from "~/lib/services";
+import { logger } from "~/lib/utils/logger";
 import { checkServerPermission } from "~/lib/utils/server-auth-helpers";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +50,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("[ASSET_API_ROUTE_ERROR]", error);
+    logger.error("[ASSET_API_ROUTE_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

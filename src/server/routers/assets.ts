@@ -3,6 +3,7 @@ import { assetService } from "~/lib/services";
 import { permissionProtectedProcedure, router } from "~/server";
 import { TRPCError } from "@trpc/server";
 import { paginationSchema } from "~/lib/utils/pagination";
+import { logger } from "~/lib/utils/logger";
 
 const FILE_SIZE_LIMIT_MB = 100; // 100MB
 
@@ -87,7 +88,7 @@ export const assetsRouter = router({
 
         return asset;
       } catch (error) {
-        console.error("[ASSET UPLOAD ERROR]", error);
+        logger.error("[ASSET UPLOAD ERROR]", error);
 
         // If the error is already a TRPCError, re-throw it to preserve the specific code/message
         if (error instanceof TRPCError) {
@@ -139,7 +140,7 @@ export const assetsRouter = router({
         });
         return updatedAsset;
       } catch (error) {
-        console.error("[ASSET UPDATE ERROR]", error);
+        logger.error("[ASSET UPDATE ERROR]", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to update asset",

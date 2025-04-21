@@ -8,6 +8,8 @@ import {
 } from "~/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import type { groups as groupsTable } from "~/lib/db/schema";
+import { logger } from "../utils/logger";
+
 type Group = typeof groupsTable.$inferSelect;
 
 /**
@@ -262,7 +264,7 @@ export const groupService = {
         .onConflictDoNothing();
       return true;
     } catch (error) {
-      console.error(`Error adding user ${userId} to group ${groupId}:`, error);
+      logger.error(`Error adding user ${userId} to group ${groupId}:`, error);
       return false;
     }
   },
@@ -283,7 +285,7 @@ export const groupService = {
         );
       return (result?.rowCount ?? 0) > 0;
     } catch (error) {
-      console.error(
+      logger.error(
         `Error removing user ${userId} from group ${groupId}:`,
         error
       );

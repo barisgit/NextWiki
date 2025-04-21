@@ -4,6 +4,7 @@
 
 import { createClientMarkdownProcessor } from "../client-factory";
 import { renderMarkdownToHtml } from "../server";
+import { logger } from "~/lib/utils/logger";
 
 /**
  * Normalizes HTML structure to account for differences between server-rendered HTML
@@ -16,7 +17,7 @@ export function normalizeHtml(html: string): string {
   if (typeof document === "undefined") {
     // This should not happen in a Jest JSDOM environment
     // but provides a safeguard
-    console.warn("normalizeHtml called outside of JSDOM environment");
+    logger.warn("normalizeHtml called outside of JSDOM environment");
     return html.trim();
   }
 

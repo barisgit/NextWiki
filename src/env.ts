@@ -15,6 +15,10 @@ export const env = createEnv({
     GITHUB_CLIENT_SECRET: z.string().min(1),
     GOOGLE_CLIENT_ID: z.string().min(1),
     GOOGLE_CLIENT_SECRET: z.string().min(1),
+    OVERRIDE_MAX_LOG_LEVEL: z
+      .enum(["DEBUG", "INFO", "WARN", "ERROR"])
+      .optional(),
+    PROCESS_ORIGIN: z.enum(["WSS", "PROD", "NEXT"]).optional(),
   },
 
   /**
@@ -44,7 +48,8 @@ export const env = createEnv({
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-
+    OVERRIDE_MAX_LOG_LEVEL: process.env.OVERRIDE_MAX_LOG_LEVEL,
+    PROCESS_ORIGIN: process.env.PROCESS_ORIGIN,
     // Client-side env vars
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },

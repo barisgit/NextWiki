@@ -12,6 +12,7 @@ import {
   fixPermissionsDatabase,
   logValidationResults,
 } from "~/lib/permissions/server";
+import { logger } from "~/lib/utils/logger";
 
 /**
  * Seed all permissions from the central registry
@@ -19,7 +20,7 @@ import {
 export async function seedPermissions() {
   const allPermissions = getAllPermissions();
 
-  console.log(`Seeding ${allPermissions.length} permissions...`);
+  logger.log(`Seeding ${allPermissions.length} permissions...`);
 
   for (const permission of allPermissions) {
     try {
@@ -38,7 +39,7 @@ export async function seedPermissions() {
           },
         });
     } catch (error) {
-      console.error(
+      logger.error(
         `Error seeding permission ${permission.module}:${permission.resource}:${permission.action}:`,
         error
       );
@@ -50,21 +51,21 @@ export async function seedPermissions() {
   logValidationResults(validation);
 
   if (!validation.isValid) {
-    console.log("Fixing permissions database...");
+    logger.log("Fixing permissions database...");
     const fixResults = await fixPermissionsDatabase();
-    console.log(
+    logger.log(
       `Fixed permissions: added=${fixResults.added}, updated=${fixResults.updated}`
     );
   }
 
-  console.log("Permissions seeded successfully!");
+  logger.log("Permissions seeded successfully!");
 }
 
 /**
  * Create default groups with permissions
  */
 export async function createDefaultGroups() {
-  console.log("Creating default groups...");
+  logger.log("Creating default groups...");
 
   try {
     // 1. Create Administrator group
@@ -185,7 +186,7 @@ export async function createDefaultGroups() {
         )
         .onConflictDoNothing();
 
-      console.log("Added all permissions to Administrators group");
+      logger.log("Added all permissions to Administrators group");
     }
 
     // Assignment - Editors get wiki editing permissions
@@ -200,7 +201,7 @@ export async function createDefaultGroups() {
         )
         .onConflictDoNothing();
 
-      console.log("Added editing permissions to Editors group");
+      logger.log("Added editing permissions to Editors group");
     }
 
     // Assignment - Viewers only get read permission
@@ -243,7 +244,7 @@ export async function createDefaultGroups() {
         })
         .onConflictDoNothing();
 
-      console.log("Added read permission and permissions to Viewers group");
+      logger.log("Added read permission and permissions to Viewers group");
     }
 
     // Assignment - Guests get limited read permissions
@@ -278,11 +279,11 @@ export async function createDefaultGroups() {
         })
         .onConflictDoNothing();
 
-      console.log("Added minimal read permissions to Guests group");
+      logger.log("Added minimal read permissions to Guests group");
     }
 
-    console.log("Default groups created successfully!");
+    logger.log("Default groups created successfully!");
   } catch (error) {
-    console.error("Error creating default groups:", error);
+    logger.error("Error creating default groups:", error);
   }
 }

@@ -1,6 +1,7 @@
 import { db } from "~/lib/db";
 import { wikiPages } from "~/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { logger } from "~/lib/utils/logger";
 
 // Software lock timeout in minutes
 const LOCK_TIMEOUT_MINUTES = 5;
@@ -108,7 +109,7 @@ export const lockService = {
             return { success: true, page: updatedPage };
           } catch (err) {
             // If we get an error with NOWAIT, it means the row is hardware-locked
-            console.log("Failed to acquire hardware lock:", err);
+            logger.log("Failed to acquire hardware lock:", err);
 
             // We need to throw here to properly abort this transaction
             // but still allow outer catch block to handle it
@@ -116,7 +117,7 @@ export const lockService = {
           }
         });
       } catch (txError) {
-        console.log("Transaction error during lock acquisition:", txError);
+        logger.log("Transaction error during lock acquisition:", txError);
 
         // Recheck the page state after transaction failure
         try {
@@ -137,12 +138,12 @@ export const lockService = {
           // Return the current page state
           return { success: false, page: pageAfterTx };
         } catch (finalError) {
-          console.error("Final error checking lock state:", finalError);
+          logger.error("Final error checking lock state:", finalError);
           return { success: false, page: page };
         }
       }
     } catch (error) {
-      console.error("Error during lock acquisition:", error);
+      logger.error("Error during lock acquisition:", error);
       return { success: false, page: null };
     }
   },
@@ -193,7 +194,7 @@ export const lockService = {
         return { isLocked: true, lockedByUserId: null };
       }
     } catch (error) {
-      console.error("Error checking lock status:", error);
+      logger.error("Error checking lock status:", error);
       return { isLocked: true, lockedByUserId: null }; // Assume locked on error for safety
     }
   },
@@ -242,7 +243,7 @@ export const lockService = {
         return { success: true, page: updatedPage };
       });
     } catch (error) {
-      console.error("Failed to refresh lock:", error);
+      logger.error("Failed to refresh lock:", error);
       return { success: false, page: null };
     }
   },
@@ -281,7 +282,7 @@ export const lockService = {
 
       return result;
     } catch (error) {
-      console.error("Failed to release lock:", error);
+      logger.error("Failed to release lock:", error);
       return false;
     }
   },

@@ -7,6 +7,7 @@ import { db } from "~/lib/db";
 import { permissions } from "~/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getAllPermissions, createPermissionId } from "./registry";
+import { logger } from "~/lib/utils/logger";
 
 /**
  * Validates permissions in the database against the registry
@@ -106,19 +107,19 @@ export function logValidationResults(
   validation: Awaited<ReturnType<typeof validatePermissionsDatabase>>
 ) {
   if (validation.isValid) {
-    console.log("✅ Permissions database is valid!");
+    logger.log("✅ Permissions database is valid!");
     return;
   }
 
   if (validation.missing.length > 0) {
-    console.warn(`⚠️ Found ${validation.missing.length} missing permissions:`);
+    logger.warn(`⚠️ Found ${validation.missing.length} missing permissions:`);
     validation.missing.forEach((p) => {
-      console.warn(`  - ${createPermissionId(p)}: ${p.description}`);
+      logger.warn(`  - ${createPermissionId(p)}: ${p.description}`);
     });
   }
 
   if (validation.mismatched.length > 0) {
-    console.warn(
+    logger.warn(
       `⚠️ Found ${validation.mismatched.length} permissions with mismatched descriptions:`
     );
     validation.mismatched.forEach((dbPerm) => {
@@ -126,19 +127,19 @@ export function logValidationResults(
         (p) => createPermissionId(p) === dbPerm.name
       );
       if (regPerm) {
-        console.warn(`  - ${dbPerm.name}:`);
-        console.warn(`    DB: ${dbPerm.description}`);
-        console.warn(`    Registry: ${regPerm.description}`);
+        logger.warn(`  - ${dbPerm.name}:`);
+        logger.warn(`    DB: ${dbPerm.description}`);
+        logger.warn(`    Registry: ${regPerm.description}`);
       }
     });
   }
 
   if (validation.extras.length > 0) {
-    console.warn(
+    logger.warn(
       `⚠️ Found ${validation.extras.length} extra permissions in the database:`
     );
     validation.extras.forEach((p) => {
-      console.warn(`  - ${p.name}: ${p.description}`);
+      logger.warn(`  - ${p.name}: ${p.description}`);
     });
   }
 }

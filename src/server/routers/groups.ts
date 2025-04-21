@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, permissionProtectedProcedure } from "~/server";
 import { dbService } from "~/lib/services";
+import { logger } from "~/lib/utils/logger";
 
 export const groupsRouter = router({
   // Get all groups
@@ -97,7 +98,7 @@ export const groupsRouter = router({
 
       const group = await dbService.groups.delete(input.id);
       if (!group) {
-        console.warn(
+        logger.warn(
           `Attempted to delete group ${input.id} which might have failed or was already gone.`
         );
       }

@@ -20,6 +20,7 @@ import Modal from "../ui/modal";
 import { Input } from "~/components/ui/input";
 import { PaginationInput, PaginationMeta } from "~/lib/utils/pagination";
 import { ScrollArea } from "~/components/ui/scroll-area";
+import { logger } from "~/lib/utils/logger";
 
 export interface AssetType {
   id: string;
@@ -169,7 +170,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
 
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error("Upload error:", error);
+      logger.error("Upload error:", error);
     } finally {
       setIsUploading(false);
       queryClient.invalidateQueries({ queryKey: assetsQueryKey });
@@ -245,7 +246,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
           description: editedDescription || null,
         });
       } catch (error) {
-        console.error("Error updating asset:", error);
+        logger.error("Error updating asset:", error);
       }
     }
   };

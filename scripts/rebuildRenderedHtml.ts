@@ -1,4 +1,5 @@
 import { markdownService } from "~/lib/services/markdown";
+import { logger } from "~/lib/utils/logger";
 
 async function main() {
   await markdownService.rebuildAllRenderedHtml();
@@ -8,6 +9,6 @@ async function main() {
 main().catch((error) => {
   void error;
   // Error details should have been printed already by internal functions
-  console.error("❌ Setup script failed.");
+  logger.error("❌ Setup script failed.");
   process.exit(1);
 });

@@ -12,6 +12,7 @@ import type { Element, Root } from "hast";
 import { db } from "~/lib/db";
 import { wikiPages } from "~/lib/db/schema";
 import { inArray } from "drizzle-orm";
+import { logger } from "~/lib/utils/logger";
 
 // Cache configuration
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minute cache lifetime
@@ -273,7 +274,7 @@ export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], Root> = (
         const type = getLinkType(href);
         if (type === LinkType.PAGE) {
           const path = renderInternalLink(href, currentPagePath);
-          console.log(
+          logger.debug(
             `${href} -> ${path} (currentPagePath: ${currentPagePath})`
           );
           wikiLinks.push({ node, path });

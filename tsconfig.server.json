@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "Preserve",
+    "target": "ES2024",
+    "lib": ["ES2024", "DOM"],
+    "isolatedModules": false,
+    "noEmit": false
+  },
+  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx"]
+}

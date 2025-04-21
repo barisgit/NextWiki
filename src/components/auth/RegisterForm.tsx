@@ -7,6 +7,7 @@ import { useTRPC } from "~/server/client";
 import { signIn } from "next-auth/react";
 import { Input } from "../ui/input";
 import { useMutation } from "@tanstack/react-query";
+import { logger } from "~/lib/utils/logger";
 
 interface RegisterFormProps {
   isFirstUser: boolean;
@@ -28,7 +29,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
       try {
         router.replace("/");
       } catch (error) {
-        console.error(error);
+        logger.error("Error redirecting to /", error);
       }
     }
   }, [isFirstUser, pathname, router]);

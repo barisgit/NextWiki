@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { PermissionIdentifier } from "~/lib/permissions";
 import { usePermissions } from "../utils/usePermissions";
 import { isPublicPath } from "../utils/path-utils";
+import { logger } from "~/lib/utils/logger";
 
 // Define prop types for each slot component
 interface AuthorizedProps {
@@ -98,13 +99,13 @@ export function ClientPermissionGate({
 
   // Validate parameters - we set a flag but don't return early
   if (permission && permissions) {
-    console.error(
+    logger.error(
       "ClientPermissionGate requires either 'permission' or 'permissions' prop, not both."
     );
     shouldRender = false;
   }
   if (!permission && !permissions) {
-    console.error(
+    logger.error(
       "ClientPermissionGate requires either 'permission' or 'permissions' prop."
     );
     shouldRender = false;

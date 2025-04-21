@@ -1,24 +1,9 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
-import { getServerAuthSession } from "~/lib/auth";
 import type { Session } from "next-auth";
 import { authorizationService } from "~/lib/services/authorization";
 import { PermissionIdentifier, validatePermissionId } from "~/lib/permissions";
 import type { TRPCPanelMeta } from "trpc-ui";
-
-// Initialize context for tRPC
-export async function createContext(opts: FetchCreateContextFnOptions) {
-  void opts;
-  // Get user session from NextAuth
-  const session = await getServerAuthSession();
-
-  return {
-    session,
-  };
-}
-
-// Context type
-export type Context = Awaited<ReturnType<typeof createContext>>;
+import { Context } from "./context";
 
 // Initialize tRPC server instance
 const t = initTRPC.context<Context>().meta<TRPCPanelMeta>().create();
@@ -26,6 +11,7 @@ const t = initTRPC.context<Context>().meta<TRPCPanelMeta>().create();
 // Create middlewares, procedures, and routers
 export const middleware = t.middleware;
 export const router = t.router;
+export const mergeRouters = t.mergeRouters;
 export const publicProcedure = t.procedure;
 
 // Create protected procedure that requires authentication

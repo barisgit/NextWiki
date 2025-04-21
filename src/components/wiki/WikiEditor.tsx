@@ -48,6 +48,7 @@ import {
   CommandItem,
   CommandEmpty,
 } from "~/components/ui/command";
+import { logger } from "~/lib/utils/logger";
 
 const MAX_VIEWABLE_FILE_SIZE_MB = 10;
 
@@ -162,7 +163,7 @@ export function WikiEditor({
       },
       onError: (error) => {
         // Error handling is now primarily managed by notification.promise
-        console.error("Error uploading asset:", error);
+        logger.error("Error uploading asset:", error);
       },
     })
   );
@@ -216,7 +217,7 @@ export function WikiEditor({
                 return `Asset ${asset.fileName} uploaded successfully`; // Return success message
               },
               error: (error) => {
-                console.error("Error uploading asset:", error);
+                logger.error("Error uploading asset:", error);
                 return `Failed to upload asset: ${error.message}`; // Return error message
               },
             }
@@ -224,7 +225,7 @@ export function WikiEditor({
         };
         reader.readAsDataURL(file); // Read as data URL
       } catch (error) {
-        console.error("Error uploading image:", error);
+        logger.error("Error uploading image:", error);
         notification.error("Failed to upload image");
       } finally {
         queryClient.invalidateQueries({ queryKey: assetsQueryKey });
@@ -236,17 +237,17 @@ export function WikiEditor({
   // CodeMirror event handler extension for paste and drop
   const cmEventHandlers = EditorView.domEventHandlers({
     paste: (event: ClipboardEvent, view: EditorView) => {
-      console.log("CodeMirror paste event triggered");
-      console.log("Pasted into view:", view); // Example use of view to satisfy linter
+      logger.log("CodeMirror paste event triggered");
+      logger.log("Pasted into view:", view); // Example use of view to satisfy linter
       const files = Array.from(event.clipboardData?.files || []);
       const items = Array.from(event.clipboardData?.items || []);
 
       // Optional: Log detected items for debugging
-      console.log(
+      logger.log(
         "CM Clipboard Files:",
         files.map((f) => ({ name: f.name, type: f.type, size: f.size }))
       );
-      console.log(
+      logger.log(
         "CM Clipboard Items:",
         items.map((item) => ({ kind: item.kind, type: item.type }))
       );
@@ -256,7 +257,7 @@ export function WikiEditor({
         // Check if the first file is suitable (could be image or other type)
         const fileToUpload = files[0];
         if (fileToUpload) {
-          console.log("CM: Found file in files:", fileToUpload.name);
+          logger.log("CM: Found file in files:", fileToUpload.name);
           event.preventDefault();
           handleFileUpload(fileToUpload);
           return true; // Indicate we handled the event
@@ -269,28 +270,28 @@ export function WikiEditor({
       );
 
       if (imageItem) {
-        console.log("CM: Found file item (kind=file)", imageItem.type);
+        logger.log("CM: Found file item (kind=file)", imageItem.type);
         event.preventDefault();
         const file = imageItem.getAsFile();
         if (file) {
-          console.log("CM: Got file from image item:", file.name);
+          logger.log("CM: Got file from image item:", file.name);
           handleFileUpload(file); // Use the renamed file upload handler
           return true; // Indicate we handled the event
         }
       }
-      console.log(
+      logger.log(
         "CM: No suitable file found in clipboard data, allowing default paste."
       );
       return false; // Allow default paste if no image found/handled
     },
     drop: (event: DragEvent, view: EditorView) => {
-      console.log("CodeMirror drop event triggered");
-      console.log("Dropped onto view:", view); // Example use of view to satisfy linter
+      logger.log("CodeMirror drop event triggered");
+      logger.log("Dropped onto view:", view); // Example use of view to satisfy linter
       event.preventDefault();
       const file = event.dataTransfer?.files[0];
       // Handle any dropped file type
       if (file) {
-        console.log("CM: Handling dropped image:", file.name);
+        logger.log("CM: Handling dropped image:", file.name);
         handleFileUpload(file); // Use the renamed file upload handler
         return true; // Indicate we handled the event
       }

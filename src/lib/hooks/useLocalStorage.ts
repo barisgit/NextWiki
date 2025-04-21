@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { logger } from "~/lib/utils/logger";
 
 export function useLocalStorage<T>(
   key: string,
@@ -19,7 +20,7 @@ export function useLocalStorage<T>(
       // Parse stored json or if none return initialValue
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      console.error("Error reading from localStorage:", error);
+      logger.error("Error reading from localStorage:", error);
       return initialValue;
     }
   });
@@ -39,7 +40,7 @@ export function useLocalStorage<T>(
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
-      console.error("Error writing to localStorage:", error);
+      logger.error("Error writing to localStorage:", error);
     }
   };
 
@@ -50,7 +51,7 @@ export function useLocalStorage<T>(
         try {
           setStoredValue(JSON.parse(e.newValue));
         } catch (error) {
-          console.error("Error parsing localStorage change:", error);
+          logger.error("Error parsing localStorage change:", error);
         }
       }
     };

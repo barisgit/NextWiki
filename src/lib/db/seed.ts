@@ -1,12 +1,13 @@
 import { seedPermissions, createDefaultGroups } from "./seeds/permissions";
 import * as path from "path";
 import * as url from "url";
+import { logger } from "~/lib/utils/logger";
 
 /**
  * Main seed function that runs all seed operations
  */
 async function seed() {
-  console.log("Starting seed operations...");
+  logger.log("Starting seed operations...");
   try {
     // Seed permissions
     await seedPermissions();
@@ -21,9 +22,9 @@ async function seed() {
     const { runCustomSeeds } = await import("./seeds/custom-seeds");
     await runCustomSeeds();
 
-    console.log("✅ All seed operations completed successfully!");
+    logger.log("✅ All seed operations completed successfully!");
   } catch (error) {
-    console.error("Error during seed operations:", error);
+    logger.error("Error during seed operations:", error);
     throw error;
   }
 }
@@ -35,11 +36,11 @@ const entryPointPath = path.resolve(process.argv[1]);
 if (currentFilePath === entryPointPath) {
   seed()
     .then(() => {
-      console.log("Seed script finished successfully.");
+      logger.log("Seed script finished successfully.");
       process.exit(0);
     })
     .catch((error) => {
-      console.error("Seed script failed when run directly:", error);
+      logger.error("Seed script failed when run directly:", error);
       process.exit(1);
     });
 }

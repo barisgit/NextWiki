@@ -10,6 +10,7 @@ import { Providers } from "~/providers";
 import { seed } from "~/lib/db/seed";
 import { PermissionGate } from "~/components/auth/permission/server";
 import { LogOutButton } from "~/components/auth/LogOutButton";
+import { logger } from "~/lib/utils/logger";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -34,24 +35,24 @@ async function RootLayoutContent({ children }: { children: React.ReactNode }) {
 
   // Attempt seeding only if the admin group doesn't exist
   if (!adminGroupExists) {
-    console.log(
+    logger.log(
       "Essential seed data (e.g., Administrators group) not found. Running seed script..."
     );
     try {
       await seed();
-      console.log("Seed script completed successfully.");
+      logger.log("Seed script completed successfully.");
       // Re-check if the group exists now
       adminGroupExists = !!(await dbService.groups.findByName(
         "Administrators"
       ));
       if (!adminGroupExists) {
-        console.error(
+        logger.error(
           "CRITICAL: Seed script ran but Administrators group still not found!"
         );
         // Handle this critical state - maybe return an error component?
       }
     } catch (error) {
-      console.error("Failed to run seed script automatically:", error);
+      logger.error("Failed to run seed script automatically:", error);
       // Handle seeding failure - maybe return an error component?
     }
   }
@@ -61,7 +62,7 @@ async function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const isFirstUser = userCount === 0;
 
   if (isFirstUser) {
-    console.log(
+    logger.log(
       "No users found, directing to registration within RootLayoutContent."
     );
     return <RegisterPage isFirstUser={true} />;
