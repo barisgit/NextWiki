@@ -62,6 +62,28 @@ export function useNotification() {
     });
   };
 
+  const promise = <T>(
+    promise: Promise<T> | (() => Promise<T>),
+    messages: {
+      loading: string | React.ReactNode;
+      success:
+        | string
+        | React.ReactNode
+        | ((data: T) => React.ReactNode | string);
+      error:
+        | string
+        | React.ReactNode
+        | ((error: Error) => React.ReactNode | string);
+    },
+    options?: ToasterProps
+  ) => {
+    return toast.promise(promise, {
+      ...defaultOptions,
+      ...messages,
+      ...options,
+    });
+  };
+
   return {
     success,
     error,
@@ -69,6 +91,7 @@ export function useNotification() {
     info,
     loading,
     custom,
+    promise,
     dismiss: toast.dismiss,
   };
 }

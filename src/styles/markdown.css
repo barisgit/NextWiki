@@ -148,3 +148,13 @@ ol li {
 ol li p {
   @apply py-0 my-0;
 }
+
+/* Asset links */
+a.asset-link {
+  @apply text-secondary no-underline hover:underline;
+}
+
+a.asset-link::before {
+  content: "📄 [Asset]"; /* File emoji */
+  @apply inline-block text-text-tertiary font-normal mr-1;
+}

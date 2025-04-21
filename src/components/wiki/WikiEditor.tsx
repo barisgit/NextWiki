@@ -49,6 +49,8 @@ import {
   CommandEmpty,
 } from "~/components/ui/command";
 
+const MAX_VIEWABLE_FILE_SIZE_MB = 10;
+
 // Basic debounce hook implementation
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -153,23 +155,14 @@ export function WikiEditor({
   // TRPC mutation for uploading assets
   const uploadAssetMutation = useMutation(
     trpc.assets.upload.mutationOptions({
-      onSuccess: (asset) => {
-        // Insert markdown link for the uploaded asset
-        const isImage = asset.fileType.startsWith("image/");
-        const assetMarkdown = isImage
-          ? `![${asset.fileName}](${`/api/assets/${asset.id}`})` // Image link
-          : `[${asset.fileName}](${`/api/assets/${asset.id}`})`; // Standard link
-
-        // Insert at current cursor position or append to content
-        // TODO: Implement inserting at cursor position using editorRef
-        setContent((current) => current + "\n" + assetMarkdown + "\n");
-        setUnsavedChanges(true);
-
-        notification.success("Asset uploaded successfully");
+      onSuccess: () => {
+        // Logic moved to notification.promise success handler
+        // We might still need some non-notification logic here in the future,
+        // but for now, it's handled by the promise.
       },
       onError: (error) => {
+        // Error handling is now primarily managed by notification.promise
         console.error("Error uploading asset:", error);
-        notification.error(`Failed to upload asset: ${error.message}`);
       },
     })
   );
@@ -183,13 +176,51 @@ export function WikiEditor({
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64Data = reader.result as string;
-          uploadAssetMutation.mutateAsync({
-            fileName: file.name,
-            fileType: file.type,
-            fileSize: file.size,
-            data: base64Data, // Pass the base64 data URI
-            pageId: pageId || null, // Ensure pageId is number or null
-          });
+
+          // Use notification.promise
+          notification.promise(
+            uploadAssetMutation.mutateAsync({
+              fileName: file.name,
+              fileType: file.type,
+              fileSize: file.size,
+              data: base64Data, // Pass the base64 data URI
+              pageId: pageId || null, // Ensure pageId is number or null
+            }),
+            {
+              loading: `Uploading ${file.name}...`,
+              success: (asset) => {
+                // Insert markdown link for the uploaded asset
+                const isViewable =
+                  asset.fileType.startsWith("image/") ||
+                  asset.fileType.startsWith("video/");
+                const fileSizeMB = asset.fileSize / (1024 * 1024);
+
+                let assetMarkdown = "";
+                if (isViewable) {
+                  if (fileSizeMB <= MAX_VIEWABLE_FILE_SIZE_MB) {
+                    assetMarkdown = `![${asset.fileName}](/api/assets/${asset.id})`; // Image link
+                  } else {
+                    notification.info(
+                      `Asset ${asset.fileName} is too large to view inline. We will display a link instead.`
+                    );
+                    assetMarkdown = `[${asset.fileName}](/api/assets/${asset.id})`; // Standard link
+                  }
+                } else {
+                  assetMarkdown = `[${asset.fileName}](/api/assets/${asset.id})`; // Standard link
+                }
+
+                // Insert at current cursor position or append to content
+                // TODO: Implement inserting at cursor position using editorRef
+                setContent((current) => current + "\n" + assetMarkdown + "\n");
+                setUnsavedChanges(true);
+                return `Asset ${asset.fileName} uploaded successfully`; // Return success message
+              },
+              error: (error) => {
+                console.error("Error uploading asset:", error);
+                return `Failed to upload asset: ${error.message}`; // Return error message
+              },
+            }
+          );
         };
         reader.readAsDataURL(file); // Read as data URL
       } catch (error) {
@@ -199,7 +230,7 @@ export function WikiEditor({
         queryClient.invalidateQueries({ queryKey: assetsQueryKey });
       }
     },
-    [pageId, notification, uploadAssetMutation]
+    [pageId, notification, uploadAssetMutation, queryClient, assetsQueryKey] // Added dependencies
   );
 
   // CodeMirror event handler extension for paste and drop
@@ -550,9 +581,13 @@ export function WikiEditor({
   };
 
   // Handle asset selection from asset manager
-  const handleAssetSelect = (assetUrl: string, assetName: string) => {
+  const handleAssetSelect = (
+    assetUrl: string,
+    assetName: string,
+    fileType: string
+  ) => {
     // Format for image vs other assets
-    const isImage = assetName.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+    const isImage = fileType.startsWith("image/");
     const markdownLink = isImage
       ? `![${assetName}](${assetUrl})`
       : `[${assetName}](${assetUrl})`;
@@ -932,7 +967,9 @@ export function WikiEditor({
       <AssetManager
         isOpen={showAssetManager}
         onClose={() => setShowAssetManager(false)}
-        onSelectAsset={handleAssetSelect}
+        onSelectAsset={(assetUrl, assetName, fileType) =>
+          handleAssetSelect(assetUrl, assetName, fileType)
+        }
         pageId={pageId}
       />
     </div>
