@@ -63,13 +63,14 @@ export async function rebuildAllRenderedHtml(): Promise<void> {
     columns: {
       id: true,
       content: true,
+      path: true,
     },
   });
 
   for (const page of allPages) {
     if (page.content) {
       // console.log("Rebuilding rendered HTML for page", page.id);
-      await renderWikiMarkdownToHtml(page.content, page.id);
+      await renderWikiMarkdownToHtml(page.content, page.id, page.path);
     }
   }
 }

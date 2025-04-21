@@ -46,7 +46,11 @@ async function getWikiPageByPath(path: string[]) {
 
   // If page is found and has content, pre-render the markdown to HTML with wiki link validation
   if (page && page.content) {
-    const renderedHtml = await renderWikiMarkdownToHtml(page.content, page.id);
+    const renderedHtml = await renderWikiMarkdownToHtml(
+      page.content,
+      page.id,
+      page.path
+    );
     page.renderedHtml = renderedHtml;
     page.renderedHtmlUpdatedAt = new Date();
   }
