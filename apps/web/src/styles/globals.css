@@ -1,0 +1,440 @@
+@import "tailwindcss";
+@plugin '@tailwindcss/typography';
+@import "./markdown.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Theme variables */
+  --color-background-default: var(--color-light-background-default);
+  --color-background-paper: var(--color-light-background-paper);
+  --color-background-level1: var(--color-light-background-level1);
+  --color-background-level2: var(--color-light-background-level2);
+  --color-background-level3: var(--color-light-background-level3);
+  --color-background-light: var(--color-light-background-light);
+  --color-background-dark: var(--color-light-background-dark);
+  --color-text-primary: var(--color-light-text-primary);
+  --color-text-secondary: var(--color-light-text-secondary);
+  --color-text-tertiary: var(--color-light-text-tertiary);
+  --color-text-accent: var(--color-light-text-accent);
+  --color-border-default: var(--color-light-border-default);
+  --color-border-light: var(--color-light-border-light);
+  --color-border-dark: var(--color-light-border-dark);
+  --color-border-accent: var(--color-light-border-accent);
+  --color-scrollbar-track: var(--color-light-scrollbar-track);
+  --color-scrollbar-thumb: var(--color-light-scrollbar-thumb);
+
+  /* Light mode theme variables */
+  --color-light-background-default: #ffffff;
+  --color-light-background-paper: #f8f9fa;
+  --color-light-background-level1: #f1f3f5;
+  --color-light-background-level2: #e9ecef;
+  --color-light-background-level3: #dee2e6;
+  --color-light-background-light: #ffffff;
+  --color-light-background-dark: #212529;
+  --color-light-text-primary: #212529;
+  --color-light-text-secondary: #495057;
+  --color-light-text-tertiary: #6c757d;
+  --color-light-text-accent: var(--color-primary-700);
+  --color-light-border-default: #adb5bd;
+  --color-light-border-light: #ced4da;
+  --color-light-border-dark: #868e96;
+  --color-light-border-accent: var(--color-primary-600);
+  --color-light-scrollbar-track: #f1f3f5;
+  --color-light-scrollbar-thumb: #adb5bd;
+
+  /* Dark mode theme variables */
+  --color-dark-background-default: #131313; /* Near black */
+  --color-dark-background-paper: #1c1c1c; /* Slightly lighter paper */
+  --color-dark-background-level1: #262626; /* Darker level 1 */
+  --color-dark-background-level2: #2c2c2c; /* Darker level 2 */
+  --color-dark-background-level3: #333333; /* Slightly lighter level 3 for better contrast */
+  --color-dark-background-light: #0a0a0a;
+  --color-dark-background-dark: #000000;
+  --color-dark-text-primary: #f8f9fa;
+  --color-dark-text-secondary: #e0e0e0;
+  --color-dark-text-tertiary: #a0a7ae;
+  --color-dark-text-accent: var(--color-primary-300);
+  --color-dark-border-default: #303030;
+  --color-dark-border-light: #4a4a4a;
+  --color-dark-border-dark: #202020;
+  --color-dark-border-accent: var(--color-primary-300);
+  --color-dark-scrollbar-track: #1f1f1f;
+  --color-dark-scrollbar-thumb: #4a4a4a;
+
+  /* Card colors */
+  --color-card: var(--color-background-level1);
+  --color-card-muted: var(--color-background-level2);
+  --color-card-hover: var(--color-background-level2);
+  --color-card-active: var(--color-background-level3);
+  --color-card-foreground: var(--color-text-primary);
+
+  /* Code colors */
+  --color-code: #f1f3f5;
+  --color-code-foreground: #343a40;
+  --color-inline-code: var(--color-primary-100);
+  --color-inline-code-foreground: var(--color-primary-900);
+
+  /* Dark code colors */
+  --color-dark-code: #151515; /* Align with new dark bg */
+  --color-dark-code-foreground: #e9ecef;
+  --color-dark-inline-code: var(--color-background-level2);
+  --color-dark-inline-code-foreground: var(--color-primary-200);
+
+  /* Popover colors */
+  --color-popover: var(--color-background-default);
+  --color-popover-foreground: var(--color-text-primary);
+  --color-popover-border: var(--color-border-default);
+
+  /* Font sizes */
+  --font-size-xs: 0.8125rem;
+  --font-size-sm: 0.9375rem;
+  --font-size-md: 1.0625rem;
+  --font-size-lg: 1.1875rem;
+  --font-size-xl: 1.3125rem;
+  --font-size-2xl: 1.625rem;
+  --font-size-3xl: 2rem;
+
+  /* Line heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Neon Accents */
+  --color-neon-primary: #ffdd00;
+  --color-neon-secondary: #ff9933;
+  --color-neon-accent: #00ffee;
+  --color-neon-complementary: #ff2d2d;
+
+  /* Neon glows - using the actual neon colors instead of the main palette */
+  --color-neon-glow-primary: 0 0 20px #ffdd00, 0 0 40px #ffdd0066;
+  --color-neon-glow-secondary: 0 0 20px #ff9933, 0 0 40px #ff993366;
+  --color-neon-glow-accent: 0 0 20px #00ffee, 0 0 40px #00ffee66;
+  --color-neon-glow-complementary: 0 0 20px #ff2d2d, 0 0 40px #ff2d2d66;
+
+  /* Primary colors - expanded with darker tones */
+  --color-primary-50: #fff9e6;
+  --color-primary-100: #fff3cc;
+  --color-primary-200: #ffe899;
+  --color-primary-300: #ffd766;
+  --color-primary-400: #ffc933;
+  --color-primary-500: #ffba2e;
+  --color-primary-600: #e6a829;
+  --color-primary-700: #cc9621;
+  --color-primary-800: #b38418;
+  --color-primary-900: #99720f;
+  --color-primary-1000: #7a5d0a;
+  --color-primary-1100: #5c4706;
+  --color-primary-1200: #3d3003;
+  --color-primary: var(--color-primary-500);
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary colors - expanded with darker tones */
+  --color-secondary-50: #fff5ed;
+  --color-secondary-100: #ffebdb;
+  --color-secondary-200: #ffd7b7;
+  --color-secondary-300: #ffc393;
+  --color-secondary-400: #ffaf6f;
+  --color-secondary-500: #ffad69;
+  --color-secondary-600: #e59c5e;
+  --color-secondary-700: #b27a4a;
+  --color-secondary-800: #7f5836;
+  --color-secondary-900: #4c3622;
+  --color-secondary-1000: #382715;
+  --color-secondary-1100: #24180c;
+  --color-secondary-1200: #100a03;
+  --color-secondary: var(--color-secondary-500);
+  --color-secondary-foreground: #ffffff;
+
+  /* Accent colors - expanded with darker tones */
+  --color-accent-50: #e6f7f9;
+  --color-accent-100: #cceff3;
+  --color-accent-200: #99dfe7;
+  --color-accent-300: #66cfdb;
+  --color-accent-400: #47bfd1;
+  --color-accent-500: #33bfcf;
+  --color-accent-600: #2da7b5;
+  --color-accent-700: #237f8b;
+  --color-accent-800: #195761;
+  --color-accent-900: #0f2f37;
+  --color-accent-1000: #0a202a;
+  --color-accent-1100: #05121c;
+  --color-accent-1200: #00050f;
+  --color-accent: var(--color-accent-500);
+  --color-accent-foreground: #ffffff;
+
+  /* Muted colors */
+  --color-muted: #f5f5f5;
+  --color-muted-darker: #e8e8e8;
+  --color-muted-lighter: #fafafa;
+  --color-muted-foreground: #4a4a52;
+  --color-muted-foreground-darker: #2f2f35;
+  --color-muted-foreground-lighter: #7d7d85;
+
+  /* Complementary colors - expanded with darker tones */
+  --color-complementary-50: #fde6e8;
+  --color-complementary-100: #fbcdd1;
+  --color-complementary-200: #f79ba3;
+  --color-complementary-300: #f36975;
+  --color-complementary-400: #ef4957;
+  --color-complementary-500: #ef3747;
+  --color-complementary-600: #d62f3d;
+  --color-complementary-700: #a82430;
+  --color-complementary-800: #7a1923;
+  --color-complementary-900: #4c0f16;
+  --color-complementary-1000: #380a0f;
+  --color-complementary-1100: #240508;
+  --color-complementary-1200: #100001;
+  --color-complementary: var(--color-complementary-500);
+  --color-complementary-foreground: #ffffff;
+
+  /* Success colors - expanded with darker tones */
+  --color-success-50: #e6f7e6;
+  --color-success-100: #d1efd1;
+  --color-success-200: #a3dfa3;
+  --color-success-300: #75cf75;
+  --color-success-400: #4cbf4c;
+  --color-success-500: #38b638;
+  --color-success-600: #2e962e;
+  --color-success-700: #247624;
+  --color-success-800: #1a571a;
+  --color-success-900: #103810;
+  --color-success-1000: #0a290a;
+  --color-success-1100: #051a05;
+  --color-success-1200: #000b00;
+  --color-success: var(--color-success-600);
+  --color-success-foreground: #ffffff;
+
+  /* Warning colors - expanded with darker tones */
+  --color-warning-50: #fff8e6;
+  --color-warning-100: #fff1cc;
+  --color-warning-200: #ffe499;
+  --color-warning-300: #ffd666;
+  --color-warning-400: #ffc933;
+  --color-warning-500: #ffbf1f;
+  --color-warning-600: #e0a300;
+  --color-warning-700: #b38300;
+  --color-warning-800: #856200;
+  --color-warning-900: #574100;
+  --color-warning-1000: #3a2c00;
+  --color-warning-1100: #1d1600;
+  --color-warning-1200: #0f0b00;
+  --color-warning: var(--color-warning-600);
+  --color-warning-foreground: #ffffff;
+
+  /* Destructive colors - expanded with darker tones */
+  --color-destructive-50: #fdebeb;
+  --color-destructive-100: #fad6d6;
+  --color-destructive-200: #f5acad;
+  --color-destructive-300: #ef8384;
+  --color-destructive-400: #ea595a;
+  --color-destructive-500: #e73d3e;
+  --color-destructive-600: #d42728;
+  --color-destructive-700: #a61f1f;
+  --color-destructive-800: #771717;
+  --color-destructive-900: #490e0e;
+  --color-destructive-1000: #380a0a;
+  --color-destructive-1100: #260505;
+  --color-destructive-1200: #130000;
+  --color-destructive: var(--color-destructive-600);
+  --color-destructive-foreground: #ffffff;
+
+  /* Info colors - expanded with darker tones */
+  --color-info-50: #e6f1ff;
+  --color-info-100: #cce3ff;
+  --color-info-200: #99c8ff;
+  --color-info-300: #66acff;
+  --color-info-400: #3391ff;
+  --color-info-500: #1f85ff;
+  --color-info-600: #0070e0;
+  --color-info-700: #0057ad;
+  --color-info-800: #003f7a;
+  --color-info-900: #002847;
+  --color-info-1000: #001c38;
+  --color-info-1100: #001129;
+  --color-info-1200: #00051a;
+  --color-info: var(--color-info-600);
+  --color-info-foreground: #ffffff;
+
+  /* Error colors (alias for destructive for consistency) */
+  --color-error-50: var(--color-destructive-50);
+  --color-error-100: var(--color-destructive-100);
+  --color-error-200: var(--color-destructive-200);
+  --color-error-300: var(--color-destructive-300);
+  --color-error-400: var(--color-destructive-400);
+  --color-error-500: var(--color-destructive-500);
+  --color-error-600: var(--color-destructive-600);
+  --color-error-700: var(--color-destructive-700);
+  --color-error-800: var(--color-destructive-800);
+  --color-error-900: var(--color-destructive-900);
+  --color-error-1000: var(--color-destructive-1000);
+  --color-error-1100: var(--color-destructive-1100);
+  --color-error-1200: var(--color-destructive-1200);
+  --color-error: var(--color-destructive);
+  --color-error-foreground: var(--color-destructive-foreground);
+
+  /* Neutral colors - expanded with darker tones */
+  --color-neutral-50: #f9f9f9;
+  --color-neutral-100: #f0f0f0;
+  --color-neutral-200: #e0e0e0;
+  --color-neutral-300: #d0d0d0;
+  --color-neutral-400: #b0b0b0;
+  --color-neutral-500: #909090;
+  --color-neutral-600: #707070;
+  --color-neutral-700: #505050;
+  --color-neutral-800: #303030;
+  --color-neutral-900: #202020;
+  --color-neutral-1000: #181818;
+  --color-neutral-1100: #101010;
+  --color-neutral-1200: #080808;
+  --color-neutral: var(--color-neutral-600);
+  --color-neutral-foreground: #ffffff;
+
+  /* Markdown specific colors */
+  --color-markdown-h1: var(--color-primary-400);
+  --color-markdown-h2: var(--color-accent-400);
+  --color-markdown-h3: var(--color-secondary-400);
+  --color-markdown-h4: var(--color-text-secondary);
+  --color-markdown-text: var(--color-text-primary);
+  --color-markdown-link: var(--color-primary);
+  --color-markdown-codebg: var(--color-code);
+  --color-markdown-codetext: var(--color-code-foreground);
+  --color-markdown-inlinecodebg: var(--color-inline-code);
+  --color-markdown-inlinecodetext: var(--color-inline-code-foreground);
+  --color-markdown-blockquote: var(--color-muted-foreground-lighter);
+  --color-markdown-listmarker: var(--color-primary-400);
+
+  /* Border and input colors */
+  --color-border: var(--color-border-default);
+  --color-border-hover: var(--color-border-dark);
+  --color-border-focus: var(--color-primary-400);
+  --color-input: var(--color-background-level1);
+  --color-input-hover: var(--color-background-level2);
+  --color-input-focus: var(--color-background-level2);
+  --color-ring: var(--color-primary-500);
+
+  /* Gradients */
+  --gradient-light-1: linear-gradient(
+    to bottom right,
+    var(--color-background-default),
+    var(--color-background-level1)
+  );
+  --gradient-light-2: linear-gradient(
+    to bottom right,
+    var(--color-background-level1),
+    var(--color-background-level2)
+  );
+  --gradient-accent-1: linear-gradient(
+    to bottom right,
+    var(--color-accent-500),
+    var(--color-primary-500)
+  );
+  --gradient-accent-2: linear-gradient(
+    to bottom right,
+    var(--color-accent-600),
+    var(--color-primary-600)
+  );
+
+  /* Shadow effects */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* Border radius */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  /* Font families */
+  --font-sans: var(--font-inter, "Inter", "sans-serif");
+  --font-mono: var(--font-jetbrains-mono, "JetBrains Mono", "monospace");
+}
+
+@layer base {
+  .dark {
+    --color-background-default: var(--color-dark-background-default);
+    --color-background-paper: var(--color-dark-background-paper);
+    --color-background-level1: var(--color-dark-background-level1);
+    --color-background-level2: var(--color-dark-background-level2);
+    --color-background-level3: var(--color-dark-background-level3);
+    --color-background-light: var(--color-dark-background-light);
+    --color-background-dark: var(--color-dark-background-dark);
+    --color-text-primary: var(--color-dark-text-primary);
+    --color-text-secondary: var(--color-dark-text-secondary);
+    --color-text-tertiary: var(--color-dark-text-tertiary);
+    --color-text-accent: var(--color-dark-text-accent);
+    --color-border-default: var(--color-dark-border-default);
+    --color-border-light: var(--color-dark-border-light);
+    --color-border-dark: var(--color-dark-border-dark);
+    --color-border-accent: var(--color-dark-border-accent);
+    --color-scrollbar-track: var(--color-dark-scrollbar-track);
+    --color-scrollbar-thumb: var(--color-dark-scrollbar-thumb);
+
+    /* Update card, popover, and code colors for dark mode */
+    --color-card: var(--color-background-level1);
+    --color-card-muted: var(--color-background-level2);
+    --color-card-hover: var(--color-background-level2);
+    --color-card-active: var(--color-background-level3);
+    --color-card-foreground: var(--color-text-primary);
+
+    --color-popover: var(--color-background-level1);
+    --color-popover-foreground: var(--color-text-primary);
+
+    --color-code: var(--color-dark-code);
+    --color-code-foreground: var(--color-dark-code-foreground);
+
+    /* Adjust Muted colors for dark mode */
+    --color-muted: var(--color-background-level1);
+    --color-muted-foreground: #adb5bd;
+
+    /* Update markdown-specific colors for dark mode */
+    --color-markdown-h1: var(--color-primary-400);
+    --color-markdown-h2: var(--color-accent-400);
+    --color-markdown-h3: var(--color-secondary-400);
+    --color-markdown-h4: var(--color-dark-text-secondary);
+    --color-markdown-text: var(--color-dark-text-primary);
+    --color-markdown-link: var(--color-primary-400);
+    --color-markdown-codebg: var(--color-dark-code);
+    --color-markdown-codetext: var(--color-dark-code-foreground);
+    --color-markdown-inlinecodebg: var(--color-dark-inline-code);
+    --color-markdown-inlinecodetext: var(--color-dark-inline-code-foreground);
+    --color-markdown-blockquote: var(--color-muted-foreground);
+    --color-markdown-listmarker: var(--color-primary-400);
+
+    /* Update input colors for dark mode */
+    --color-input: var(--color-background-level1);
+    --color-input-hover: var(--color-background-level2);
+    --color-input-focus: var(--color-background-level2);
+  }
+}
+
+/* Style for the scroll indicator container */
+.scroll-indicator-container::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 10rem; /* Adjust height as needed */
+  background: linear-gradient(
+    to top,
+    var(--color-background-paper),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0.4s ease-in-out;
+}
+
+/* Show the indicator only when scrollable AND not at the bottom */
+.scroll-indicator-container.is-scrollable[data-scroll-bottom="false"]::after {
+  opacity: 1;
+}
