@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { checkPermission } from "~/lib/permissions/client";
 import { PermissionIdentifier } from "~/lib/permissions";
 import { PermissionContext, Permission } from "./utils/context";
+import { logger } from "~/lib/utils/logger";
 
 // Define the permissions data structure returned by the API
 interface PermissionsData {
@@ -46,7 +47,7 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     }
 
-    console.log("permissionsData", data);
+    logger.log("permissionsData", data);
   }, [data]);
 
   // Reload function - will fetch either guest or user permissions based on auth state

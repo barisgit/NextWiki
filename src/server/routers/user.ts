@@ -8,6 +8,7 @@ import { dbService } from "~/lib/services";
 import { hash } from "bcrypt";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { logger } from "~/lib/utils/logger";
 
 // TODO: Move to users router
 
@@ -107,16 +108,16 @@ export const userRouter = router({
               adminGroup.id
             );
             if (added) {
-              console.log(
+              logger.log(
                 `First user ${newUser.email} automatically assigned to Administrators group.`
               );
             } else {
-              console.error(
+              logger.error(
                 `Failed to assign first user ${newUser.email} to Administrators group.`
               );
             }
           } else {
-            console.error(
+            logger.error(
               "CRITICAL: Administrators group not found during first user registration! Seeding might have failed."
             );
             throw new TRPCError({
@@ -134,16 +135,16 @@ export const userRouter = router({
               viewerGroup.id
             );
             if (added) {
-              console.log(
+              logger.log(
                 `New user ${newUser.email} automatically assigned to Viewers group.`
               );
             } else {
-              console.error(
+              logger.error(
                 `Failed to assign new user ${newUser.email} to Viewers group.`
               );
             }
           } else {
-            console.error(
+            logger.error(
               "CRITICAL: Viewers group not found during user registration! Seeding might have failed."
             );
             throw new TRPCError({
@@ -165,7 +166,7 @@ export const userRouter = router({
         if (error instanceof TRPCError) {
           throw error;
         }
-        console.error("Registration error:", error);
+        logger.error("Registration error:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "An error occurred during registration",

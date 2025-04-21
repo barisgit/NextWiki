@@ -2,6 +2,7 @@ import { z } from "zod";
 import { tagService } from "~/lib/services";
 import { protectedProcedure, router } from "~/server";
 import { TRPCError } from "@trpc/server";
+import { logger } from "~/lib/utils/logger";
 
 /**
  * tRPC router for tag-related operations.
@@ -27,7 +28,7 @@ export const tagsRouter = router({
         const tags = await tagService.searchByName(input.query, input.limit);
         return tags;
       } catch (error) {
-        console.error("[TAG SEARCH ERROR]", error);
+        logger.error("[TAG SEARCH ERROR]", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to search for tags",

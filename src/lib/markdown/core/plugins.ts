@@ -10,6 +10,7 @@ import remarkDirective from "remark-directive";
 import remarkDirectiveRehype from "remark-directive-rehype";
 import rehypeHighlight from "rehype-highlight";
 import type { PluggableList } from "unified";
+import { logger } from "~/lib/utils/logger";
 
 // Import custom plugins
 import { customPlugins } from "../plugins";
@@ -45,7 +46,7 @@ async function tryLoadPlugin(importedPlugin: Promise<any>) {
     }
     return null;
   } catch (error) {
-    console.error(`Failed to load plugin from ${importedPlugin}:`, error);
+    logger.error(`Failed to load plugin from ${importedPlugin}:`, error);
     return null;
   }
 }
@@ -75,7 +76,7 @@ export async function loadServerRehypePlugins(): Promise<PluggableList> {
 
     return serverPlugins;
   } catch (error) {
-    console.error("Failed to load server-only plugins:", error);
+    logger.error("Failed to load server-only plugins:", error);
     return [];
   }
 }

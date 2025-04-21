@@ -4,12 +4,12 @@
  * Client utilities for permissions
  * These utilities should be safe to use in client components
  */
-
 import {
   PermissionIdentifier,
   validatePermissionId,
   getAllPermissionIds,
 } from "./index";
+import { logger } from "~/lib/utils/logger";
 
 /**
  * Client-side function to check if a permission identifier is valid
@@ -35,7 +35,7 @@ export function checkPermission(
   if (!permissionMap) return false;
 
   if (!validatePermissionId(permission)) {
-    console.warn(`Invalid permission identifier: ${permission}`);
+    logger.warn(`Invalid permission identifier: ${permission}`);
     return false;
   }
 
@@ -56,7 +56,7 @@ export function checkAnyPermission(
     (p) => !validatePermissionId(p)
   );
   if (invalidPermissions.length > 0) {
-    console.warn(
+    logger.warn(
       `Invalid permission identifiers: ${invalidPermissions.join(", ")}`
     );
     return false;

@@ -16,6 +16,7 @@ import {
 } from "~/components/ui/tooltip";
 import { useTRPC } from "~/server/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { logger } from "~/lib/utils/logger";
 
 interface GroupFormProps {
   group?: {
@@ -207,7 +208,7 @@ export default function GroupForm({
         });
       }
     } catch (error) {
-      console.error("Error saving group:", error);
+      logger.error("Error saving group:", error);
     }
   };
 

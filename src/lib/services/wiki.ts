@@ -9,6 +9,7 @@ import { desc, eq } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { lockService } from "~/lib/services";
 import { Transaction } from "~/types/db";
+import { logger } from "~/lib/utils/logger";
 
 /**
  * Wiki service - handles all wiki-related database operations
@@ -376,7 +377,7 @@ export const wikiService = {
           for (const pageId of acquiredLocks) {
             await lockService.releaseLock(pageId, userId).catch(() => {
               // Ignore errors in cleanup
-              console.warn(
+              logger.warn(
                 `Failed to release lock for page ${pageId} during error recovery`
               );
             });
@@ -396,7 +397,7 @@ export const wikiService = {
         (typeof finalUpdatedPages)[number]
       >[];
     } catch (error) {
-      console.error("Error in movePages service:", error);
+      logger.error("Error in movePages service:", error);
       throw error;
     }
   },

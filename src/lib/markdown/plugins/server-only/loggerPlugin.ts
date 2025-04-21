@@ -5,6 +5,7 @@
 
 import { visit } from "unist-util-visit";
 import type { Plugin } from "unified";
+import { logger } from "~/lib/utils/logger";
 
 interface LoggerPluginOptions {
   /**
@@ -40,10 +41,10 @@ const loggerPlugin: Plugin<[LoggerPluginOptions?], undefined> = (
     // Log the results
     const logMethod =
       level === "warn"
-        ? console.warn
+        ? logger.warn
         : level === "debug"
-        ? console.debug
-        : console.info;
+        ? logger.debug
+        : logger.info;
 
     const totalNodes = Object.values(counts).reduce(
       (sum, count) => sum + count,

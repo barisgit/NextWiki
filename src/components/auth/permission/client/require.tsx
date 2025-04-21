@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { PermissionIdentifier } from "~/lib/permissions";
 import { usePermissions } from "../utils/usePermissions";
 import { isPublicPath } from "../utils/path-utils";
+import { logger } from "~/lib/utils/logger";
 
 interface ClientRequirePermissionProps {
   /**
@@ -56,12 +57,12 @@ export function ClientRequirePermission({
   // --- Validation (Client-side warning) ---
   useEffect(() => {
     if (permission && permissions) {
-      console.warn(
+      logger.warn(
         "ClientRequirePermission received both 'permission' and 'permissions' props. Use only one."
       );
     }
     if (!permission && !permissions) {
-      console.warn(
+      logger.warn(
         "ClientRequirePermission requires either 'permission' or 'permissions' prop."
       );
     }

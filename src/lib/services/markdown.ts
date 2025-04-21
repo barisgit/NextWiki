@@ -7,6 +7,7 @@ import { db } from "~/lib/db";
 import { wikiPages } from "~/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { invalidatePageExistenceCache } from "~/lib/markdown/plugins/server-only/rehypeWikiLinks";
+import { logger } from "~/lib/utils/logger";
 
 /**
  * Renders markdown content to HTML with enhanced wiki features
@@ -44,7 +45,7 @@ export async function renderWikiMarkdownToHtml(
       })
       .where(eq(wikiPages.id, pageId))
       .catch((error) => {
-        console.error("Error updating rendered HTML for page", pageId, error);
+        logger.error("Error updating rendered HTML for page", pageId, error);
       });
   }
 
@@ -59,6 +60,8 @@ export async function rebuildAllRenderedHtml(): Promise<void> {
   // Invalidate the page existence cache for a full refresh
   invalidatePageExistenceCache();
 
+  logger.log("Rebuilding all rendered HTML");
+
   const allPages = await db.query.wikiPages.findMany({
     columns: {
       id: true,
@@ -67,9 +70,11 @@ export async function rebuildAllRenderedHtml(): Promise<void> {
     },
   });
 
+  logger.log("Found", allPages.length, "pages to rebuild");
+
   for (const page of allPages) {
     if (page.content) {
-      // console.log("Rebuilding rendered HTML for page", page.id);
+      logger.debug("Rebuilding rendered HTML for page", page.id);
       await renderWikiMarkdownToHtml(page.content, page.id, page.path);
     }
   }

@@ -2,6 +2,7 @@ import { UserMenu } from "../auth/UserMenu";
 import { Suspense } from "react";
 import { ThemeToggle } from "~/components/layout/theme-toggle";
 import { AdminButton } from "~/components/layout/AdminButton";
+import { RandomNumberDisplay } from "../wiki/RandomNumberDisplay";
 
 export function Header() {
   return (
@@ -11,6 +12,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center space-x-4">
+        <RandomNumberDisplay />
         <AdminButton />
         <ThemeToggle />
         <UserMenu />

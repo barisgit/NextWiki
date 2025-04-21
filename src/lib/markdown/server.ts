@@ -8,6 +8,7 @@ import remarkParse from "remark-parse";
 import rehypeStringify from "rehype-stringify";
 import remarkRehype from "remark-rehype";
 import { createServerMarkdownProcessor } from "./server-factory";
+import { logger } from "~/lib/utils/logger";
 
 /**
  * Renders Markdown content to HTML string for server-side rendering
@@ -33,7 +34,7 @@ export async function renderMarkdownToHtml(
       const rehypeWikiLinksModule = await import(
         "./plugins/server-only/rehypeWikiLinks"
       ).catch((e) => {
-        console.error("Failed to import rehypeWikiLinks:", e);
+        logger.error("Failed to import rehypeWikiLinks:", e);
         return { default: null };
       });
 
@@ -66,7 +67,7 @@ export async function renderMarkdownToHtml(
         });
       }
     } catch (error) {
-      console.error("Failed to load rehypeWikiLinks plugin:", error);
+      logger.error("Failed to load rehypeWikiLinks plugin:", error);
     }
   }
 

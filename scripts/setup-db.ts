@@ -95,9 +95,6 @@ function containerRunning(name: string): boolean {
 
 // Update .env file with database connection string
 function updateEnvFile(connectionString: string): void {
-  // console.log("*** Entering updateEnvFile function ***"); // Removed debug log
-  // console.log(`Value of __dirname: ${__dirname}`); // Removed debug log
-
   // ESM-compatible way to get directory name
   const __filename = url.fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
@@ -108,23 +105,23 @@ function updateEnvFile(connectionString: string): void {
   const dbUrlKey = "DATABASE_URL";
   const dbUrlLine = `${dbUrlKey}=${connectionString}`;
 
-  print.normal(`  Resolved root directory: ${rootDir}`); // Keep this log for now
-  print.normal(`  Target .env path: ${envPath}`); // Keep this log for now
+  print.normal(`  Resolved root directory: ${rootDir}`);
+  print.normal(`  Target .env path: ${envPath}`);
 
   print.normal(`Ensuring ${dbUrlKey} is set in ${envPath}`);
 
   try {
     if (fs.existsSync(envPath)) {
-      print.normal(`  Reading existing ${envPath}...`);
+      print.normal(`  Reading existing ${envPath}`);
       let envContent = fs.readFileSync(envPath, "utf8");
       const dbUrlRegex = new RegExp(`^${dbUrlKey}=.*`, "m");
 
       if (dbUrlRegex.test(envContent)) {
         envContent = envContent.replace(dbUrlRegex, dbUrlLine);
-        print.normal(`  Updating existing ${dbUrlKey} in ${envPath}...`);
+        print.normal(`  Updating existing ${dbUrlKey} in ${envPath}`);
       } else {
         envContent += `\n${dbUrlLine}\n`;
-        print.normal(`  Adding ${dbUrlKey} to ${envPath}...`);
+        print.normal(`  Adding ${dbUrlKey} to ${envPath}`);
       }
       fs.writeFileSync(envPath, envContent);
       print.normal(`  Successfully wrote changes to ${envPath}`);
@@ -132,7 +129,7 @@ function updateEnvFile(connectionString: string): void {
       print.normal(`  ${envPath} not found. Checking for example file...`);
       let envContent = "";
       if (fs.existsSync(envExamplePath)) {
-        print.normal(`  Reading example file ${envExamplePath}...`);
+        print.normal(`  Reading example file ${envExamplePath}`);
         envContent = fs.readFileSync(envExamplePath, "utf8");
         const dbUrlRegex = new RegExp(`^${dbUrlKey}=.*`, "m");
         if (dbUrlRegex.test(envContent)) {
@@ -290,11 +287,11 @@ async function main(): Promise<void> {
     print.success("✅ Migrations generated successfully.");
 
     print.info("🔄 Applying database migrations...");
-    runCommand("pnpm db:migrate"); // Assumes 'db:migrate' script uses tsx
+    runCommand("pnpm db:migrate");
     print.success("✅ Migrations applied successfully.");
 
     print.info("🌱 Seeding database...");
-    runCommand("pnpm db:seed"); // Assumes 'db:seed' script uses tsx
+    runCommand("pnpm db:seed");
     print.success("✅ Database seeded successfully.");
   } catch (error) {
     void error;

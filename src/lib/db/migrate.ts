@@ -2,24 +2,25 @@
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+import { logger } from "~/lib/utils/logger";
 
 // Get project root directory
 const projectRoot = process.cwd();
 const envPath = path.join(projectRoot, ".env");
 
 // Check if .env file exists and log its path
-console.log("Looking for .env file at:", envPath);
-console.log(".env file exists:", fs.existsSync(envPath));
+logger.log("Looking for .env file at:", envPath);
+logger.log(".env file exists:", fs.existsSync(envPath));
 
 // Explicitly load .env file with absolute path
 const result = dotenv.config({ path: envPath });
 
 // Log dotenv result
 if (result.error) {
-  console.error("Error loading .env file:", result.error);
+  logger.error("Error loading .env file:", result.error);
 } else {
-  console.log(".env file loaded successfully");
-  console.log(
+  logger.log(".env file loaded successfully");
+  logger.log(
     "DATABASE_URL from process.env:",
     process.env.DATABASE_URL ? "Found" : "Not found"
   );
@@ -45,7 +46,7 @@ const getDb = () => {
     );
   }
 
-  console.log("Connection string found in process.env");
+  logger.log("Connection string found in process.env");
 
   // Create database client based on connection string
   if (
@@ -63,14 +64,14 @@ const getDb = () => {
 // This is the migration function that will run all pending migrations
 async function runMigrations(force = false) {
   try {
-    console.log("Running migrations...");
+    logger.log("Running migrations...");
 
     // Get database connection
     const db = getDb();
 
     // Get connection string for detection
     const connectionString = process.env.DATABASE_URL || "";
-    console.log(
+    logger.log(
       "Migration script using connection string (sanitized):",
       connectionString.replace(
         /postgresql:\/\/([^:]+):([^@]+)@/,
@@ -85,28 +86,26 @@ async function runMigrations(force = false) {
         connectionString.includes("pooler.internal.neon") ||
         connectionString.includes(".neon.tech")
       ) {
-        console.log("Using Neon migrator...");
+        logger.log("Using Neon migrator...");
         migrationsResult = await migrateNeon(
           db as NeonHttpDatabase<typeof schema>,
           {
             migrationsFolder: "drizzle",
           }
         );
-        console.log("Migrations completed successfully using Neon driver");
+        logger.log("Migrations completed successfully using Neon driver");
       } else {
-        console.log("Using PostgreSQL migrator...");
+        logger.log("Using PostgreSQL migrator...");
         migrationsResult = await migratePg(
           db as NodePgDatabase<typeof schema>,
           {
             migrationsFolder: "drizzle",
           }
         );
-        console.log(
-          "Migrations completed successfully using PostgreSQL driver"
-        );
+        logger.log("Migrations completed successfully using PostgreSQL driver");
       }
 
-      console.log("Migration result:", migrationsResult);
+      logger.log("Migration result:", migrationsResult);
     } catch (error: unknown) {
       const migrationError = error as { message?: string };
 
@@ -114,20 +113,20 @@ async function runMigrations(force = false) {
         migrationError.message &&
         migrationError.message.includes("already exists")
       ) {
-        console.warn(
+        logger.warn(
           "Some relations already exist. This likely means migrations were already applied."
         );
-        console.warn("Original error:", migrationError.message);
+        logger.warn("Original error:", migrationError.message);
 
         if (force) {
-          console.log(
+          logger.log(
             "Force flag is set, attempting to continue with other migrations..."
           );
         } else {
-          console.log(
+          logger.log(
             "Use the --force flag to attempt running migrations anyway."
           );
-          console.log(
+          logger.log(
             "Or manually check your database schema to ensure it matches your migrations."
           );
         }
@@ -138,8 +137,8 @@ async function runMigrations(force = false) {
 
     process.exit(0);
   } catch (error) {
-    console.error("Migration failed:", error);
-    console.error("Error details:", error);
+    logger.error("Migration failed:", error);
+    logger.error("Error details:", error);
     process.exit(1);
   }
 }

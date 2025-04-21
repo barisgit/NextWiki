@@ -13,6 +13,7 @@ import {
   ClientRequirePermission,
 } from "~/components/auth/permission/client";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { logger } from "~/lib/utils/logger";
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -130,7 +131,7 @@ export default function AdminUsersPage() {
       // handleUserSelect(updatedUserData); // Update selectedUser if data structure changes significantly post-save
     } catch (error) {
       // Errors are handled by individual mutation's onError, but you could add general handling here
-      console.error("Failed to save group assignments:", error);
+      logger.error("Failed to save group assignments:", error);
     }
   };
 

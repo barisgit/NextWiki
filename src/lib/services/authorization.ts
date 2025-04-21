@@ -8,6 +8,7 @@ import {
 } from "~/lib/db/schema";
 import { eq, and, inArray, or, isNull } from "drizzle-orm";
 import { PermissionIdentifier, validatePermissionId } from "~/lib/permissions";
+import { logger } from "~/lib/utils/logger";
 
 /**
  * Authorization Service
@@ -148,14 +149,14 @@ export const authorizationService = {
   ): Promise<boolean> {
     // Validate permission format
     if (!validatePermissionId(permissionName)) {
-      console.error(`Invalid permission format: ${permissionName}`);
+      logger.error(`Invalid permission format: ${permissionName}`);
       return false;
     }
 
     // 1. Parse permission name and find the corresponding permission ID
     const [module, resource, action] = permissionName.split(":");
     if (!module || !resource || !action) {
-      console.error(`Invalid permission format: ${permissionName}`);
+      logger.error(`Invalid permission format: ${permissionName}`);
       return false; // Invalid format
     }
 
@@ -169,7 +170,7 @@ export const authorizationService = {
     });
 
     if (!permission) {
-      // console.warn(`Permission not found: ${permissionName}`);
+      // logger.warn(`Permission not found: ${permissionName}`);
       return false; // Permission doesn't exist in the system
     }
     const permissionId = permission.id;
@@ -348,7 +349,7 @@ export const authorizationService = {
   ) {
     // Validate permission format
     if (!validatePermissionId(permissionName)) {
-      console.error(`Invalid permission format: ${permissionName}`);
+      logger.error(`Invalid permission format: ${permissionName}`);
       return false;
     }
 

@@ -5,9 +5,11 @@ import { db, wikiPages } from "~/lib/db";
 import {
   permissionGuestProcedure,
   permissionProtectedProcedure,
+  publicProcedure,
   router,
 } from "..";
 import { dbService, wikiService } from "~/lib/services";
+import { logger } from "~/lib/utils/logger";
 
 // Wiki page input validation schema
 const pageInputSchema = z.object({
@@ -19,6 +21,49 @@ const pageInputSchema = z.object({
 });
 
 export const wikiRouter = router({
+  randomNumber: publicProcedure.subscription(async function* (opts?) {
+    let idx = 0;
+    logger.log("Starting randomNumber subscription...");
+    const signal = opts?.signal;
+
+    while (true) {
+      if (signal?.aborted) {
+        logger.log("Subscription aborted by client.");
+        break;
+      }
+
+      yield { randomNumber: Math.random(), completed: idx >= 10 };
+      idx++;
+
+      if (idx > 10) {
+        logger.log("Subscription completing normally (10 iterations).");
+        return;
+      }
+
+      try {
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(resolve, 500);
+          if (signal) {
+            signal.addEventListener("abort", () => {
+              clearTimeout(timeout);
+              reject(new Error("Subscription aborted during wait."));
+            });
+          }
+        });
+      } catch (error: unknown) {
+        if (
+          signal?.aborted ||
+          (error instanceof Error && error.message.includes("aborted"))
+        ) {
+          logger.log("Subscription aborted during 500ms wait.");
+          break;
+        }
+        logger.error("Unexpected error during wait:", error);
+        throw error;
+      }
+    }
+  }),
+
   // Get a page by path
   getByPath: permissionGuestProcedure("wiki:page:read")
     .meta({ description: "Fetches a specific wiki page by its full path." })
@@ -149,7 +194,7 @@ export const wikiRouter = router({
       const success = await dbService.locks.releaseLock(id, userId);
 
       if (!success) {
-        console.warn(
+        logger.warn(
           `Lock for page ${id} could not be released - may be held by a different user`
         );
       }
@@ -241,7 +286,7 @@ export const wikiRouter = router({
         }
         return page; // Return the cleaned-up page data
       } catch (error) {
-        console.error("Failed to update page:", error);
+        logger.error("Failed to update page:", error);
 
         if (
           error instanceof Error &&
@@ -404,7 +449,7 @@ export const wikiRouter = router({
           return deleted;
         });
       } catch (error) {
-        console.error("Failed to delete page:", error);
+        logger.error("Failed to delete page:", error);
 
         if (
           error instanceof Error &&
@@ -526,7 +571,7 @@ export const wikiRouter = router({
         }
 
         // Default error handling
-        console.error("Error in movePages:", error);
+        logger.error("Error in movePages:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "An unexpected error occurred",

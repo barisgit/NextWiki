@@ -1,7 +1,6 @@
 /**
  * Auth router - Server only
  */
-import "server-only";
 import { z } from "zod";
 import {
   router,

@@ -12,6 +12,7 @@ import remarkDirectiveRehype from "remark-directive-rehype";
 import rehypeHighlight from "rehype-highlight";
 import { customPlugins } from "./plugins";
 import { markdownOptions } from "./core/config";
+import { logger } from "~/lib/utils/logger";
 
 /**
  * Remark plugins for server-side use
@@ -94,7 +95,7 @@ export async function loadServerRehypePlugins(): Promise<PluggableList> {
 
     return serverPlugins;
   } catch (error) {
-    console.error("Failed to load server-only plugins:", error);
+    logger.error("Failed to load server-only plugins:", error);
     return [];
   }
 }

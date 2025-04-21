@@ -4,6 +4,7 @@ import { authOptions } from "~/lib/auth";
 import { authorizationService } from "~/lib/services";
 import { db } from "~/lib/db";
 import type { PermissionIdentifier } from "~/lib/permissions";
+import { logger } from "~/lib/utils/logger";
 
 interface PermissionCheckResult {
   authorized: boolean;
@@ -32,7 +33,7 @@ export async function checkServerPermission(
 
   // Validate user ID is a number
   if (isNaN(userId)) {
-    console.error("Invalid user ID in session:", session.user.id);
+    logger.error("Invalid user ID in session:", session.user.id);
     return {
       authorized: false,
       errorResponse: new NextResponse("Unauthorized - Invalid User ID", {
