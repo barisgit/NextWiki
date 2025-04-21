@@ -203,8 +203,7 @@ export function renderInternalLink(href: string, currentPage: string) {
     return `/${href}`;
   }
 
-  const path = href.substring(1).replace(/\/+$/, "");
-  return `/${currentPage}/${path}`;
+  return `/${currentPage}/${href}`;
 }
 
 /**
@@ -274,6 +273,9 @@ export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], Root> = (
         const type = getLinkType(href);
         if (type === LinkType.PAGE) {
           const path = renderInternalLink(href, currentPagePath);
+          console.log(
+            `${href} -> ${path} (currentPagePath: ${currentPagePath})`
+          );
           wikiLinks.push({ node, path });
         } else if (type === LinkType.ASSET) {
           assetLinks.push(node);
@@ -299,6 +301,9 @@ export const rehypeWikiLinks: Plugin<[RehypeWikiLinksOptions?], Root> = (
         exists ? existsClass : missingClass
       }`;
       if (!node.properties) node.properties = {};
+
+      // Update the href to the fully resolved path
+      node.properties.href = path;
 
       if (Array.isArray(node.properties.className)) {
         node.properties.className.push(className);
