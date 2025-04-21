@@ -47,7 +47,7 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     }
 
-    logger.log("permissionsData", data);
+    logger.debug("permissionsData", data);
   }, [data]);
 
   // Reload function - will fetch either guest or user permissions based on auth state

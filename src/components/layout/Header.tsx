@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { ThemeToggle } from "~/components/layout/theme-toggle";
 import { AdminButton } from "~/components/layout/AdminButton";
 import { RandomNumberDisplay } from "../wiki/RandomNumberDisplay";
+import { env } from "~/env";
 
 export function Header() {
   return (
@@ -12,7 +13,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center space-x-4">
-        <RandomNumberDisplay />
+        {env.NODE_ENV === "development" && <RandomNumberDisplay />}
         <AdminButton />
         <ThemeToggle />
         <UserMenu />

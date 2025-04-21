@@ -9,9 +9,9 @@
     "dev:next": "PROCESS_ORIGIN=NEXT next dev --turbopack",
     "dev:wss": "NODE_ENV=development PROCESS_ORIGIN=WSS env-cmd -f .env tsx watch src/server/wssDevServer.ts --tsconfig tsconfig.json",
     "build:next": "next build",
-    "build:server": "tsc --project tsconfig.server.json",
+    "build:server": "tsup",
     "build": "run-p build:*",
-    "start": "NODE_ENV=production PROCESS_ORIGIN=PROD node dist/server/prodServer.js",
+    "start": "NODE_ENV=production PROCESS_ORIGIN=PROD env-cmd -f .env node dist/server/prodServer.js",
     "start:next": "NODE_ENV=production PROCESS_ORIGIN=NEXT next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -125,6 +125,7 @@
     "tailwind-merge": "^3.2.0",
     "tailwindcss": "^4.1.4",
     "trpc-ui": "^1.0.15",
+    "tsup": "^8.4.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   }

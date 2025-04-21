@@ -237,17 +237,17 @@ export function WikiEditor({
   // CodeMirror event handler extension for paste and drop
   const cmEventHandlers = EditorView.domEventHandlers({
     paste: (event: ClipboardEvent, view: EditorView) => {
-      logger.log("CodeMirror paste event triggered");
-      logger.log("Pasted into view:", view); // Example use of view to satisfy linter
+      logger.debug("CodeMirror paste event triggered");
+      logger.debug("Pasted into view:", view); // Example use of view to satisfy linter
       const files = Array.from(event.clipboardData?.files || []);
       const items = Array.from(event.clipboardData?.items || []);
 
       // Optional: Log detected items for debugging
-      logger.log(
+      logger.debug(
         "CM Clipboard Files:",
         files.map((f) => ({ name: f.name, type: f.type, size: f.size }))
       );
-      logger.log(
+      logger.debug(
         "CM Clipboard Items:",
         items.map((item) => ({ kind: item.kind, type: item.type }))
       );

@@ -106,15 +106,8 @@ const createLogger = (
   origin_param?: string,
   options?: CreateLoggerOptions
 ): Logger => {
-  let defaultMaxLevel: LogLevel;
-  if (typeof window !== "undefined") {
-    defaultMaxLevel = LogLevel.INFO;
-  } else {
-    defaultMaxLevel =
-      env.NEXT_PUBLIC_NODE_ENV === "production"
-        ? LogLevel.INFO
-        : LogLevel.DEBUG;
-  }
+  const defaultMaxLevel =
+    env.NEXT_PUBLIC_NODE_ENV === "production" ? LogLevel.INFO : LogLevel.DEBUG;
 
   const maxLevel = options?.maxLevel || defaultMaxLevel;
   const maxLevelOrder = LogLevelOrder[maxLevel];
