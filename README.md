@@ -1,7 +1,7 @@
 # NextWiki
 
-![NextWiki Main Page](./public/assets/images/nextwiki-home.png)
-![NextWiki Main Page Dark](./public/assets/images/nextwiki-home-dark.png)
+![NextWiki Main Page](./assets/nextwiki-home.png)
+![NextWiki Main Page Dark](./assets/nextwiki-home-dark.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
@@ -127,16 +127,16 @@ When a user clicks a search result, they'll be taken directly to the page with a
 
 ## Screenshots
 
-![NextWiki Main Page](./public/assets/images/nextwiki-home.png)
-![NextWiki Main Page Dark](./public/assets/images/nextwiki-home-dark.png)
+![NextWiki Main Page](./assets/nextwiki-home.png)
+![NextWiki Main Page Dark](./assets/nextwiki-home-dark.png)
 
-![NextWiki Search](./public/assets/images/nextwiki-search.png)
+![NextWiki Search](./assets/nextwiki-search.png)
 
-![NextWiki Page](./public/assets/images/nextwiki-page.png)
-![NextWiki Edit Page](./public/assets/images/nextwiki-edit.png)
+![NextWiki Page](./assets/nextwiki-page.png)
+![NextWiki Edit Page](./assets/nextwiki-edit.png)
 
-![NextWiki Browser](./public/assets/images/nextwiki-browser.png)
-![NextWiki Move Page](./public/assets/images/nextwiki-move.png)
+![NextWiki Browser](./assets/nextwiki-browser.png)
+![NextWiki Move Page](./assets/nextwiki-move.png)
 
 ## 🤝 Contributing
 
