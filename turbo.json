@@ -1,7 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "ui": "tui",
-  "globalEnv": [
+  "ui": "stream",
+  "globalPassThroughEnv": [
     "DATABASE_URL",
     "PROCESS_ORIGIN",
     "NEXT_PUBLIC_NODE_ENV",
@@ -28,6 +28,7 @@
       "dependsOn": ["^check-types"]
     },
     "dev": {
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },

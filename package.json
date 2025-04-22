@@ -5,10 +5,10 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "dev:web": "turbo run dev --filter=web...",
-    "dev:backend": "turbo run dev --filter=backend...",
+    "dev:web": "turbo watch dev --filter=web",
+    "dev:backend": "turbo watch dev --filter=backend",
     "start": "turbo run start",
-    "start:web": "turbo run start --filter=web...",
+    "start:web": "turbo run start --filter=web",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,css}\"",
     "check-types": "turbo run check-types",

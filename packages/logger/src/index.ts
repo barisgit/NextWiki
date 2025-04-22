@@ -49,7 +49,9 @@ const defaultOriginColor = colors.gray; // Fallback color
 
 // Safe check for TTY, defaults to false in non-Node.js environments
 const useColors =
-  typeof process !== "undefined" && process.stdout?.isTTY === true;
+  typeof window === "undefined" && // Check if NOT in browser first
+  typeof process !== "undefined" &&
+  process.stdout?.isTTY === true;
 
 // Get server-side origin using env (only checked when on server)
 const getServerProcessOrigin = (): string | undefined => {
@@ -95,7 +97,7 @@ interface CreateLoggerOptions {
 /**
  * Creates a new logger instance associated with a specific origin.
  */
-const createLogger = (
+export const createLogger = (
   origin_param?: string,
   options?: CreateLoggerOptions
 ): Logger => {
