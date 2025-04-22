@@ -1,5 +1,5 @@
-import { db } from "../db";
-import { assets, assetsToPages } from "../db/schema";
+import { db } from "@repo/db";
+import { assets, assetsToPages } from "@repo/db";
 import { eq, like, ilike, and, sql, SQL } from "drizzle-orm";
 import {
   PaginationInput,

@@ -1,5 +1,5 @@
-import { db } from "~/lib/db";
-import { users } from "~/lib/db/schema";
+import { db } from "@repo/db";
+import { users } from "@repo/db";
 import { sql, eq } from "drizzle-orm";
 
 /**

@@ -1,6 +1,20 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "DATABASE_URL",
+    "PROCESS_ORIGIN",
+    "NEXT_PUBLIC_NODE_ENV",
+    "NODE_ENV",
+    "NEXTAUTH_SECRET",
+    "NEXTAUTH_URL",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "OVERRIDE_MAX_LOG_LEVEL",
+    "SKIP_ENV_VALIDATION"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -32,9 +46,20 @@
     "test:e2e": {
       "dependsOn": ["^build"]
     },
-    "db:setup": {},
-    "db:generate": {},
-    "db:migrate": {},
-    "db:studio": {}
+    "start": {
+      "dependsOn": ["^build"]
+    },
+    "db:setup": {
+      "cache": false
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false
+    },
+    "db:studio": {
+      "cache": false
+    }
   }
 }

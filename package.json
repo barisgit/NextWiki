@@ -5,18 +5,24 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "dev:web": "turbo run dev --filter=web",
-    "dev:backend": "turbo run dev --filter=backend",
+    "dev:web": "turbo run dev --filter=web...",
+    "dev:backend": "turbo run dev --filter=backend...",
+    "start": "turbo run start",
+    "start:web": "turbo run start --filter=web...",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,css}\"",
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "test:watch": "turbo run test:watch",
     "test:cov": "turbo run test:cov",
     "test:debug": "turbo run test:debug",
-    "test:e2e": "turbo run test:e2e"
+    "test:e2e": "turbo run test:e2e",
+    "gen:package": "turbo gen package",
+    "db:seed": "turbo run db:seed",
+    "db:setup": "turbo run db:setup"
   },
   "devDependencies": {
+    "@turbo/gen": "^2.5.0",
     "prettier": "^3.5.3",
     "turbo": "^2.5.0",
     "typescript": "5.8.2"

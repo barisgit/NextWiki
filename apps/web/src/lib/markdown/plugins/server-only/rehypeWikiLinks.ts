@@ -9,8 +9,8 @@
 import { visit } from "unist-util-visit";
 import type { Plugin } from "unified";
 import type { Element, Root } from "hast";
-import { db } from "~/lib/db";
-import { wikiPages } from "~/lib/db/schema";
+import { db } from "@repo/db";
+import { wikiPages } from "@repo/db";
 import { inArray } from "drizzle-orm";
 import { logger } from "~/lib/utils/logger";
 

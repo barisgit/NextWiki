@@ -9,7 +9,7 @@ import {
   publicProcedure,
 } from "~/server";
 import { authorizationService } from "~/lib/services";
-import { PermissionIdentifier, validatePermissionId } from "~/lib/permissions";
+import { PermissionIdentifier, validatePermissionId } from "@repo/db";
 
 // Create a Zod schema for permission identifier
 const permissionIdentifierSchema = z.string().refine(
@@ -42,12 +42,15 @@ export const authRouter = router({
       permissionNames: permissions.map((p) => p.name as PermissionIdentifier),
 
       // Return a map of permissions for easy checking (e.g. {"wiki:page:read": true})
-      permissionMap: permissions.reduce((acc, p) => {
-        if (validatePermissionId(p.name)) {
-          acc[p.name] = true;
-        }
-        return acc;
-      }, {} as Record<PermissionIdentifier, boolean>),
+      permissionMap: permissions.reduce(
+        (acc, p) => {
+          if (validatePermissionId(p.name)) {
+            acc[p.name] = true;
+          }
+          return acc;
+        },
+        {} as Record<PermissionIdentifier, boolean>
+      ),
     };
   }),
 
@@ -112,9 +115,8 @@ export const authRouter = router({
       }
 
       // Guest users have userId undefined
-      const permissions = await authorizationService.getUserPermissions(
-        undefined
-      );
+      const permissions =
+        await authorizationService.getUserPermissions(undefined);
 
       // Collect permission names
       const permissionNames = permissions.map(
@@ -122,12 +124,15 @@ export const authRouter = router({
       );
 
       // Create a map for easy lookup
-      const permissionMap = permissions.reduce((acc, permission) => {
-        const id =
-          `${permission.module}:${permission.resource}:${permission.action}` as PermissionIdentifier;
-        acc[id] = true;
-        return acc;
-      }, {} as Record<PermissionIdentifier, boolean>);
+      const permissionMap = permissions.reduce(
+        (acc, permission) => {
+          const id =
+            `${permission.module}:${permission.resource}:${permission.action}` as PermissionIdentifier;
+          acc[id] = true;
+          return acc;
+        },
+        {} as Record<PermissionIdentifier, boolean>
+      );
 
       return {
         permissions,

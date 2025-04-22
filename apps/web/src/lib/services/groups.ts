@@ -1,13 +1,13 @@
-import { db } from "~/lib/db";
+import { db } from "@repo/db";
 import {
   groups,
   userGroups,
   groupPermissions,
   groupModulePermissions,
   groupActionPermissions,
-} from "~/lib/db/schema";
+} from "@repo/db";
 import { eq, and, inArray } from "drizzle-orm";
-import type { groups as groupsTable } from "~/lib/db/schema";
+import type { groups as groupsTable } from "@repo/db";
 import { logger } from "../utils/logger";
 
 type Group = typeof groupsTable.$inferSelect;

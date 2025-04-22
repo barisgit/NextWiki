@@ -1,0 +1,12 @@
+{{#if (eq type "base")}}
+import { config } from "@repo/eslint-config/base";
+{{/if}}
+{{#if (eq type "react-library")}}
+import { config } from "@repo/eslint-config/react-internal";
+{{/if}}
+{{#if (eq type "nextjs")}}
+import { config } from "@repo/eslint-config/next";
+{{/if}}
+
+/** @type {import("eslint").Linter.Config} */
+export default config;

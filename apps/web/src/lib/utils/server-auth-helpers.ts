@@ -2,8 +2,8 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "~/lib/auth";
 import { authorizationService } from "~/lib/services";
-import { db } from "~/lib/db";
-import type { PermissionIdentifier } from "~/lib/permissions";
+import { db } from "@repo/db";
+import type { PermissionIdentifier } from "@repo/db";
 import { logger } from "~/lib/utils/logger";
 
 interface PermissionCheckResult {

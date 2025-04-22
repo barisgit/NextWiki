@@ -1,0 +1,27 @@
+{
+  "name": "@repo/tailwind-config",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./tailwind.config.ts"
+  },
+  "types": "./tailwind.config.ts",
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "clean": "rm -rf .turbo node_modules dist"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "eslint": "^9.25.1",
+    "typescript": "^5.8.3",
+    "tailwindcss": "^4.1.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.2.0",
+    "tailwindcss-animate": "^1.0.7",
+    "@tailwindcss/typography": "^0.5.16"
+  }
+}

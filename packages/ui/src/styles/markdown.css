@@ -1,0 +1,162 @@
+@layer {
+  /* External links */
+  .external-link::after {
+    content: "↗";
+    @apply inline-block ml-1 text-xs;
+  }
+
+  /* Links list styling */
+  ul.links-list {
+    @apply flex flex-col gap-2;
+  }
+
+  ul.links-list li {
+    @apply bg-background-paper/50 dark:bg-background-level2 rounded-lg shadow-lg dark:shadow-none 
+  hover:border-primary/50 dark:hover:bg-background-level3 border hover:shadow-xl
+  border-transparent dark:border-border-dark transition-all duration-200 flex items-start border-l-4
+  border-l-primary dark:border-l-primary hover:border-l-primary;
+  }
+
+  /* Emoji styling */
+  .emoji {
+    @apply inline-block mx-1 text-xl;
+  }
+
+  /* Specific styling for links with emojis */
+  ul.links-list li a {
+    @apply flex items-center gap-8 p-4 no-underline text-primary hover:no-underline font-bold w-full;
+  }
+
+  ul.links-list li a em {
+    @apply border-l border-border pl-2 -ml-6;
+  }
+
+  ul.links-list li .emoji {
+    @apply text-2xl mt-0.5 flex-shrink-0;
+  }
+
+  ul.links-list li a > :not(.emoji) {
+    @apply flex flex-col;
+  }
+
+  ul.links-list li em {
+    @apply text-sm text-text-secondary font-normal not-italic;
+  }
+
+  a.wiki-link-exists {
+    @apply text-primary no-underline hover:underline;
+  }
+
+  a.wiki-link-missing {
+    @apply !text-error;
+  }
+
+  ul.links-list li:has(a.wiki-link-missing) {
+    @apply hover:border-error/50 border border-l-4 border-l-error hover:border-l-error;
+  }
+
+  ul.links-list li a.wiki-link-missing::after {
+    @apply text-text-secondary/50 font-normal text-xs;
+    content: "Page missing";
+  }
+
+  blockquote {
+    @apply border-l-2 pl-4 py-2 bg-background-level1 rounded-lg;
+  }
+
+  blockquote p {
+    @apply text-sm text-text-secondary font-normal not-italic;
+  }
+
+  blockquote p::before {
+    content: "";
+  }
+
+  blockquote p::after {
+    content: "";
+  }
+
+  blockquote.is-info {
+    @apply border-info bg-info/10;
+  }
+
+  blockquote.is-info::before {
+    @apply text-info;
+  }
+
+  blockquote.is-warning {
+    @apply border-warning bg-warning/10;
+  }
+
+  blockquote.is-warning::before {
+    @apply text-warning;
+  }
+
+  blockquote.is-danger {
+    @apply border-error bg-error/10;
+  }
+
+  blockquote.is-danger::before {
+    @apply text-error;
+  }
+
+  blockquote.is-success {
+    @apply border-success bg-success/10;
+  }
+
+  blockquote.is-success::before {
+    @apply text-success;
+  }
+
+  blockquote.is-quote {
+    @apply border-text-secondary bg-text-secondary/10;
+  }
+
+  blockquote.is-quote::before {
+    content: "Quote";
+    @apply text-text-secondary;
+  }
+
+  blockquote.is-quote p::before {
+    content: "“";
+  }
+
+  blockquote.is-quote p::after {
+    content: "”";
+  }
+
+  /* Lists */
+  ul {
+    @apply list-disc list-inside gap-0 pl-4;
+  }
+
+  ol {
+    @apply list-decimal list-inside gap-0 pl-4;
+  }
+
+  ul li {
+    @apply p-[0.1rem];
+  }
+
+  ul li p {
+    @apply py-0 my-0;
+  }
+
+  ol li {
+    @apply p-[0.1rem];
+  }
+
+  ol li p {
+    @apply py-0 my-0;
+  }
+
+  /* Asset links */
+  a.asset-link {
+    @apply text-secondary no-underline hover:underline;
+  }
+
+  a.asset-link::before {
+    content: "📄 [Asset]"; /* File emoji */
+    @apply inline-block text-text-tertiary font-normal mr-1;
+  }
+}

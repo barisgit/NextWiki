@@ -1,5 +1,5 @@
-import { db } from "~/lib/db";
-import { users, userGroups, groups } from "~/lib/db/schema";
+import { db } from "@repo/db";
+import { users, userGroups, groups } from "@repo/db";
 import { NextAuthOptions, getServerSession } from "next-auth";
 import { Adapter } from "next-auth/adapters";
 import GitHubProvider from "next-auth/providers/github";

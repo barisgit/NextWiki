@@ -3,8 +3,8 @@
  */
 
 import { renderMarkdownToHtml as baseRenderMarkdownToHtml } from "~/lib/markdown";
-import { db } from "~/lib/db";
-import { wikiPages } from "~/lib/db/schema";
+import { db } from "@repo/db";
+import { wikiPages } from "@repo/db";
 import { eq } from "drizzle-orm";
 import { invalidatePageExistenceCache } from "~/lib/markdown/plugins/server-only/rehypeWikiLinks";
 import { logger } from "~/lib/utils/logger";
