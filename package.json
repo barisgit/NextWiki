@@ -21,7 +21,7 @@
     "db:seed": "turbo run db:seed",
     "db:setup": "turbo run db:setup",
     "clean": "turbo run clean",
-    "fullclean": "turbo run fullclean"
+    "fullclean": "turbo run fullclean && rm -rf node_modules .turbo && rm -f pnpm-lock.yaml"
   },
   "devDependencies": {
     "@turbo/gen": "^2.5.0",
