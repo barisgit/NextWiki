@@ -61,6 +61,12 @@
     },
     "db:studio": {
       "cache": false
+    },
+    "clean": {
+      "cache": false
+    },
+    "fullclean": {
+      "cache": false
     }
   }
 }

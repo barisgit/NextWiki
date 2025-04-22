@@ -21,7 +21,9 @@
     "build": "pnpx @tailwindcss/cli -i ./src/styles/globals.css -o ./dist/index.css",
     "lint": "eslint . --max-warnings 0",
     "generate:component": "turbo gen react-component",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist .next",
+    "fullclean": "rm -rf dist .next .turbo node_modules"
   },
   "peerDependencies": {
     "next": "^15.3.1",

@@ -8,6 +8,9 @@
     "./next-js": "./next.js",
     "./react-internal": "./react-internal.js"
   },
+  "scripts": {
+    "fullclean": "rm -rf node_modules"
+  },
   "devDependencies": {
     "@eslint/js": "^9.25.1",
     "@next/eslint-plugin-next": "^15.3.1",

@@ -11,7 +11,9 @@
     "lint": "next lint",
     "check-types": "tsc --noEmit",
     "rebuild-rendered-html": "NODE_ENV=development env-cmd -f .env tsx scripts/rebuildRenderedHtml.ts",
-    "watch-css": "tailwindcss -i ./src/styles/globals.css -o ./public/output.css --watch"
+    "watch-css": "tailwindcss -i ./src/styles/globals.css -o ./public/output.css --watch",
+    "clean": "rm -rf dist .next",
+    "fullclean": "rm -rf dist .next .turbo node_modules"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.8.0",
