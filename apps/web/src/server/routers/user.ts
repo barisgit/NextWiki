@@ -5,7 +5,7 @@ import {
   router,
 } from "..";
 import { dbService } from "~/lib/services";
-import { hash } from "bcrypt";
+import { hash } from "bcryptjs";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { logger } from "~/lib/utils/logger";
@@ -99,9 +99,8 @@ export const userRouter = router({
 
         // 5. If it's the first user, assign to Administrators group
         if (isFirstUser) {
-          const adminGroup = await dbService.groups.findByName(
-            "Administrators"
-          );
+          const adminGroup =
+            await dbService.groups.findByName("Administrators");
           if (adminGroup) {
             const added = await dbService.groups.addUserToGroup(
               newUser.id,

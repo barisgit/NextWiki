@@ -6,7 +6,7 @@ import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { eq, and } from "drizzle-orm";
-import { compare } from "bcrypt";
+import { compare } from "bcryptjs";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { env } from "~/env";
 

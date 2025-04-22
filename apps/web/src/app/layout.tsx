@@ -8,7 +8,7 @@ import RegisterPage from "./(auth)/register/page";
 import { Suspense } from "react";
 import { Skeleton } from "@repo/ui";
 import { Providers } from "~/providers";
-import { seed } from "@repo/db";
+// import { seed } from "@repo/db";
 import { PermissionGate } from "~/components/auth/permission/server";
 import { LogOutButton } from "~/components/auth/LogOutButton";
 import { logger } from "~/lib/utils/logger";
@@ -29,37 +29,46 @@ export const metadata: Metadata = {
     "An open-source wiki system built with Next.js, Drizzle, tRPC, and NextAuth",
 };
 
+let userCount: number | null = null;
+
 async function RootLayoutContent({ children }: { children: React.ReactNode }) {
-  let adminGroupExists =
-    !!(await dbService.groups.findByName("Administrators"));
+  // FIXME: This doesn't belong here
+  // let adminGroupExists =
+  //   !!(await dbService.groups.findByName("Administrators"));
 
-  logger.log("adminGroupExists", adminGroupExists);
+  // logger.log("adminGroupExists", adminGroupExists);
 
-  // Attempt seeding only if the admin group doesn't exist
-  if (!adminGroupExists) {
-    logger.log(
-      "Essential seed data (e.g., Administrators group) not found. Running seed script..."
-    );
-    try {
-      await seed();
-      logger.log("Seed script completed successfully.");
-      // Re-check if the group exists now
-      adminGroupExists =
-        !!(await dbService.groups.findByName("Administrators"));
-      if (!adminGroupExists) {
-        logger.error(
-          "CRITICAL: Seed script ran but Administrators group still not found!"
-        );
-        // Handle this critical state - maybe return an error component?
-      }
-    } catch (error) {
-      logger.error("Failed to run seed script automatically:", error);
-      // Handle seeding failure - maybe return an error component?
-    }
+  // // Attempt seeding only if the admin group doesn't exist
+  // if (!adminGroupExists) {
+  //   logger.log(
+  //     "Essential seed data (e.g., Administrators group) not found. Running seed script..."
+  //   );
+  //   try {
+  //     await seed();
+  //     logger.log("Seed script completed successfully.");
+  //     // Re-check if the group exists now
+  //     adminGroupExists =
+  //       !!(await dbService.groups.findByName("Administrators"));
+  //     if (!adminGroupExists) {
+  //       logger.error(
+  //         "CRITICAL: Seed script ran but Administrators group still not found!"
+  //       );
+  //       // Handle this critical state - maybe return an error component?
+  //     }
+  //   } catch (error) {
+  //     logger.error("Failed to run seed script automatically:", error);
+  //     // Handle seeding failure - maybe return an error component?
+  //   }
+  // }
+
+  if (userCount === null) {
+    // Check user count *after* attempting seed if necessary
+    logger.log("Checking user count...");
+    userCount = await dbService.users.count();
+  } else {
+    logger.log("User count already cached:", userCount);
   }
 
-  // Check user count *after* attempting seed if necessary
-  const userCount = await dbService.users.count();
   const isFirstUser = userCount === 0;
 
   if (isFirstUser) {

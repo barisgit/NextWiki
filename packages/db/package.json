@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.42.0",
     "gray-matter": "^4.0.3",
@@ -45,7 +45,6 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/bcrypt": "^5.0.2",
     "@types/node": "^22.14.1",
     "@types/pg": "^8.11.13",
     "drizzle-kit": "^0.31.0",
