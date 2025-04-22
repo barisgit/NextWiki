@@ -17,7 +17,7 @@ export const dynamic = "auto";
 export const revalidate = 300; // 5 minutes
 export const fetchCache = "force-cache";
 
-async function getWikiPageByPath(path: string[]) {
+export async function getWikiPageByPath(path: string[]) {
   // Decode each path segment individually
   const decodedPath = path.map((segment) => decodeURIComponent(segment));
   const joinedPath = decodedPath.join("/").replace("%20", " ");

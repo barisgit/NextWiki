@@ -128,6 +128,7 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
             openDepth={2}
             className="w-full"
             showActions={true}
+            mode="navigation"
           />
         </div>
       )}

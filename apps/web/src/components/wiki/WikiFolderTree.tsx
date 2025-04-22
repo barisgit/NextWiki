@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   FolderIcon,
   ChevronDownIcon,
@@ -10,12 +10,15 @@ import {
   PlusCircleIcon,
   PencilIcon,
   MoveIcon,
+  InfoIcon,
 } from "lucide-react";
 import { useTRPC } from "~/server/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Modal } from "@repo/ui";
+import { Button, Card, CardContent, cn, Modal } from "@repo/ui";
 import { PageLocationEditor } from "./PageLocationEditor";
 import { ClientRequirePermission } from "../auth/permission/client";
+
+const DOUBLE_CLICK_THRESHOLD = 500; // milliseconds
 
 // Recursive interface for folder structure
 interface FolderNode {
@@ -102,6 +105,11 @@ interface WikiFolderTreeProps {
   showMove?: boolean;
 
   /**
+   * Show the folder tree in a card
+   */
+  card?: boolean;
+
+  /**
    * Selected path in selection mode
    */
   selectedPath?: string;
@@ -118,15 +126,24 @@ export function WikiFolderTree({
   showPageCount = false,
   openDepth = 0,
   showLegend = true,
-  mode = "navigation",
+  mode = "selection",
   onSelectPath,
   showActions = false,
   showMove = true,
+  card = true,
   selectedPath,
 }: WikiFolderTreeProps) {
+  const router = useRouter();
   const [expandedFolders, setExpandedFolders] = useState<
     Record<string, boolean>
   >({});
+  const [internalSelectedPath, setInternalSelectedPath] = useState<
+    string | null
+  >(selectedPath || null);
+  const [lastClickInfo, setLastClickInfo] = useState<{
+    path: string;
+    timestamp: number;
+  } | null>(null);
   const [showPageLocationEditor, setShowPageLocationEditor] = useState(false);
   const [newFolderPath, setNewFolderPath] = useState("");
   const [renamingNode, setRenamingNode] = useState<FolderNode | null>(null);
@@ -175,6 +192,11 @@ export function WikiFolderTree({
     })
   );
 
+  // Update internal state if external prop changes
+  useEffect(() => {
+    setInternalSelectedPath(selectedPath || null);
+  }, [selectedPath]);
+
   // Auto-expand folders in the current path
   useEffect(() => {
     if (currentPath) {
@@ -203,27 +225,73 @@ export function WikiFolderTree({
   }, [currentPath]);
 
   // Toggle folder expansion
-  const toggleFolder = (path: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const toggleFolder = (path: string) => {
     setExpandedFolders((prev) => ({
       ...prev,
       [path]: !prev[path],
     }));
   };
 
-  // Handle node selection
+  // Unified click handler for nodes
+  const handleNodeClick = (node: FolderNode, e: React.MouseEvent) => {
+    const now = Date.now();
+
+    // Prevent default link behavior immediately if it's a link event
+    // For div/button events, this prevents potential parent handlers if stopPropagation wasn't used
+    e.preventDefault();
+
+    // --- Shift+Click Check for immediate navigation ---
+    if (e.shiftKey) {
+      setInternalSelectedPath(node.path); // Select visually
+      setLastClickInfo(null); // Reset double-click tracking
+      router.push(`/${node.path}`); // Navigate immediately
+      return; // Skip normal logic
+    }
+    // --- End Shift+Click Check ---
+
+    // Check for double click
+    if (
+      mode === "navigation" &&
+      lastClickInfo &&
+      lastClickInfo.path === node.path &&
+      now - lastClickInfo.timestamp < DOUBLE_CLICK_THRESHOLD
+    ) {
+      // Double click detected: Navigate
+      setLastClickInfo(null); // Reset click info
+      setInternalSelectedPath(node.path); // Ensure it's selected visually
+      router.push(`/${node.path}`); // Navigate
+    } else {
+      // Single click: Select and potentially expand folder
+      setLastClickInfo({ path: node.path, timestamp: now });
+      setInternalSelectedPath(node.path);
+
+      // If it's a folder, toggle its expansion
+      const isFolder = node.type === "folder" || node.children?.length > 0;
+      if (isFolder) {
+        toggleFolder(node.path);
+      }
+
+      // If in selection mode, also call the callback
+      if (mode === "selection" && onSelectPath) {
+        onSelectPath(node.path);
+      }
+    }
+  };
+
+  // Handle node selection (legacy, kept for potential mode="selection" usage outside clicks)
   const handleSelect = (node: FolderNode, e: React.MouseEvent) => {
     if (mode === "selection" && onSelectPath) {
-      e.preventDefault();
+      e.preventDefault(); // Still prevent default if called directly
+      e.stopPropagation();
       onSelectPath(node.path);
+      setInternalSelectedPath(node.path); // Keep selection state consistent
     }
   };
 
   // Open the new folder modal
   const handleNewFolder = (parentPath: string, e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation(); // Important: Prevent node click
     setNewFolderPath(parentPath);
     setShowPageLocationEditor(true);
   };
@@ -231,7 +299,7 @@ export function WikiFolderTree({
   // Open the rename modal
   const handleRename = (node: FolderNode, e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation(); // Important: Prevent node click
     setRenamingNode(node);
     setNewName(node.title || node.name);
     setRenameConflict(false);
@@ -278,7 +346,7 @@ export function WikiFolderTree({
   // Open the move modal
   const handleMove = (node: FolderNode, e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation(); // Important: Prevent node click
     setMovingNode(node);
     setShowMoveModal(true);
   };
@@ -311,8 +379,9 @@ export function WikiFolderTree({
     const isExpanded = isWithinOpenDepth || expandedFolders[node.path] || false;
     const hasChildren = node.children && node.children.length > 0;
     const isFolder = node.type === "folder" || hasChildren;
-    const isCurrent = currentPath === node.path;
-    const isSelected = selectedPath === node.path;
+    // const isCurrent = currentPath === node.path; // Not directly used for styling anymore
+    // Update isSelected to use internal state
+    const isSelected = internalSelectedPath === node.path;
 
     // Count the direct children by type
     const pageCount = node.children.filter((c) => c.type === "page").length;
@@ -326,26 +395,12 @@ export function WikiFolderTree({
     // Create common child elements for both navigation and selection modes
     const childElements = (
       <>
-        {hasChildren && !isWithinOpenDepth && (
-          <button
-            onClick={(e) => toggleFolder(node.path, e)}
-            className="hover:bg-background-level2 mr-1 rounded p-1 focus:outline-none"
-            title={isExpanded ? "Collapse folder" : "Expand folder"}
-          >
-            {isExpanded ? (
-              <ChevronDownIcon className="text-text-secondary h-5 w-5" />
-            ) : (
-              <ChevronRightIcon className="text-text-secondary h-5 w-5" />
-            )}
-          </button>
-        )}
-
-        {(!hasChildren || isWithinOpenDepth) && <span className="w-7"></span>}
-
+        {/* Expansion chevron button - now handled within the main clickable div */}
+        {/* Folder/File Icon */}
         {isFolder ? (
           <FolderIcon
             className={`mr-2 h-5 w-5 flex-shrink-0 ${
-              node.id ? "text-amber-500" : "text-amber-300"
+              node.id ? "text-primary" : "text-secondary-700"
             }`}
             aria-label={
               node.id
@@ -354,23 +409,24 @@ export function WikiFolderTree({
             }
           />
         ) : (
-          <FileTextIcon className="mr-2 h-5 w-5 flex-shrink-0 text-slate-500" />
+          <FileTextIcon className="text-text-secondary mr-2 h-5 w-5 flex-shrink-0" />
         )}
 
+        {/* Name, Path, Counts */}
         <div className="flex min-w-0 flex-grow flex-row items-center gap-2">
           <span className="truncate font-medium">
             {node.title || node.name}
           </span>
-          <span className="max-w-[30%] truncate text-xs text-slate-400">
-            {node.path}
+          {/* Re-enable path display */}
+          <span className="text-text-tertiary max-w-[40%] truncate text-xs">
+            /{node.path} {/* Added leading slash */}
           </span>
-
           {isFolder && (
-            <div className="flex flex-shrink-0 space-x-1 text-xs text-slate-500">
+            <div className="text-text-primary flex flex-shrink-0 space-x-1 text-xs font-bold">
               {showPageCount && pageCount > 0 && (
                 <span
                   title={`${pageCount} page${pageCount !== 1 ? "s" : ""}`}
-                  className="rounded-full bg-slate-100 px-1.5 py-0.5"
+                  className="bg-accent/30 rounded-md px-1.5 py-0.5"
                 >
                   {pageCount}p
                 </span>
@@ -378,7 +434,7 @@ export function WikiFolderTree({
               {folderCount > 0 && (
                 <span
                   title={`${folderCount} folder${folderCount !== 1 ? "s" : ""}`}
-                  className="rounded-full bg-slate-100 px-1.5 py-0.5"
+                  className="bg-accent/30 rounded-md px-1.5 py-0.5"
                 >
                   {folderCount}f
                 </span>
@@ -387,36 +443,37 @@ export function WikiFolderTree({
           )}
         </div>
 
+        {/* Action Buttons (ensure stopPropagation is handled by callers) */}
         {showActions && node.path !== "" && (
-          <div className="ml-1 flex flex-shrink-0 items-center justify-end space-x-1">
+          <div className="ml-auto flex flex-shrink-0 items-center justify-end space-x-1 pl-2 opacity-0 transition-opacity group-hover:opacity-100">
             <ClientRequirePermission permission="wiki:page:update">
               <button
-                onClick={(e) => handleRename(node, e)}
-                className="p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                onClick={(e) => handleRename(node, e)} // stopPropagation is inside handleRename now
+                className="hover:bg-background-level2 rounded p-0.5"
                 title="Rename"
               >
-                <PencilIcon className="h-4 w-4 text-slate-400 hover:text-slate-700" />
+                <PencilIcon className="text-text-tertiary hover:text-text-primary h-4 w-4" />
               </button>
             </ClientRequirePermission>
             <ClientRequirePermission permission="wiki:page:move">
               {showMove && (
                 <button
-                  onClick={(e) => handleMove(node, e)}
-                  className="p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={(e) => handleMove(node, e)} // stopPropagation is inside handleMove now
+                  className="hover:bg-background-level2 rounded p-0.5"
                   title="Move"
                 >
-                  <MoveIcon className="h-4 w-4 text-slate-400 hover:text-slate-700" />
+                  <MoveIcon className="text-text-tertiary hover:text-text-primary h-4 w-4" />
                 </button>
               )}
             </ClientRequirePermission>
 
             <ClientRequirePermission permission="wiki:page:create">
               <button
-                onClick={(e) => handleNewFolder(node.path, e)}
-                className="p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-                title="Create new folder"
+                onClick={(e) => handleNewFolder(node.path, e)} // stopPropagation is inside handleNewFolder now
+                className="hover:bg-background-level2 rounded p-0.5"
+                title="Create new page/folder inside"
               >
-                <PlusCircleIcon className="h-4 w-4 text-slate-400 hover:text-slate-700" />
+                <PlusCircleIcon className="text-text-tertiary hover:text-text-primary h-4 w-4" />
               </button>
             </ClientRequirePermission>
           </div>
@@ -424,40 +481,61 @@ export function WikiFolderTree({
       </>
     );
 
+    // Common class string including selection highlight
+    const nodeClasses = `group flex cursor-pointer items-center rounded-md px-2 py-1.5 text-sm hover:bg-background-level2 ${
+      // Adjusted py padding
+      isSelected
+        ? "bg-accent/20 text-text-primary font-medium" // Highlight selected
+        : "text-text-secondary"
+    }`;
+
     return (
       <div key={node.path} className="wiki-folder-node">
         <div className="group relative">
-          {mode === "navigation" ? (
-            <Link
-              href={`/${node.path}`}
-              className={`hover:bg-background-level2 group flex items-center rounded-md px-2 py-2 ${
-                isCurrent
-                  ? "bg-background-level3 text-text-primary font-medium"
-                  : "text-text-secondary"
-              }`}
-              style={{ paddingLeft: `${depth * 16 + 8}px` }}
-              title={fullPath}
-            >
-              {childElements}
-            </Link>
-          ) : (
-            <div
-              className={`hover:bg-background-level2 group flex cursor-pointer items-center rounded-md px-2 py-2 ${
-                isSelected
-                  ? "bg-background-level3 text-text-primary font-medium"
-                  : "text-text-secondary"
-              }`}
-              onClick={(e) => handleSelect(node, e)}
-              style={{ paddingLeft: `${depth * 16 + 8}px` }}
-              title={fullPath}
-            >
-              {childElements}
-            </div>
-          )}
+          {/* Use a div with onClick instead of Link or the selection mode div */}
+          <div
+            className={nodeClasses}
+            onClick={(e) => handleNodeClick(node, e)}
+            style={{ paddingLeft: `${depth * 16 + 8}px` }}
+            title={fullPath}
+            role="button" // Accessibility
+            tabIndex={0} // Accessibility
+            onKeyDown={(e) => {
+              // Allow activation with Enter/Space
+              if (e.key === "Enter" || e.key === " ") {
+                handleNodeClick(node, e as unknown as React.MouseEvent); // Cast needed for event type mismatch
+              }
+            }}
+          >
+            {/* Expansion chevron button */}
+            {hasChildren && !isWithinOpenDepth ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent node click
+                  toggleFolder(node.path);
+                }}
+                className="hover:bg-background-level2 mr-1 rounded p-0.5 focus:outline-none"
+                title={isExpanded ? "Collapse folder" : "Expand folder"}
+                aria-expanded={isExpanded}
+              >
+                {isExpanded ? (
+                  <ChevronDownIcon className="text-text-tertiary h-4 w-4" />
+                ) : (
+                  <ChevronRightIcon className="text-text-tertiary h-4 w-4" />
+                )}
+              </button>
+            ) : (
+              /* Spacer if no chevron needed or forced open */
+              <span className="mr-1 w-[16px] shrink-0"></span>
+            )}
+            {childElements}
+          </div>
         </div>
 
         {isExpanded && hasChildren && (
           <div className="wiki-folder-children">
+            {" "}
+            {/* Indent children slightly more */}
             {node.children.map((child) => renderNode(child, depth + 1))}
           </div>
         )}
@@ -481,7 +559,7 @@ export function WikiFolderTree({
           <>
             {currentNode.children.map((child) => renderNode(child))}
             {currentNode.children.length === 0 && (
-              <div className="px-3 py-2 text-sm text-slate-500">
+              <div className="text-text-tertiary px-3 py-2 text-sm">
                 No subpages found
               </div>
             )}
@@ -501,172 +579,149 @@ export function WikiFolderTree({
   };
 
   if (isLoading) {
+    // Basic loading state
     return (
-      <div className={`wiki-folder-tree ${className}`}>
-        <div className="p-3 text-sm text-slate-500">Loading...</div>
+      <div className={className}>
+        {!hideHeader && (
+          <h3 className="text-text-primary mb-2 text-base font-medium">
+            {title}
+          </h3>
+        )}
+        <div className="space-y-1 px-2 py-4">
+          <div className="bg-background-level2 h-5 w-3/4 animate-pulse rounded"></div>
+          <div className="bg-background-level2 ml-4 h-5 w-2/3 animate-pulse rounded"></div>
+          <div className="bg-background-level2 h-5 w-1/2 animate-pulse rounded"></div>
+          <div className="bg-background-level2 ml-4 h-5 w-5/6 animate-pulse rounded"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div
-      className={`wiki-folder-tree border-border-default overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-md ${className}`}
-    >
-      {!hideHeader && (
-        <div className="border-border-default bg-background-level1 flex items-center justify-between border-b p-3">
-          <h3 className="text-md text-text-primary font-medium">{title}</h3>
-          <ClientRequirePermission permission="wiki:page:create">
-            {showActions && (
-              <button
-                onClick={(e) => handleNewFolder("", e)}
-                className="hover:bg-background-level2 rounded-md p-1"
-                title="Create new root folder"
-              >
-                <PlusCircleIcon className="text-text-secondary h-4 w-4" />
-              </button>
-            )}
-          </ClientRequirePermission>
-        </div>
-      )}
-      <div className="overflow-y-auto p-2">
-        {renderFolderStructure()}
-        {(!folderStructure ||
-          (folderStructure.children.length === 0 && !showOnlyChildren)) && (
-          <div className="px-3 py-2 text-sm text-slate-500">
-            No content found
-          </div>
+    <div className={className}>
+      <Card
+        className={cn(
+          "border-border-light bg-transparent",
+          !card ? "border-0 shadow-none" : "shadow-md"
         )}
-      </div>
+      >
+        <CardContent className={cn(card ? "p-3" : "m-0 p-0")}>
+          {!hideHeader && (
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-text-primary text-base font-medium">
+                {title}
+              </h3>
+              {showActions && (
+                <ClientRequirePermission permission="wiki:page:create">
+                  <button
+                    onClick={(e) => handleNewFolder("", e)} // Create at root
+                    className="text-primary hover:text-primary/80 text-xs"
+                    title="Create new root folder/page"
+                  >
+                    + New Root Item
+                  </button>
+                </ClientRequirePermission>
+              )}
+            </div>
+          )}
+          {renderFolderStructure()}
 
-      {/* Legend */}
-      {showLegend && (
-        <div className="bg-background-level1 text-text-secondary border-t px-3 py-2 text-xs">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="bg-background-level2 flex items-center rounded-md px-2 py-1">
-              <FolderIcon className="mr-1 h-3.5 w-3.5 text-amber-500" />
-              <span>Real folder</span>
+          {showLegend && !hideHeader && (
+            <div className="text-text-secondary border-border-light mt-2 grid grid-cols-1 gap-2 border-t pt-2 text-xs">
+              <div className="bg-background-level1 hover:bg-background-level2 flex items-center rounded-md px-2 py-1">
+                <FolderIcon className="text-primary mr-1 h-4 w-4" /> = Folder
+                with Content
+              </div>
+              <div className="bg-background-level1 hover:bg-background-level2 flex items-center rounded-md px-2 py-1">
+                <FolderIcon className="text-secondary-700 mr-1 h-4 w-4" /> =
+                Virtual Folder
+              </div>
+              <div className="bg-background-level1 hover:bg-background-level2 flex items-center rounded-md px-2 py-1">
+                <FileTextIcon className="mr-1 h-4 w-4" /> = Page
+              </div>
+              {mode === "navigation" && (
+                <>
+                  <div className="bg-background-level1 hover:bg-background-level2 flex items-center rounded-md px-2 py-1">
+                    <InfoIcon className="text-text-tertiary mr-1 h-4 w-4" />
+                    Double click a folder to navigate
+                  </div>
+                  <div className="bg-background-level1 hover:bg-background-level2 flex items-center rounded-md px-2 py-1">
+                    <InfoIcon className="text-text-tertiary mr-1 h-4 w-4" />
+                    <kbd className="text-text-tertiary bg-background-level3 border-border dark:border-border-light rounded-md border-b px-1 py-0.5 text-xs font-bold shadow-sm">
+                      Shift
+                    </kbd>
+                    + Click a folder to navigate immediately
+                  </div>
+                </>
+              )}
             </div>
-            <div className="bg-background-level2 flex items-center rounded-md px-2 py-1">
-              <FolderIcon className="mr-1 h-3.5 w-3.5 text-amber-300" />
-              <span>Virtual folder</span>
-            </div>
-            <div className="bg-background-level2 flex items-center rounded-md px-2 py-1">
-              <span className="bg-background-level1 mr-1 rounded-full px-1.5 py-0.5 text-xs">
-                1p
-              </span>
-              <span>Page count</span>
-            </div>
-            <div className="bg-background-level2 flex items-center rounded-md px-2 py-1">
-              <span className="bg-background-level1 mr-1 rounded-full px-1.5 py-0.5 text-xs">
-                1f
-              </span>
-              <span>Subfolder count</span>
-            </div>
-          </div>
-        </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modals */}
+      {showPageLocationEditor && (
+        <PageLocationEditor
+          mode="create"
+          initialPath={newFolderPath}
+          isOpen={showPageLocationEditor}
+          onClose={() => setShowPageLocationEditor(false)}
+        />
       )}
 
-      {/* New Folder/Page Editor using PageLocationEditor */}
-      <PageLocationEditor
-        mode="create"
-        isOpen={showPageLocationEditor}
-        onClose={() => {
-          setShowPageLocationEditor(false);
-          // Make sure to expand the folder where the new content is created
-          if (newFolderPath) {
-            setExpandedFolders((prev) => ({
-              ...prev,
-              [newFolderPath]: true,
-            }));
-          }
-          // Refresh the folder structure after creation
-          queryClient.invalidateQueries({
-            queryKey: folderStructureQueryKey,
-          });
-        }}
-        initialPath={newFolderPath}
-      />
-
-      {/* Rename Modal */}
       {showRenameModal && renamingNode && (
-        <Modal
-          onClose={() => setShowRenameModal(false)}
-          size="sm"
-          closeOnEscape={true}
-          showCloseButton={true}
-        >
+        <Modal onClose={() => setShowRenameModal(false)}>
           <div className="p-4">
-            <h3 className="mb-4 text-lg font-medium">
-              Rename {renamingNode.type === "folder" ? "Folder" : "Page"}
-            </h3>
-            <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Current Name
-              </label>
-              <div className="border-border-default bg-background-level1 rounded-md border px-3 py-2 text-sm">
-                {renamingNode.title || renamingNode.name}
-              </div>
-            </div>
-            <div className="mb-4">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="newName"
-                  className="mb-1 block text-sm font-medium text-slate-700"
-                >
-                  New Name
-                </label>
-                {renameConflict && (
-                  <span className="text-sm text-red-500">
-                    Name already exists
-                  </span>
-                )}
-              </div>
-              <input
-                id="newName"
-                type="text"
-                value={newName}
-                onChange={(e) => {
-                  setNewName(e.target.value);
-                  setRenameConflict(false);
-                }}
-                className={`w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 ${
-                  renameConflict
-                    ? "border-red-500 focus:ring-red-200"
-                    : "focus:ring-primary"
-                }`}
-                placeholder="new-name"
-              />
-            </div>
-            <div className="flex justify-end space-x-2">
-              <button
+            <label
+              htmlFor="newNameInput"
+              className="mb-2 block text-sm font-medium"
+            >
+              New name for &quot;{renamingNode.title || renamingNode.name}
+              &quot;:
+            </label>
+            <input
+              id="newNameInput"
+              type="text"
+              value={newName}
+              onChange={(e) => {
+                setNewName(e.target.value);
+                setRenameConflict(false); // Reset conflict on change
+              }}
+              className={`border-border-default w-full rounded border p-2 ${
+                renameConflict ? "border-error" : ""
+              }`}
+            />
+            {renameConflict && (
+              <p className="text-error mt-1 text-xs">
+                A page or folder with this name already exists here.
+              </p>
+            )}
+            <div className="mt-4 flex justify-end space-x-2">
+              <Button
                 onClick={() => setShowRenameModal(false)}
-                className="text-text-secondary hover:bg-background-level2 border-border-default rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
+                variant="destructive"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="outlined"
                 onClick={renameNode}
-                className="bg-primary hover:bg-primary-dark rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors"
                 disabled={!newName.trim() || renameConflict}
               >
                 Rename
-              </button>
+              </Button>
             </div>
           </div>
         </Modal>
       )}
 
-      {/* Move Modal using PageLocationEditor */}
-      {movingNode && (
+      {showMoveModal && movingNode && (
         <PageLocationEditor
           mode="move"
           isOpen={showMoveModal}
-          onClose={() => {
-            setShowMoveModal(false);
-            setMovingNode(null);
-          }}
-          initialPath={movingNode.path}
+          onClose={() => setShowMoveModal(false)}
           pageId={movingNode.id}
+          initialPath={movingNode.path}
           pageTitle={movingNode.title || movingNode.name}
           initialName={movingNode.name}
         />

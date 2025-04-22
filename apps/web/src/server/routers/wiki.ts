@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { desc, eq, like, gt, and, sql } from "drizzle-orm";
+import { desc, eq, like, gt, and, sql, ilike, or } from "drizzle-orm";
 import { db, wikiPages } from "@repo/db";
 import {
   permissionGuestProcedure,
@@ -346,7 +346,11 @@ export const wikiRouter = router({
 
       // Handle search
       if (search) {
-        const searchCondition = like(wikiPages.title, `%${search}%`);
+        const searchCondition = or(
+          ilike(wikiPages.title, `%${search}%`),
+          ilike(wikiPages.title, `%${search}`),
+          ilike(wikiPages.title, `${search}%`)
+        );
         whereConditions = whereConditions
           ? and(whereConditions, searchCondition)
           : searchCondition;

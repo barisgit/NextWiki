@@ -204,9 +204,9 @@ function WikiTreeItem({
                   className="mr-0.5 flex flex-shrink-0 items-center justify-center px-0.5 py-1.5 focus:outline-none"
                 >
                   {isExpanded ? (
-                    <ChevronDown className="text-muted-foreground h-4 w-4" />
+                    <ChevronDown className="text-text-tertiary h-4 w-4" />
                   ) : (
-                    <ChevronRight className="text-muted-foreground h-4 w-4" />
+                    <ChevronRight className="text-text-tertiary h-4 w-4" />
                   )}
                 </button>
               ) : (
