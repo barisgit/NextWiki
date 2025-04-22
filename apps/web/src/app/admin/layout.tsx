@@ -15,8 +15,8 @@ export default async function AdminLayoutWrapper({
         <AdminLayout>{children}</AdminLayout>
       </PermissionGate.Authorized>
       <PermissionGate.Unauthorized redirectTo="/">
-        <div className="flex items-center justify-center w-full h-screen">
-          <div className="p-8 text-center rounded-lg shadow-md bg-red-50 dark:bg-red-900/20">
+        <div className="flex h-screen w-full items-center justify-center">
+          <div className="rounded-lg bg-red-50 p-8 text-center shadow-md dark:bg-red-900/20">
             <h2 className="mb-4 text-2xl font-bold text-red-500">
               Admin Access Denied
             </h2>
@@ -26,8 +26,8 @@ export default async function AdminLayoutWrapper({
       </PermissionGate.Unauthorized>
       <PermissionGate.NotLoggedIn redirectTo="/login">
         {/* Optional: Show a specific loading/redirect message */}
-        <div className="flex items-center justify-center w-full h-screen">
-          <Skeleton className="w-full h-full" />
+        <div className="flex h-screen w-full items-center justify-center">
+          <Skeleton className="h-full w-full" />
         </div>
       </PermissionGate.NotLoggedIn>
     </PermissionGate>

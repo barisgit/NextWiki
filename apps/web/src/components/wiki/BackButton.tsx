@@ -20,7 +20,7 @@ export function BackButton({
       variant={variant}
       className={cn("mt-4 rounded-full", className)}
     >
-      <ArrowLeftIcon className="w-4 h-4 mr-2" />
+      <ArrowLeftIcon className="mr-2 h-4 w-4" />
       Go back
     </Button>
   );

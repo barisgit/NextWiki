@@ -185,20 +185,20 @@ export function PageLocationEditor({
   return (
     <Modal onClose={onClose} className="w-full max-w-6xl">
       <div className="">
-        <h1 className="text-2xl font-bold text-text-primary">
+        <h1 className="text-text-primary text-2xl font-bold">
           {mode === "create" ? "Create New Wiki Page" : `Move: ${pageTitle}`}
         </h1>
 
-        <div className="p-2 mb-6 rounded-lg bg-background-paper">
+        <div className="bg-background-paper mb-6 rounded-lg p-2">
           <div className="grid grid-cols-[3fr_2fr] gap-6">
             <div className="pr-6">
               {mode === "move" && (
-                <div className="text-sm text-text-secondary">
+                <div className="text-text-secondary text-sm">
                   Current path: {initialPath}
                 </div>
               )}
 
-              <h2 className="mb-4 text-lg font-medium text-text-primary">
+              <h2 className="text-text-primary mb-4 text-lg font-medium">
                 {mode === "create"
                   ? "Select Location"
                   : "Select Destination Folder"}
@@ -208,12 +208,12 @@ export function PageLocationEditor({
                 <div className="relative">
                   <label
                     htmlFor="pageName"
-                    className="block mb-2 text-sm font-medium text-text-primary"
+                    className="text-text-primary mb-2 block text-sm font-medium"
                   >
                     {mode === "create" ? "Page Name" : "New Name"}
                   </label>
                   {conflict && (
-                    <div className="absolute top-0 right-0 text-sm text-error">
+                    <div className="text-error absolute right-0 top-0 text-sm">
                       A page already exists at this location. Please choose a
                       different name.
                     </div>
@@ -221,7 +221,7 @@ export function PageLocationEditor({
                 </div>
                 <div className="flex items-center">
                   {selectedPath && (
-                    <span className="inline-flex items-center px-3 py-2 text-sm border border-r-0 text-text-secondary border-border-default rounded-l-md bg-background-level2">
+                    <span className="text-text-secondary border-border-default bg-background-level2 inline-flex items-center rounded-l-md border border-r-0 px-3 py-2 text-sm">
                       {selectedPath}/
                     </span>
                   )}
@@ -230,7 +230,7 @@ export function PageLocationEditor({
                     id="pageName"
                     value={pageName}
                     onChange={(e) => setPageName(e.target.value.toLowerCase())}
-                    className={`flex-1 min-w-0 block w-full px-3 py-2 rounded-md border border-border-default focus:outline-none focus:ring-primary focus:border-primary ${
+                    className={`border-border-default focus:ring-primary focus:border-primary block w-full min-w-0 flex-1 rounded-md border px-3 py-2 focus:outline-none ${
                       selectedPath ? "rounded-l-none" : ""
                     }`}
                     placeholder={
@@ -243,11 +243,11 @@ export function PageLocationEditor({
 
             {/* Folder options section - only shown when moving a page with children */}
             {mode === "move" && hasChildren && (
-              <div className="p-4 mb-6 ml-4 border rounded-md bg-warning-50 border-warning-200 dark:bg-warning-900/50 dark:border-warning-800">
-                <h3 className="mb-2 text-sm font-medium text-warning-800 dark:text-warning-200">
+              <div className="bg-warning-50 border-warning-200 dark:bg-warning-900/50 dark:border-warning-800 mb-6 ml-4 rounded-md border p-4">
+                <h3 className="text-warning-800 dark:text-warning-200 mb-2 text-sm font-medium">
                   This page has child pages
                 </h3>
-                <div className="flex items-center mb-2">
+                <div className="mb-2 flex items-center">
                   <Checkbox
                     id="moveRecursively"
                     checked={moveRecursively}
@@ -256,7 +256,7 @@ export function PageLocationEditor({
                     color="warning"
                   />
                 </div>
-                <p className="text-xs text-error-800 dark:text-error-500">
+                <p className="text-error-800 dark:text-error-500 text-xs">
                   {moveRecursively
                     ? "All child pages will be moved to maintain the hierarchy."
                     : "Only this page will be moved, which could create gaps in your wiki structure."}
@@ -266,7 +266,7 @@ export function PageLocationEditor({
 
             {mode === "create" && (
               <div className="mb-6">
-                <label className="block mb-2 text-sm font-medium text-text-primary">
+                <label className="text-text-primary mb-2 block text-sm font-medium">
                   Create Type
                 </label>
                 <RadioGroup
@@ -285,7 +285,7 @@ export function PageLocationEditor({
           </div>
 
           <div className="mb-6">
-            <label className="block mb-2 text-sm font-medium text-text-primary">
+            <label className="text-text-primary mb-2 block text-sm font-medium">
               Parent Folder
             </label>
             <WikiFolderTree

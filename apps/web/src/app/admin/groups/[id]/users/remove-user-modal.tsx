@@ -58,7 +58,7 @@ export default function RemoveUserModal({
         className="text-destructive"
         onClick={() => setIsModalOpen(true)}
       >
-        <Trash2 className="w-4 h-4 mr-1" /> Remove
+        <Trash2 className="mr-1 h-4 w-4" /> Remove
       </Button>
 
       {isModalOpen && (
@@ -72,7 +72,7 @@ export default function RemoveUserModal({
         >
           <div className="text-center">
             <h3 className="mb-4 text-lg font-medium">Remove User from Group</h3>
-            <p className="mb-6 text-text-secondary">
+            <p className="text-text-secondary mb-6">
               Are you sure you want to remove{" "}
               <span className="font-semibold">{userName}</span> from this group?
               This action cannot be undone.
@@ -92,7 +92,7 @@ export default function RemoveUserModal({
               >
                 {isRemoving ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Removing...
                   </>
                 ) : (

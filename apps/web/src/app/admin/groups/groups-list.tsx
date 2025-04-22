@@ -48,7 +48,7 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
   };
 
   return (
-    <div className="border rounded-md">
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -85,7 +85,7 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
                   <ClientRequirePermission permission="system:groups:update">
                     <Link href={`/admin/groups/${group.id}/users`}>
                       <Button variant="ghost" size="icon" title="Manage Users">
-                        <Users className="w-4 h-4" />
+                        <Users className="h-4 w-4" />
                       </Button>
                     </Link>
                   </ClientRequirePermission>
@@ -99,9 +99,9 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
                         }
                       >
                         {group.name === "Administrators" ? (
-                          <Eye className="w-4 h-4" />
+                          <Eye className="h-4 w-4" />
                         ) : (
-                          <Pencil className="w-4 h-4" />
+                          <Pencil className="h-4 w-4" />
                         )}
                       </Button>
                     </Link>
@@ -114,7 +114,7 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
                         onClick={() => handleDelete(group.id)}
                         title="Delete"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </ClientRequirePermission>
                   )}

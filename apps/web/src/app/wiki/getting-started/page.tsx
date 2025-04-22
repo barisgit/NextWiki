@@ -5,10 +5,10 @@ import { CodeBlock } from "@repo/ui";
 export default function GettingStartedPage() {
   return (
     <MainLayout>
-      <div className="p-4 space-y-6">
+      <div className="space-y-6 p-4">
         <h1 className="text-2xl font-bold">Getting Started with NextWiki</h1>
 
-        <section className="p-6 border rounded-lg shadow-lg bg-background-paper border-border-default">
+        <section className="bg-background-paper border-border-default rounded-lg border p-6 shadow-lg">
           <h2 className="mb-4 text-xl font-semibold">Installation</h2>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -49,7 +49,7 @@ export default function GettingStartedPage() {
         <div className="mt-6">
           <Link
             href="/wiki"
-            className="font-medium text-primary hover:underline"
+            className="text-primary font-medium hover:underline"
           >
             ← Back to Wiki Pages
           </Link>

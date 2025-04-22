@@ -42,7 +42,7 @@ export default function CreateWikiPage() {
         />
       </ClientPermissionGate.Authorized>
       <ClientPermissionGate.Unauthorized>
-        <div className="flex flex-col items-center justify-center h-screen">
+        <div className="flex h-screen flex-col items-center justify-center">
           <p className="text-text-secondary">
             You do not have permission to create pages
           </p>
@@ -50,7 +50,7 @@ export default function CreateWikiPage() {
         </div>
       </ClientPermissionGate.Unauthorized>
       <ClientPermissionGate.NotLoggedIn>
-        <div className="flex flex-col items-center justify-center h-screen">
+        <div className="flex h-screen flex-col items-center justify-center">
           <p className="text-text-secondary">
             You must be logged in to create pages
           </p>

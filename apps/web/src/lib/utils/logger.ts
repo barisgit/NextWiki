@@ -116,8 +116,8 @@ const createLogger = (
   const origin = origin_param
     ? origin_param
     : typeof window === "undefined"
-    ? getServerProcessOrigin() ?? "APP" // Server: try detect, else APP
-    : "CLIENT"; // Client: always CLIENT
+      ? (getServerProcessOrigin() ?? "APP") // Server: try detect, else APP
+      : "CLIENT"; // Client: always CLIENT
 
   const logFn =
     (level: LogLevel) =>

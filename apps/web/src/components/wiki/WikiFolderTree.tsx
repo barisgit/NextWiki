@@ -329,13 +329,13 @@ export function WikiFolderTree({
         {hasChildren && !isWithinOpenDepth && (
           <button
             onClick={(e) => toggleFolder(node.path, e)}
-            className="p-1 mr-1 rounded focus:outline-none hover:bg-background-level2"
+            className="hover:bg-background-level2 mr-1 rounded p-1 focus:outline-none"
             title={isExpanded ? "Collapse folder" : "Expand folder"}
           >
             {isExpanded ? (
-              <ChevronDownIcon className="w-5 h-5 text-text-secondary" />
+              <ChevronDownIcon className="text-text-secondary h-5 w-5" />
             ) : (
-              <ChevronRightIcon className="w-5 h-5 text-text-secondary" />
+              <ChevronRightIcon className="text-text-secondary h-5 w-5" />
             )}
           </button>
         )}
@@ -344,7 +344,7 @@ export function WikiFolderTree({
 
         {isFolder ? (
           <FolderIcon
-            className={`w-5 h-5 mr-2 flex-shrink-0 ${
+            className={`mr-2 h-5 w-5 flex-shrink-0 ${
               node.id ? "text-amber-500" : "text-amber-300"
             }`}
             aria-label={
@@ -354,14 +354,14 @@ export function WikiFolderTree({
             }
           />
         ) : (
-          <FileTextIcon className="flex-shrink-0 w-5 h-5 mr-2 text-slate-500" />
+          <FileTextIcon className="mr-2 h-5 w-5 flex-shrink-0 text-slate-500" />
         )}
 
-        <div className="flex flex-row items-center flex-grow min-w-0 gap-2">
-          <span className="font-medium truncate">
+        <div className="flex min-w-0 flex-grow flex-row items-center gap-2">
+          <span className="truncate font-medium">
             {node.title || node.name}
           </span>
-          <span className="text-xs truncate text-slate-400 max-w-[30%]">
+          <span className="max-w-[30%] truncate text-xs text-slate-400">
             {node.path}
           </span>
 
@@ -370,7 +370,7 @@ export function WikiFolderTree({
               {showPageCount && pageCount > 0 && (
                 <span
                   title={`${pageCount} page${pageCount !== 1 ? "s" : ""}`}
-                  className="px-1.5 py-0.5 rounded-full bg-slate-100"
+                  className="rounded-full bg-slate-100 px-1.5 py-0.5"
                 >
                   {pageCount}p
                 </span>
@@ -378,7 +378,7 @@ export function WikiFolderTree({
               {folderCount > 0 && (
                 <span
                   title={`${folderCount} folder${folderCount !== 1 ? "s" : ""}`}
-                  className="px-1.5 py-0.5 rounded-full bg-slate-100"
+                  className="rounded-full bg-slate-100 px-1.5 py-0.5"
                 >
                   {folderCount}f
                 </span>
@@ -388,24 +388,24 @@ export function WikiFolderTree({
         </div>
 
         {showActions && node.path !== "" && (
-          <div className="flex items-center justify-end flex-shrink-0 ml-1 space-x-1">
+          <div className="ml-1 flex flex-shrink-0 items-center justify-end space-x-1">
             <ClientRequirePermission permission="wiki:page:update">
               <button
                 onClick={(e) => handleRename(node, e)}
-                className="p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
                 title="Rename"
               >
-                <PencilIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
+                <PencilIcon className="h-4 w-4 text-slate-400 hover:text-slate-700" />
               </button>
             </ClientRequirePermission>
             <ClientRequirePermission permission="wiki:page:move">
               {showMove && (
                 <button
                   onClick={(e) => handleMove(node, e)}
-                  className="p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
                   title="Move"
                 >
-                  <MoveIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
+                  <MoveIcon className="h-4 w-4 text-slate-400 hover:text-slate-700" />
                 </button>
               )}
             </ClientRequirePermission>
@@ -413,10 +413,10 @@ export function WikiFolderTree({
             <ClientRequirePermission permission="wiki:page:create">
               <button
                 onClick={(e) => handleNewFolder(node.path, e)}
-                className="p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
                 title="Create new folder"
               >
-                <PlusCircleIcon className="w-4 h-4 text-slate-400 hover:text-slate-700" />
+                <PlusCircleIcon className="h-4 w-4 text-slate-400 hover:text-slate-700" />
               </button>
             </ClientRequirePermission>
           </div>
@@ -426,11 +426,11 @@ export function WikiFolderTree({
 
     return (
       <div key={node.path} className="wiki-folder-node">
-        <div className="relative group">
+        <div className="group relative">
           {mode === "navigation" ? (
             <Link
               href={`/${node.path}`}
-              className={`flex items-center py-2 px-2 rounded-md hover:bg-background-level2 group ${
+              className={`hover:bg-background-level2 group flex items-center rounded-md px-2 py-2 ${
                 isCurrent
                   ? "bg-background-level3 text-text-primary font-medium"
                   : "text-text-secondary"
@@ -442,7 +442,7 @@ export function WikiFolderTree({
             </Link>
           ) : (
             <div
-              className={`flex items-center py-2 px-2 rounded-md hover:bg-background-level2 group cursor-pointer ${
+              className={`hover:bg-background-level2 group flex cursor-pointer items-center rounded-md px-2 py-2 ${
                 isSelected
                   ? "bg-background-level3 text-text-primary font-medium"
                   : "text-text-secondary"
@@ -510,25 +510,25 @@ export function WikiFolderTree({
 
   return (
     <div
-      className={`wiki-folder-tree border border-border-default rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow ${className}`}
+      className={`wiki-folder-tree border-border-default overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-md ${className}`}
     >
       {!hideHeader && (
-        <div className="flex items-center justify-between p-3 border-b border-border-default bg-background-level1">
-          <h3 className="font-medium text-md text-text-primary">{title}</h3>
+        <div className="border-border-default bg-background-level1 flex items-center justify-between border-b p-3">
+          <h3 className="text-md text-text-primary font-medium">{title}</h3>
           <ClientRequirePermission permission="wiki:page:create">
             {showActions && (
               <button
                 onClick={(e) => handleNewFolder("", e)}
-                className="p-1 rounded-md hover:bg-background-level2"
+                className="hover:bg-background-level2 rounded-md p-1"
                 title="Create new root folder"
               >
-                <PlusCircleIcon className="w-4 h-4 text-text-secondary" />
+                <PlusCircleIcon className="text-text-secondary h-4 w-4" />
               </button>
             )}
           </ClientRequirePermission>
         </div>
       )}
-      <div className="p-2 overflow-y-auto">
+      <div className="overflow-y-auto p-2">
         {renderFolderStructure()}
         {(!folderStructure ||
           (folderStructure.children.length === 0 && !showOnlyChildren)) && (
@@ -540,24 +540,24 @@ export function WikiFolderTree({
 
       {/* Legend */}
       {showLegend && (
-        <div className="px-3 py-2 text-xs border-t bg-background-level1 text-text-secondary">
+        <div className="bg-background-level1 text-text-secondary border-t px-3 py-2 text-xs">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center px-2 py-1 rounded-md bg-background-level2">
-              <FolderIcon className="w-3.5 h-3.5 mr-1 text-amber-500" />
+            <div className="bg-background-level2 flex items-center rounded-md px-2 py-1">
+              <FolderIcon className="mr-1 h-3.5 w-3.5 text-amber-500" />
               <span>Real folder</span>
             </div>
-            <div className="flex items-center px-2 py-1 rounded-md bg-background-level2">
-              <FolderIcon className="w-3.5 h-3.5 mr-1 text-amber-300" />
+            <div className="bg-background-level2 flex items-center rounded-md px-2 py-1">
+              <FolderIcon className="mr-1 h-3.5 w-3.5 text-amber-300" />
               <span>Virtual folder</span>
             </div>
-            <div className="flex items-center px-2 py-1 rounded-md bg-background-level2">
-              <span className="px-1.5 py-0.5 text-xs rounded-full bg-background-level1 mr-1">
+            <div className="bg-background-level2 flex items-center rounded-md px-2 py-1">
+              <span className="bg-background-level1 mr-1 rounded-full px-1.5 py-0.5 text-xs">
                 1p
               </span>
               <span>Page count</span>
             </div>
-            <div className="flex items-center px-2 py-1 rounded-md bg-background-level2">
-              <span className="px-1.5 py-0.5 text-xs rounded-full bg-background-level1 mr-1">
+            <div className="bg-background-level2 flex items-center rounded-md px-2 py-1">
+              <span className="bg-background-level1 mr-1 rounded-full px-1.5 py-0.5 text-xs">
                 1f
               </span>
               <span>Subfolder count</span>
@@ -600,10 +600,10 @@ export function WikiFolderTree({
               Rename {renamingNode.type === "folder" ? "Folder" : "Page"}
             </h3>
             <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium text-slate-700">
+              <label className="mb-1 block text-sm font-medium text-slate-700">
                 Current Name
               </label>
-              <div className="px-3 py-2 text-sm border rounded-md border-border-default bg-background-level1">
+              <div className="border-border-default bg-background-level1 rounded-md border px-3 py-2 text-sm">
                 {renamingNode.title || renamingNode.name}
               </div>
             </div>
@@ -611,7 +611,7 @@ export function WikiFolderTree({
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="newName"
-                  className="block mb-1 text-sm font-medium text-slate-700"
+                  className="mb-1 block text-sm font-medium text-slate-700"
                 >
                   New Name
                 </label>
@@ -629,7 +629,7 @@ export function WikiFolderTree({
                   setNewName(e.target.value);
                   setRenameConflict(false);
                 }}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                className={`w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 ${
                   renameConflict
                     ? "border-red-500 focus:ring-red-200"
                     : "focus:ring-primary"
@@ -640,13 +640,13 @@ export function WikiFolderTree({
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowRenameModal(false)}
-                className="px-3 py-1.5 text-sm font-medium rounded-md text-text-secondary hover:bg-background-level2 transition-colors border border-border-default"
+                className="text-text-secondary hover:bg-background-level2 border-border-default rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={renameNode}
-                className="px-3 py-1.5 text-sm font-medium rounded-md bg-primary text-white hover:bg-primary-dark transition-colors"
+                className="bg-primary hover:bg-primary-dark rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors"
                 disabled={!newName.trim() || renameConflict}
               >
                 Rename

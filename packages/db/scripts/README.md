@@ -58,4 +58,4 @@ After the script completes successfully, you should:
 - **Stop the container**: `docker stop nextwiki-postgres`
 - **Start the container**: `docker start nextwiki-postgres`
 - **Remove the container**: `docker rm nextwiki-postgres` (only do this if you want to reset everything)
-- **View container logs**: `docker logs nextwiki-postgres` 
+- **View container logs**: `docker logs nextwiki-postgres`

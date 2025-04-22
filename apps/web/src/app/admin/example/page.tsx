@@ -15,53 +15,53 @@ export default function PermissionExamplesPage() {
   }
 
   return (
-    <div className="container p-6 mx-auto">
+    <div className="container mx-auto p-6">
       <h1 className="mb-6 text-3xl font-bold">Permission Examples</h1>
 
-      <div className="p-6 mb-6 rounded-lg shadow-sm bg-background-level1">
+      <div className="bg-background-level1 mb-6 rounded-lg p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold">Single Permission Check</h2>
 
         <PermissionGate permission="wiki:page:read">
           <PermissionGate.Authorized>
-            <div className="p-4 rounded bg-success-light text-success">
+            <div className="bg-success-light text-success rounded p-4">
               You have permission to read wiki pages.
             </div>
           </PermissionGate.Authorized>
           <PermissionGate.Unauthorized>
-            <div className="p-4 rounded bg-warning-light text-warning">
+            <div className="bg-warning-light text-warning rounded p-4">
               You do not have permission to read wiki pages.
             </div>
           </PermissionGate.Unauthorized>
         </PermissionGate>
       </div>
 
-      <div className="p-6 mb-6 rounded-lg shadow-sm bg-background-level1">
+      <div className="bg-background-level1 mb-6 rounded-lg p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold">
           Multiple Permissions Check (Any)
         </h2>
 
         <PermissionGate permissions={["wiki:page:create", "wiki:page:update"]}>
           <PermissionGate.Authorized>
-            <div className="p-4 rounded bg-success-light text-success">
+            <div className="bg-success-light text-success rounded p-4">
               You have permission to create or update wiki pages.
             </div>
           </PermissionGate.Authorized>
           <PermissionGate.Unauthorized>
-            <div className="p-4 rounded bg-warning-light text-warning">
+            <div className="bg-warning-light text-warning rounded p-4">
               You do not have permission to create or update wiki pages.
             </div>
           </PermissionGate.Unauthorized>
         </PermissionGate>
       </div>
 
-      <div className="p-6 rounded-lg shadow-sm bg-background-level1">
+      <div className="bg-background-level1 rounded-lg p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold">With Redirect Example</h2>
-        <p className="mb-6 text-sm text-text-secondary">
+        <p className="text-text-secondary mb-6 text-sm">
           In this example, if you don&apos;t have admin permissions, you would
           be redirected to the login page. Since we want to show this example,
           we&apos;re not using the redirect here, but it would look like:
         </p>
-        <pre className="p-4 overflow-x-auto rounded bg-code-bg text-code-text">
+        <pre className="bg-code-bg text-code-text overflow-x-auto rounded p-4">
           {`<PermissionGate.Root
   permission="system:admin:access" 
 >
@@ -75,7 +75,7 @@ export default function PermissionExamplesPage() {
         </pre>
       </div>
 
-      <div className="p-6 mt-6 rounded-lg shadow-sm bg-background-level1">
+      <div className="bg-background-level1 mt-6 rounded-lg p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold">
           Client-side permission checking
         </h2>

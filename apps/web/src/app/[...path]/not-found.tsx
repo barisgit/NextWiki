@@ -6,10 +6,10 @@ import { CreatePageButton } from "~/components/wiki/CreatePageButton";
 export default function WikiNotFound() {
   return (
     <MainLayout>
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-        <div className="mb-4 text-5xl font-bold text-text-secondary">404</div>
+      <div className="flex h-[60vh] flex-col items-center justify-center text-center">
+        <div className="text-text-secondary mb-4 text-5xl font-bold">404</div>
         <h1 className="mb-2 text-2xl font-bold">Wiki Page Not Found</h1>
-        <p className="max-w-md mb-8 text-text-secondary">
+        <p className="text-text-secondary mb-8 max-w-md">
           The wiki page you&apos;re looking for doesn&apos;t exist or has been
           moved.
         </p>

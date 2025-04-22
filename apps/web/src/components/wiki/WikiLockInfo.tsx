@@ -57,7 +57,7 @@ export function WikiLockInfo({
         <span className="flex items-center text-green-600">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="w-4 h-4 mr-1"
+            className="mr-1 h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -80,15 +80,15 @@ export function WikiLockInfo({
 
   // If locked, render the lock status and relevant actions
   return (
-    <div className="flex items-center gap-3 p-2 border rounded-md shadow-md border-border">
+    <div className="border-border flex items-center gap-3 rounded-md border p-2 shadow-md">
       <div className="flex-grow">
-        <h4 className="flex items-center text-sm font-medium text-text-primary">
+        <h4 className="text-text-primary flex items-center text-sm font-medium">
           {isCurrentUserLockOwner
             ? "You are currently editing this page"
             : `This page is being edited by ${lockedByName || "another user"}`}
         </h4>
         {lockedUntil && new Date(lockedUntil) > new Date() && (
-          <p className="mt-1 text-xs text-text-secondary">
+          <p className="text-text-secondary mt-1 text-xs">
             Lock expires{" "}
             {formatDistanceToNow(new Date(lockedUntil), { addSuffix: true })}
           </p>
@@ -102,7 +102,7 @@ export function WikiLockInfo({
               onClick={handleEdit}
               variant="outlined"
               size="sm"
-              className="py-0 m-0"
+              className="m-0 py-0"
             >
               Continue Editing
             </Button>
@@ -110,7 +110,7 @@ export function WikiLockInfo({
               onClick={handleReleaseLock}
               variant="destructive"
               size="sm"
-              className="py-0 m-0"
+              className="m-0 py-0"
             >
               Release Lock
             </Button>

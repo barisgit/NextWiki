@@ -11,14 +11,14 @@ export function UserMenu() {
   const isAuthenticated = status === "authenticated";
 
   if (isLoading) {
-    return <div className="rounded-full bg-card h-9 w-9 animate-pulse"></div>;
+    return <div className="bg-card h-9 w-9 animate-pulse rounded-full"></div>;
   }
 
   if (!isAuthenticated) {
     return (
       <Link
         href="/login"
-        className="px-4 py-2 text-sm font-medium transition-colors border rounded-lg border-border hover:bg-card-hover text-text-primary"
+        className="border-border hover:bg-card-hover text-text-primary rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
       >
         Sign in
       </Link>
@@ -29,7 +29,7 @@ export function UserMenu() {
     <Popover>
       <PopoverTrigger asChild>
         <button className="flex items-center space-x-2 focus:outline-none">
-          <div className="relative overflow-hidden border rounded-full h-9 w-9 border-border">
+          <div className="border-border relative h-9 w-9 overflow-hidden rounded-full border">
             {session.user.image ? (
               <Image
                 src={session.user.image}
@@ -38,14 +38,14 @@ export function UserMenu() {
                 className="object-cover"
               />
             ) : (
-              <div className="flex items-center justify-center w-full h-full font-medium text-white bg-primary">
+              <div className="bg-primary flex h-full w-full items-center justify-center font-medium text-white">
                 {session.user.name?.charAt(0) ||
                   session.user.email?.charAt(0) ||
                   "U"}
               </div>
             )}
           </div>
-          <span className="text-sm font-medium text-text-primary">
+          <span className="text-text-primary text-sm font-medium">
             {session.user.name || session.user.email?.split("@")[0] || "User"}
           </span>
         </button>
@@ -58,13 +58,13 @@ export function UserMenu() {
         <div className="border-t border-gray-100">
           <Link
             href="/profile"
-            className="block px-4 py-2 text-sm text-text-primary hover:bg-card-hover"
+            className="text-text-primary hover:bg-card-hover block px-4 py-2 text-sm"
           >
             Your Profile
           </Link>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="block w-full px-4 py-2 text-sm text-left text-text-primary hover:bg-card-hover"
+            className="text-text-primary hover:bg-card-hover block w-full px-4 py-2 text-left text-sm"
           >
             Sign out
           </button>

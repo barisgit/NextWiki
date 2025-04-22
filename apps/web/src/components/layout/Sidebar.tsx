@@ -129,7 +129,7 @@ function WikiTreeItem({
                 {Array.from({ length: depth }).map((_, i) => (
                   <div
                     key={i}
-                    className="absolute top-0 bottom-0 border-l border-border-light/50"
+                    className="border-border-light/50 absolute bottom-0 top-0 border-l"
                     style={{
                       left: `${
                         i * INDENTATION_WIDTH + INDENTATION_WIDTH / 2
@@ -139,8 +139,8 @@ function WikiTreeItem({
                   />
                 ))}
               </div>
-              <div className="px-2 py-1.5 text-xs italic font-bold text-text-secondary/80 flex items-center">
-                <span className="text-primary font-mono bg-primary-100 dark:bg-primary/5 px-1.5 py-0.5 rounded">
+              <div className="text-text-secondary/80 flex items-center px-2 py-1.5 text-xs font-bold italic">
+                <span className="text-primary bg-primary-100 dark:bg-primary/5 rounded px-1.5 py-0.5 font-mono">
                   {/* Display the compressed path if needed */}
                   {getCompressedPath(item.path, nextVisibleAncestor.path)}
                 </span>
@@ -150,7 +150,7 @@ function WikiTreeItem({
             {/* Render the next visible ancestor */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center flex-1 min-w-0">
+                <div className="flex min-w-0 flex-1 items-center">
                   <WikiTreeItem
                     item={nextVisibleAncestor}
                     activeItemPath={activeItemPath}
@@ -186,7 +186,7 @@ function WikiTreeItem({
           {Array.from({ length: depth }).map((_, i) => (
             <div
               key={i}
-              className="absolute top-0 bottom-0 border-l border-border-light/50"
+              className="border-border-light/50 absolute bottom-0 top-0 border-l"
               style={{
                 left: `${i * INDENTATION_WIDTH + INDENTATION_WIDTH / 2}px`,
                 height: "100%",
@@ -197,34 +197,34 @@ function WikiTreeItem({
 
         <Tooltip delayDuration={1000}>
           <TooltipTrigger asChild>
-            <div className="flex items-center flex-1 min-w-0">
+            <div className="flex min-w-0 flex-1 items-center">
               {item.type === "folder" && hasChildren ? (
                 <button
                   onClick={(e) => toggleFolder(e, item)}
-                  className="flex items-center justify-center px-0.5 py-1.5 mr-0.5 focus:outline-none flex-shrink-0"
+                  className="mr-0.5 flex flex-shrink-0 items-center justify-center px-0.5 py-1.5 focus:outline-none"
                 >
                   {isExpanded ? (
-                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    <ChevronDown className="text-muted-foreground h-4 w-4" />
                   ) : (
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <ChevronRight className="text-muted-foreground h-4 w-4" />
                   )}
                 </button>
               ) : (
-                <div className="w-4 mr-0.5 flex-shrink-0"></div>
+                <div className="mr-0.5 w-4 flex-shrink-0"></div>
               )}
 
               <Link
                 href={`/${item.path}`}
-                className={`flex flex-1 items-center px-2 py-1.5 text-sm rounded text-text-primary font-medium transition-colors min-w-0 ${
+                className={`text-text-primary flex min-w-0 flex-1 items-center rounded px-2 py-1.5 text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-primary/10 text-primary font-semibold"
                     : "hover:bg-card-hover"
                 }`}
               >
                 {item.type === "folder" ? (
-                  <Folder className="flex-shrink-0 w-4 h-4 mr-2 text-primary" />
+                  <Folder className="text-primary mr-2 h-4 w-4 flex-shrink-0" />
                 ) : (
-                  <File className="flex-shrink-0 w-4 h-4 mr-2 text-accent-600" />
+                  <File className="text-accent-600 mr-2 h-4 w-4 flex-shrink-0" />
                 )}
                 <span className="truncate">{item.title || item.name}</span>
               </Link>
@@ -232,7 +232,7 @@ function WikiTreeItem({
           </TooltipTrigger>
           <TooltipContent
             side="right"
-            className="text-xs font-bold border shadow-lg bg-background-level1 text-accent-900 dark:text-accent-50 border-border-default"
+            className="bg-background-level1 text-accent-900 dark:text-accent-50 border-border-default border text-xs font-bold shadow-lg"
           >
             <p>{item.title || item.name}</p>
           </TooltipContent>
@@ -566,9 +566,9 @@ export function Sidebar() {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col h-screen p-1 border-r shadow-sm w-72 bg-background-paper border-border text-text-primary">
-        <div className="flex items-center justify-between p-3 mb-2">
-          <Link href="/" className="text-2xl font-bold text-primary">
+      <div className="bg-background-paper border-border text-text-primary flex h-screen w-72 flex-col border-r p-1 shadow-sm">
+        <div className="mb-2 flex items-center justify-between p-3">
+          <Link href="/" className="text-primary text-2xl font-bold">
             NextWiki
           </Link>
         </div>
@@ -580,15 +580,15 @@ export function Sidebar() {
         />
 
         {/* Visual Search Bar */}
-        <div className="px-3 mb-4">
+        <div className="mb-4 px-3">
           <div
-            className="flex items-center w-full px-3 py-2 text-sm border rounded-md cursor-pointer bg-background-level1 border-border-default hover:border-border-dark dark:hover:border-border-light text-text-secondary"
+            className="bg-background-level1 border-border-default hover:border-border-dark dark:hover:border-border-light text-text-secondary flex w-full cursor-pointer items-center rounded-md border px-3 py-2 text-sm"
             onClick={() => setIsSearchModalOpen(true)}
           >
-            <Search className="w-4 h-4 mr-2 text-text-secondary" />
+            <Search className="text-text-secondary mr-2 h-4 w-4" />
             <span>Search wiki...</span>
-            <div className="flex items-center ml-auto">
-              <kbd className="flex items-center px-2 py-1 text-xs border rounded-md bg-background-level1 text-text-secondary border-border-default">
+            <div className="ml-auto flex items-center">
+              <kbd className="bg-background-level1 text-text-secondary border-border-default flex items-center rounded-md border px-2 py-1 text-xs">
                 {isMac ? "⌘K" : "Ctrl+K"}
               </kbd>
             </div>
@@ -598,7 +598,7 @@ export function Sidebar() {
         <nav className="space-y-1">
           <Link
             href="/"
-            className={`flex items-center px-4 py-2 text-sm rounded-lg text-text-primary font-medium transition-colors ${
+            className={`text-text-primary flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               pathname === "/"
                 ? "bg-primary/10 text-primary"
                 : "hover:bg-card-hover"
@@ -606,7 +606,7 @@ export function Sidebar() {
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4 mr-3 text-primary"
+              className="text-primary mr-3 h-4 w-4"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -622,7 +622,7 @@ export function Sidebar() {
           </Link>
           <Link
             href="/wiki"
-            className={`flex items-center px-4 py-2 text-sm rounded-lg text-text-primary font-medium transition-colors ${
+            className={`text-text-primary flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               pathname === "/wiki"
                 ? "bg-primary/10 text-primary"
                 : "hover:bg-card-hover"
@@ -630,7 +630,7 @@ export function Sidebar() {
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4 mr-3 text-primary"
+              className="text-primary mr-3 h-4 w-4"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -646,7 +646,7 @@ export function Sidebar() {
           </Link>
           <Link
             href="/tags"
-            className={`flex items-center px-4 py-2 text-sm rounded-lg text-text-primary font-medium transition-colors ${
+            className={`text-text-primary flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               pathname === "/tags"
                 ? "bg-primary/10 text-primary"
                 : "hover:bg-card-hover"
@@ -654,7 +654,7 @@ export function Sidebar() {
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4 mr-3 text-primary"
+              className="text-primary mr-3 h-4 w-4"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -671,29 +671,29 @@ export function Sidebar() {
         </nav>
 
         {/* Horizontal separator */}
-        <hr className="my-4 border-t border-border-light" />
+        <hr className="border-border-light my-4 border-t" />
 
         {/* Top Level Wiki Structure */}
         <div
           ref={scrollAreaContainerRef}
-          className={`scroll-indicator-container relative flex flex-col min-h-0 flex-1 ${
+          className={`scroll-indicator-container relative flex min-h-0 flex-1 flex-col ${
             isScrollable ? "is-scrollable" : ""
           }`}
           data-scroll-bottom={isAtBottom}
         >
-          <h3 className="flex-shrink-0 px-2 mb-2 text-xs font-semibold uppercase text-text-secondary/80">
+          <h3 className="text-text-secondary/80 mb-2 flex-shrink-0 px-2 text-xs font-semibold uppercase">
             Wiki Structure
           </h3>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-4">
-              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              <Loader2 className="text-primary h-5 w-5 animate-spin" />
             </div>
           ) : rootItems.length === 0 ? (
-            <p className="py-2 text-sm text-text-secondary/80">No pages yet</p>
+            <p className="text-text-secondary/80 py-2 text-sm">No pages yet</p>
           ) : (
             <ScrollArea className="flex-1 pr-4">
-              <div className="pb-4 space-y-1">
+              <div className="space-y-1 pb-4">
                 {/* File tree with smart rendering */}
                 {rootItems.map((item) => (
                   <WikiTreeItem
@@ -711,13 +711,13 @@ export function Sidebar() {
         </div>
 
         {/* Create Page Button */}
-        <div className="p-3 mt-4">
+        <div className="mt-4 p-3">
           <ClientRequirePermission permission="wiki:page:create">
             <Link href="/create">
               <Button className="w-full">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4 mr-2"
+                  className="mr-2 h-4 w-4"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"

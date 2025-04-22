@@ -26,7 +26,7 @@ export const codeComponent: Components["code"] = ({
     <span
       className={cn(
         className,
-        "text-markdown-inlinecodetext bg-markdown-inlinecodebg p-1 rounded-md font-bold"
+        "text-markdown-inlinecodetext bg-markdown-inlinecodebg rounded-md p-1 font-bold"
       )}
       {...props}
     >

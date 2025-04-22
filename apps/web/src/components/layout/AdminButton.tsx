@@ -14,11 +14,11 @@ export function AdminButton() {
   return (
     <Link
       href="/admin/dashboard"
-      className="flex items-center px-3 py-2 text-sm font-medium text-white transition-colors rounded-md bg-primary hover:bg-primary-600"
+      className="bg-primary hover:bg-primary-600 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white transition-colors"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5 mr-1.5"
+        className="mr-1.5 h-5 w-5"
         viewBox="0 0 20 20"
         fill="currentColor"
       >

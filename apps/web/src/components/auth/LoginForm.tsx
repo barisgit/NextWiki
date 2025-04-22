@@ -118,11 +118,11 @@ export function LoginForm() {
         </div>
       </form>
 
-      <div className="flex items-center justify-between mt-6">
+      <div className="mt-6 flex items-center justify-between">
         <div className="text-sm">
           <Link
             href="/forgot-password"
-            className="font-medium text-primary hover:text-primary/90"
+            className="text-primary hover:text-primary/90 font-medium"
           >
             Forgot your password?
           </Link>
@@ -130,7 +130,7 @@ export function LoginForm() {
         <div className="text-sm">
           <Link
             href="/register"
-            className="font-medium text-primary hover:text-primary/90"
+            className="text-primary hover:text-primary/90 font-medium"
           >
             Create an account
           </Link>
@@ -140,16 +140,16 @@ export function LoginForm() {
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border-default" />
+            <div className="border-border-default w-full border-t" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 text-text-secondary bg-background-paper">
+            <span className="text-text-secondary bg-background-paper px-2">
               Or continue with
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mt-6">
+        <div className="mt-6 grid grid-cols-2 gap-3">
           <Button
             onClick={() => signIn("github", { callbackUrl: "/" })}
             variant="outlined"

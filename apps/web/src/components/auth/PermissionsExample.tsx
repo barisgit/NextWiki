@@ -27,7 +27,7 @@ export function PermissionsExample() {
       {canViewWikiPages && (
         <Link
           href="/wiki"
-          className="flex items-center px-3 py-2 text-sm font-medium text-white transition-colors rounded-md bg-primary hover:bg-primary-600"
+          className="bg-primary hover:bg-primary-600 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white transition-colors"
         >
           View Wiki
         </Link>
@@ -36,7 +36,7 @@ export function PermissionsExample() {
       {canEditOrCreatePages && (
         <Link
           href="/create"
-          className="flex items-center px-3 py-2 text-sm font-medium text-white transition-colors rounded-md bg-secondary hover:bg-secondary-600"
+          className="bg-secondary hover:bg-secondary-600 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white transition-colors"
         >
           Edit or Create Pages
         </Link>
@@ -46,7 +46,7 @@ export function PermissionsExample() {
       <ClientRequirePermission permission="system:settings:read">
         <Link
           href="/admin/settings"
-          className="flex items-center px-3 py-2 text-sm font-medium text-white transition-colors rounded-md bg-accent hover:bg-accent-600"
+          className="bg-accent hover:bg-accent-600 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white transition-colors"
         >
           Settings
         </Link>
@@ -57,7 +57,7 @@ export function PermissionsExample() {
       >
         <Link
           href="/admin/users"
-          className="flex items-center px-3 py-2 text-sm font-medium text-white transition-colors rounded-md bg-warning hover:bg-warning-600"
+          className="bg-warning hover:bg-warning-600 flex items-center rounded-md px-3 py-2 text-sm font-medium text-white transition-colors"
         >
           User Management
         </Link>

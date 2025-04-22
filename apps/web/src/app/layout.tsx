@@ -124,10 +124,10 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-background-default text-text-primary overflow-y-hidden`}
+        className={`${inter.variable} ${jetbrainsMono.variable} bg-background-default text-text-primary overflow-y-hidden font-sans antialiased`}
       >
         <Providers>
-          <Suspense fallback={<Skeleton className="w-full h-full" />}>
+          <Suspense fallback={<Skeleton className="h-full w-full" />}>
             <PermissionGate
               permission="wiki:page:read"
               publicPaths={["/login", "/register", "/api/*"]}
@@ -137,8 +137,8 @@ export default function RootLayout({
                 <RootLayoutContent>{children}</RootLayoutContent>
               </PermissionGate.Authorized>
               <PermissionGate.Unauthorized>
-                <div className="flex items-center justify-center w-full h-screen">
-                  <div className="p-8 text-center rounded-lg shadow-md bg-red-50 dark:bg-red-900/20">
+                <div className="flex h-screen w-full items-center justify-center">
+                  <div className="rounded-lg bg-red-50 p-8 text-center shadow-md dark:bg-red-900/20">
                     <h2 className="mb-4 text-2xl font-bold text-red-500">
                       Access Denied
                     </h2>
@@ -146,16 +146,16 @@ export default function RootLayout({
                     <p className="mt-2">
                       Please contact an administrator for access.
                     </p>
-                    <div className="flex justify-center mt-4">
+                    <div className="mt-4 flex justify-center">
                       <LogOutButton />
                     </div>
                   </div>
                 </div>
               </PermissionGate.Unauthorized>
               <PermissionGate.NotLoggedIn redirectTo="/login">
-                <div className="flex items-center justify-center w-full h-screen">
-                  <div className="p-8 text-center rounded-lg shadow-md bg-accent-50 dark:bg-accent-900/20">
-                    <h2 className="text-2xl font-bold text-accent-500">
+                <div className="flex h-screen w-full items-center justify-center">
+                  <div className="bg-accent-50 dark:bg-accent-900/20 rounded-lg p-8 text-center shadow-md">
+                    <h2 className="text-accent-500 text-2xl font-bold">
                       Redirecting to login page
                     </h2>
                   </div>

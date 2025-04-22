@@ -95,7 +95,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
 
     return (
       <div className="flex items-start">
-        <div className="relative flex items-center h-5">
+        <div className="relative flex h-5 items-center">
           <input
             id={inputId}
             type="checkbox"
@@ -109,11 +109,11 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             }}
             onChange={handleChange}
             className={cn(
-              "appearance-none cursor-pointer",
-              "focus:ring-2 focus:ring-offset-1 focus:outline-none focus:ring-opacity-50",
+              "cursor-pointer appearance-none",
+              "focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-offset-1",
               "transition-colors duration-200",
               "rounded-md border-2",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "disabled:cursor-not-allowed disabled:opacity-50",
               sizeClasses[size],
               colorClasses[color],
               variantClasses[variant],
@@ -125,7 +125,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           {(isChecked || indeterminate) && (
             <Check
               className={cn(
-                "absolute pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white",
+                "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white",
                 iconSizeClasses[size]
               )}
             />
@@ -136,7 +136,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             {label && (
               <label
                 htmlFor={inputId}
-                className="font-medium cursor-pointer text-text-primary"
+                className="text-text-primary cursor-pointer font-medium"
               >
                 {label}
               </label>

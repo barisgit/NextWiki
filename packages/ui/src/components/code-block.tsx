@@ -94,11 +94,11 @@ export function CodeBlock({
   };
 
   return (
-    <div className={cn("relative group", className)}>
+    <div className={cn("group relative", className)}>
       {/* Container for language and copy button */}
-      <div className="absolute z-10 flex items-center gap-2 right-3 top-3">
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
         {language && language !== "plaintext" && (
-          <span className="px-2 py-0.5 rounded-md bg-background-level2/80 text-xs font-medium text-text-tertiary backdrop-blur-sm">
+          <span className="bg-background-level2/80 text-text-tertiary rounded-md px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
             {language.toUpperCase()}
           </span>
         )}
@@ -108,17 +108,17 @@ export function CodeBlock({
           color="neutral"
           onClick={handleCopy}
           disabled={!codeString}
-          className="opacity-80 hover:opacity-100 transition-opacity pr-3 pl-2.5 bg-background-level2/60 hover:bg-background-level2/90 backdrop-blur-md shadow-sm"
+          className="bg-background-level2/60 hover:bg-background-level2/90 pl-2.5 pr-3 opacity-80 shadow-sm backdrop-blur-md transition-opacity hover:opacity-100"
           aria-label="Copy code to clipboard"
         >
           {isCopied ? (
             <>
-              <CheckIcon className="w-4 h-4 mr-1.5 text-success-500" />
+              <CheckIcon className="text-success-500 mr-1.5 h-4 w-4" />
               Copied!
             </>
           ) : (
             <>
-              <CopyIcon className="w-4 h-4 mr-1.5 text-text-tertiary" />
+              <CopyIcon className="text-text-tertiary mr-1.5 h-4 w-4" />
               Copy
             </>
           )}

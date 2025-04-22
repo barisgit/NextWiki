@@ -20,12 +20,12 @@ export default async function Home() {
 
   return (
     <MainLayout>
-      <div className="max-w-6xl p-6 px-4 mx-auto space-y-10">
-        <section className="max-w-3xl mx-auto text-center">
-          <h1 className="mb-4 text-4xl font-bold text-text-primary">
+      <div className="mx-auto max-w-6xl space-y-10 p-6 px-4">
+        <section className="mx-auto max-w-3xl text-center">
+          <h1 className="text-text-primary mb-4 text-4xl font-bold">
             Welcome to NextWiki
           </h1>
-          <p className="mb-6 text-lg text-text-secondary">
+          <p className="text-text-secondary mb-6 text-lg">
             An open-source wiki system built with Next.js, Drizzle ORM, tRPC,
             and NextAuth. Easily create, edit, and organize your knowledge base.
           </p>
@@ -49,18 +49,18 @@ export default async function Home() {
           </Tabs>
 
           {/* Recent Pages Table */}
-          <div className="flex flex-col w-5/6 gap-4">
-            <h2 className="text-lg font-semibold text-text-primary">
+          <div className="flex w-5/6 flex-col gap-4">
+            <h2 className="text-text-primary text-lg font-semibold">
               Recent Pages
             </h2>
-            <div className="overflow-hidden border rounded-lg shadow-sm border-border-light bg-background-paper">
+            <div className="border-border-light bg-background-paper overflow-hidden rounded-lg border shadow-sm">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-border-light bg-background-level1">
-                    <th className="text-left py-3.5 px-5 text-sm font-semibold text-text-primary">
+                  <tr className="border-border-light bg-background-level1 border-b">
+                    <th className="text-text-primary px-5 py-3.5 text-left text-sm font-semibold">
                       Page Title
                     </th>
-                    <th className="text-left py-3.5 px-5 text-sm font-semibold text-text-primary">
+                    <th className="text-text-primary px-5 py-3.5 text-left text-sm font-semibold">
                       Last Updated
                     </th>
                   </tr>
@@ -69,17 +69,17 @@ export default async function Home() {
                   {recentPages.map((page) => (
                     <tr
                       key={page.id}
-                      className="transition-colors border-b border-border-default last:border-0 hover:bg-card-hover"
+                      className="border-border-default hover:bg-card-hover border-b transition-colors last:border-0"
                     >
-                      <td className="py-3.5 px-5">
+                      <td className="px-5 py-3.5">
                         <Link
                           href={page.path}
-                          className="font-medium text-primary hover:underline"
+                          className="text-primary font-medium hover:underline"
                         >
                           {page.title}
                         </Link>
                       </td>
-                      <td className="py-3.5 px-5 text-sm text-muted-foreground">
+                      <td className="text-muted-foreground px-5 py-3.5 text-sm">
                         {page.updatedAt?.toLocaleString()}
                       </td>
                     </tr>
@@ -92,7 +92,7 @@ export default async function Home() {
 
         {/* Feature Cards */}
         <section>
-          <h2 className="mb-6 text-2xl font-semibold text-text-primary">
+          <h2 className="text-text-primary mb-6 text-2xl font-semibold">
             Wiki Features
           </h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
@@ -104,11 +104,11 @@ export default async function Home() {
                 </CardDescription>
                 <Link
                   href="/wiki/getting-started"
-                  className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                  className="text-primary inline-flex items-center text-sm font-medium hover:underline"
                 >
                   Read the guide
                   <svg
-                    className="w-4 h-4 ml-1"
+                    className="ml-1 h-4 w-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -132,11 +132,11 @@ export default async function Home() {
                 </CardDescription>
                 <Link
                   href="/create"
-                  className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                  className="text-primary inline-flex items-center text-sm font-medium hover:underline"
                 >
                   Create Page
                   <svg
-                    className="w-4 h-4 ml-1"
+                    className="ml-1 h-4 w-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -160,11 +160,11 @@ export default async function Home() {
                 </CardDescription>
                 <Link
                   href="/tags"
-                  className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                  className="text-primary inline-flex items-center text-sm font-medium hover:underline"
                 >
                   View all tags
                   <svg
-                    className="w-4 h-4 ml-1"
+                    className="ml-1 h-4 w-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -188,11 +188,11 @@ export default async function Home() {
                 </CardDescription>
                 <Link
                   href="/settings"
-                  className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                  className="text-primary inline-flex items-center text-sm font-medium hover:underline"
                 >
                   Go to settings
                   <svg
-                    className="w-4 h-4 ml-1"
+                    className="ml-1 h-4 w-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"

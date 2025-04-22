@@ -40,28 +40,28 @@ export default async function GroupUsersPage({
   const users = await dbService.groups.getGroupUsers(groupId);
 
   return (
-    <div className="container p-6 mx-auto">
-      <div className="flex items-center mb-6">
+    <div className="container mx-auto p-6">
+      <div className="mb-6 flex items-center">
         <Link href="/admin/groups">
           <Button variant="ghost" size="icon" className="mr-2">
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <h1 className="text-3xl font-bold">Group Members: {group.name}</h1>
       </div>
 
-      <div className="p-6 rounded-lg shadow-sm bg-background-level1">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-background-level1 rounded-lg p-6 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">Users in this group</h2>
           <AddUsersModal groupId={groupId} groupName={group.name} />
         </div>
-        <p className="mb-6 text-sm text-text-secondary">
+        <p className="text-text-secondary mb-6 text-sm">
           Users in this group inherit all permissions assigned to the group. You
           can add or remove users from this group.
         </p>
 
         {users.length > 0 ? (
-          <div className="border rounded-md">
+          <div className="rounded-md border">
             <table className="w-full">
               <thead>
                 <tr className="border-b">
@@ -88,7 +88,7 @@ export default async function GroupUsersPage({
             </table>
           </div>
         ) : (
-          <p className="py-6 text-center text-text-secondary">
+          <p className="text-text-secondary py-6 text-center">
             No users in this group yet.
           </p>
         )}

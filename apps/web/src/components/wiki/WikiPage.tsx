@@ -163,14 +163,14 @@ export function WikiPage({
 
   return (
     <ScrollArea className="h-[calc(100vh-4rem)]">
-      <div className="flex p-4 space-x-8">
+      <div className="flex space-x-8 p-4">
         {/* Main content */}
-        <div className="flex-1 min-w-0 space-y-6">
-          <div className="pb-4 mb-6 border-b">
+        <div className="min-w-0 flex-1 space-y-6">
+          <div className="mb-6 border-b pb-4">
             {/* Breadcrumbs */}
             <Breadcrumbs path={path} className="mb-3 text-slate-600" />
 
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <h1 className="text-3xl font-bold">{title}</h1>
 
               {/* Combined Actions and Lock Info Area */}
@@ -186,19 +186,19 @@ export function WikiPage({
                         onClick={handleRename}
                         variant="ghost"
                         size="sm"
-                        className="p-1 rounded hover:bg-muted"
+                        className="hover:bg-muted rounded p-1"
                         title="Rename"
                       >
-                        <PencilIcon className="w-4 h-4 text-slate-500 hover:text-slate-700" />
+                        <PencilIcon className="h-4 w-4 text-slate-500 hover:text-slate-700" />
                       </Button>
                       <Button
                         onClick={handleMove}
                         variant="ghost"
                         size="sm"
-                        className="p-1 rounded hover:bg-muted"
+                        className="hover:bg-muted rounded p-1"
                         title="Move"
                       >
-                        <MoveIcon className="w-4 h-4 text-slate-500 hover:text-slate-700" />
+                        <MoveIcon className="h-4 w-4 text-slate-500 hover:text-slate-700" />
                       </Button>
                     </div>
                   )}
@@ -219,11 +219,11 @@ export function WikiPage({
               </div>
             </div>
 
-            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+            <div className="text-muted-foreground flex items-center space-x-4 text-sm">
               <div className="flex items-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4 mr-1"
+                  className="mr-1 h-4 w-4"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -242,12 +242,12 @@ export function WikiPage({
             </div>
 
             {tags.length > 0 && (
-              <div className="flex items-center mt-3 space-x-2">
+              <div className="mt-3 flex items-center space-x-2">
                 {tags.map((tag) => (
                   <Link
                     key={tag.id}
                     href={`/tags/${tag.name}`}
-                    className="px-2 py-0.5 bg-muted text-xs rounded-full hover:bg-muted/80"
+                    className="bg-muted hover:bg-muted/80 rounded-full px-2 py-0.5 text-xs"
                   >
                     {tag.name}
                   </Link>
@@ -284,10 +284,10 @@ export function WikiPage({
             <div className="p-4">
               <h3 className="mb-4 text-lg font-medium">Rename Page</h3>
               <div className="mb-4">
-                <label className="block mb-1 text-sm font-medium text-text-secondary">
+                <label className="text-text-secondary mb-1 block text-sm font-medium">
                   Current Name
                 </label>
-                <div className="px-3 py-2 text-sm border rounded-md border-border-light bg-background-paper text-text-secondary/50">
+                <div className="border-border-light bg-background-paper text-text-secondary/50 rounded-md border px-3 py-2 text-sm">
                   {title}
                 </div>
               </div>
@@ -295,7 +295,7 @@ export function WikiPage({
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="newName"
-                    className="block mb-1 text-sm font-medium text-text-secondary"
+                    className="text-text-secondary mb-1 block text-sm font-medium"
                   >
                     New Name
                   </label>
@@ -313,7 +313,7 @@ export function WikiPage({
                     setNewName(e.target.value);
                     setRenameConflict(false);
                   }}
-                  className={`w-full px-3 py-2 text-sm border border-border-light rounded-md focus:outline-none focus:ring-1 bg-background-level1 ${
+                  className={`border-border-light bg-background-level1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
                     renameConflict
                       ? "border-red-500 focus:ring-red-200"
                       : "focus:ring-primary"
@@ -324,13 +324,13 @@ export function WikiPage({
               <div className="flex justify-end space-x-2">
                 <button
                   onClick={() => setShowRenameModal(false)}
-                  className="px-3 py-1.5 text-sm font-medium rounded-md text-text-secondary hover:bg-background-level2 transition-colors border border-border-light"
+                  className="text-text-secondary hover:bg-background-level2 border-border-light rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={renameNode}
-                  className="px-3 py-1.5 text-sm font-medium rounded-md bg-primary hover:bg-primary-600 text-primary-foreground hover:bg-primary-dark transition-colors"
+                  className="bg-primary hover:bg-primary-600 text-primary-foreground hover:bg-primary-dark rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
                   disabled={!newName.trim() || renameConflict}
                 >
                   Rename

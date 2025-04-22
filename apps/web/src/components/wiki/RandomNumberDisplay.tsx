@@ -76,8 +76,8 @@ export function RandomNumberDisplay() {
   }
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 text-sm border rounded border-border bg-background-level1">
-      <span className={`w-2 h-2 rounded-full ${indicatorBgClass}`}></span>
+    <div className="border-border bg-background-level1 flex items-center gap-2 rounded border px-3 py-2 text-sm">
+      <span className={`h-2 w-2 rounded-full ${indicatorBgClass}`}></span>
       <span>{displayText}</span>
     </div>
   );

@@ -27,7 +27,7 @@ export function ThemeToggle() {
       <PopoverContent
         align="center"
         side="bottom"
-        className="w-auto p-0 rounded-lg"
+        className="w-auto rounded-lg p-0"
       >
         <div className="flex items-center gap-1">
           <Button
@@ -37,11 +37,11 @@ export function ThemeToggle() {
               setTheme("light");
               setOpen(false);
             }}
-            className="justify-center flex-1"
+            className="flex-1 justify-center"
             color={theme === "light" ? "primary" : "neutral"}
             aria-label="Light Mode"
           >
-            <Sun className="w-4 h-4" />
+            <Sun className="h-4 w-4" />
             <span className="sr-only md:not-sr-only md:ml-2">Light</span>
           </Button>
 
@@ -52,11 +52,11 @@ export function ThemeToggle() {
               setTheme("system");
               setOpen(false);
             }}
-            className="justify-center flex-1"
+            className="flex-1 justify-center"
             color={theme === "system" ? "primary" : "neutral"}
             aria-label="System Theme"
           >
-            <MonitorSmartphone className="w-4 h-4" />
+            <MonitorSmartphone className="h-4 w-4" />
             <span className="sr-only md:not-sr-only md:ml-2">Auto</span>
           </Button>
 
@@ -67,11 +67,11 @@ export function ThemeToggle() {
               setTheme("dark");
               setOpen(false);
             }}
-            className="justify-center flex-1"
+            className="flex-1 justify-center"
             color={theme === "dark" ? "primary" : "neutral"}
             aria-label="Dark Mode"
           >
-            <Moon className="w-4 h-4" />
+            <Moon className="h-4 w-4" />
             <span className="sr-only md:not-sr-only md:ml-2">Dark</span>
           </Button>
         </div>

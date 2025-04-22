@@ -25,11 +25,11 @@ export default async function NewGroupPage() {
   const permissions = await dbService.permissions.getAll();
 
   return (
-    <div className="container p-6 mx-auto">
+    <div className="container mx-auto p-6">
       <h1 className="mb-6 text-3xl font-bold">Create New Group</h1>
 
-      <div className="p-6 rounded-lg shadow-sm bg-card">
-        <p className="mb-6 text-muted-foreground">
+      <div className="bg-card rounded-lg p-6 shadow-sm">
+        <p className="text-muted-foreground mb-6">
           Create a new user group and configure its permissions. Groups allow
           you to organize users and assign permissions to them collectively.
         </p>

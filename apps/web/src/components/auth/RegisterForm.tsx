@@ -90,7 +90,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
   return (
     <>
       {error && (
-        <div className="p-4 text-sm text-red-500 rounded-md bg-red-50">
+        <div className="rounded-md bg-red-50 p-4 text-sm text-red-500">
           {error}
         </div>
       )}
@@ -162,7 +162,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
           <button
             type="submit"
             disabled={isLoading || registerMutation.isPending}
-            className="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md group bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-primary hover:bg-primary/90 focus:ring-primary group relative flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoading || registerMutation.isPending
               ? "Registering..."
@@ -172,12 +172,12 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
       </form>
 
       {!isFirstUser && (
-        <div className="mt-6 text-sm text-center">
+        <div className="mt-6 text-center text-sm">
           <p>
             Already have an account?{" "}
             <Link
               href="/login"
-              className="font-medium text-primary hover:text-primary/90"
+              className="text-primary hover:text-primary/90 font-medium"
             >
               Sign in
             </Link>

@@ -38,16 +38,16 @@ export default async function TagPage({
 
   return (
     <MainLayout>
-      <div className="p-4 space-y-6">
+      <div className="space-y-6 p-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="flex items-center text-2xl font-bold">
               Pages tagged:
-              <span className="px-3 py-1 ml-2 text-sm rounded-full bg-muted">
+              <span className="bg-muted ml-2 rounded-full px-3 py-1 text-sm">
                 {tag}
               </span>
             </h1>
-            <p className="mt-1 text-muted-foreground">
+            <p className="text-muted-foreground mt-1">
               Found {filteredPages?.pages.length}{" "}
               {filteredPages?.pages.length === 1 ? "page" : "pages"} with this
               tag.

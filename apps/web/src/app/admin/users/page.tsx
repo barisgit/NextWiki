@@ -143,13 +143,13 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <h1 className="text-2xl font-bold">User Management</h1>
           <ClientRequirePermission permission="system:users:create">
             <Button
               onClick={() => toast.info("Create user not implemented yet.")}
             >
-              <PlusIcon className="w-5 h-5 mr-2" />
+              <PlusIcon className="mr-2 h-5 w-5" />
               Create User
             </Button>
           </ClientRequirePermission>
@@ -176,12 +176,12 @@ export default function AdminUsersPage() {
             <div className="overflow-x-auto">
               {usersLoading ? (
                 <div className="flex justify-center py-8">
-                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+                  <div className="border-primary inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
                 </div>
               ) : (
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="border-b border-border-default">
+                    <tr className="border-border-default border-b">
                       <th className="px-4 py-2 text-left">Name</th>
                       <th className="px-4 py-2 text-left">Email</th>
                       <th className="px-4 py-2 text-left">Admin</th>
@@ -192,7 +192,7 @@ export default function AdminUsersPage() {
                     {filteredUsers.map((user) => (
                       <tr
                         key={user.id}
-                        className={`border-b border-border-light hover:bg-background-level3 cursor-pointer ${
+                        className={`border-border-light hover:bg-background-level3 cursor-pointer border-b ${
                           selectedUser?.id === user.id ? "bg-primary/10" : ""
                         }`}
                         onClick={() => handleUserSelect(user)} // This should now work
@@ -204,11 +204,11 @@ export default function AdminUsersPage() {
                           {user.userGroups.some(
                             (group) => group.groupId === 1 // Assuming Admin group ID is 1
                           ) ? (
-                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-800">
+                            <span className="bg-primary-100 text-primary-800 inline-flex items-center rounded-full px-2 py-1 text-xs font-medium">
                               Admin
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-background-level2 text-text-secondary">
+                            <span className="bg-background-level2 text-text-secondary inline-flex items-center rounded-full px-2 py-1 text-xs font-medium">
                               User
                             </span>
                           )}
@@ -219,7 +219,7 @@ export default function AdminUsersPage() {
                             {user.userGroups?.map((ug) => (
                               <span
                                 key={ug.groupId}
-                                className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-accent-100 text-accent-800"
+                                className="bg-accent-100 text-accent-800 inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
                               >
                                 {ug.group.name}
                               </span>
@@ -249,15 +249,15 @@ export default function AdminUsersPage() {
 
                 <TabsContent value="details" className="mt-4 space-y-4">
                   <div>
-                    <p className="text-sm text-text-secondary">Name</p>
+                    <p className="text-text-secondary text-sm">Name</p>
                     <p className="font-medium">{selectedUser.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-text-secondary">Email</p>
+                    <p className="text-text-secondary text-sm">Email</p>
                     <p className="font-medium">{selectedUser.email}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-text-secondary">Role</p>
+                    <p className="text-text-secondary text-sm">Role</p>
                     <p className="font-medium">
                       {/* Use groupId for the check */}
                       {selectedUser.userGroups.some(
@@ -267,7 +267,7 @@ export default function AdminUsersPage() {
                         : "Regular User"}
                     </p>
                   </div>
-                  <div className="pt-4 space-y-2">
+                  <div className="space-y-2 pt-4">
                     <ClientRequirePermission permission="system:users:update">
                       <Button
                         className="w-full"
@@ -287,7 +287,7 @@ export default function AdminUsersPage() {
                           toast.info("Delete user not implemented yet.")
                         }
                       >
-                        <TrashIcon className="w-5 h-5 mr-2" />
+                        <TrashIcon className="mr-2 h-5 w-5" />
                         Delete User
                       </Button>
                     </ClientRequirePermission>
@@ -295,13 +295,13 @@ export default function AdminUsersPage() {
                 </TabsContent>
 
                 <TabsContent value="groups" className="mt-4">
-                  <p className="mb-2 text-sm text-text-secondary">
+                  <p className="text-text-secondary mb-2 text-sm">
                     User Group Memberships
                   </p>
 
                   {groupsLoading ? (
                     <div className="flex justify-center py-4">
-                      <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+                      <div className="border-primary inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
                     </div>
                   ) : (
                     <div className="mb-4 space-y-2">
@@ -331,12 +331,12 @@ export default function AdminUsersPage() {
                           >
                             <span>{group.name}</span>
                             {group.description && (
-                              <span className="text-xs text-text-secondary">
+                              <span className="text-text-secondary text-xs">
                                 {group.description}
                               </span>
                             )}
                             {group.isSystem && (
-                              <span className="text-xs text-destructive">
+                              <span className="text-destructive text-xs">
                                 (Locked)
                               </span>
                             )}
@@ -385,7 +385,7 @@ export default function AdminUsersPage() {
                     the appropriate groups to grant permissions.
                   </p>
 
-                  <div className="p-3 rounded bg-background-level1">
+                  <div className="bg-background-level1 rounded p-3">
                     <h3 className="mb-2 font-medium">
                       Current Permissions (via Groups)
                     </h3>
@@ -396,7 +396,7 @@ export default function AdminUsersPage() {
                             <h4 className="text-sm font-medium">
                               {ug.group.name}
                             </h4>
-                            <p className="pl-2 text-xs italic text-text-secondary">
+                            <p className="text-text-secondary pl-2 text-xs italic">
                               (Permissions must be viewed on the Groups page or
                               fetched separately)
                             </p>
@@ -404,7 +404,7 @@ export default function AdminUsersPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-text-secondary">
+                      <p className="text-text-secondary text-sm">
                         No permissions assigned via groups
                       </p>
                     )}
@@ -413,10 +413,10 @@ export default function AdminUsersPage() {
               </Tabs>
             </Card>
           ) : (
-            <Card className="flex flex-col items-center justify-center h-full p-6 text-center text-text-secondary">
+            <Card className="text-text-secondary flex h-full flex-col items-center justify-center p-6 text-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-12 h-12 mb-4 text-muted-foreground"
+                className="text-muted-foreground mb-4 h-12 w-12"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

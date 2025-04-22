@@ -52,11 +52,11 @@ export function AllPagesList() {
   return (
     <div className="space-y-4">
       {/* Search Input */}
-      <div className="flex items-center mb-6">
-        <div className="relative flex-1 max-w-md">
+      <div className="mb-6 flex items-center">
+        <div className="relative max-w-md flex-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-text-secondary"
+            className="text-text-secondary absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -68,7 +68,7 @@ export function AllPagesList() {
           <input
             type="search"
             placeholder="Search pages..."
-            className="w-full py-2 pl-10 pr-4 border rounded-md border-border focus:outline-none focus:ring-2 focus:ring-primary"
+            className="border-border focus:ring-primary w-full rounded-md border py-2 pl-10 pr-4 focus:outline-none focus:ring-2"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />

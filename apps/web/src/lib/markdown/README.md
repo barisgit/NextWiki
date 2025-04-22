@@ -14,14 +14,14 @@ import { HighlightedContent, renderMarkdownToHtml } from "~/lib/markdown";
 // Server component that fetches content
 export async function WikiPage({ pageId }: { pageId: string }) {
   const page = await getWikiPage(pageId);
-  
+
   // Pre-render the content on the server
   const renderedHtml = renderMarkdownToHtml(page.content);
-  
+
   return (
-    <HighlightedContent 
-      content={page.content}   // Original markdown (needed for search)
-      renderedHtml={renderedHtml}  // Pre-rendered HTML
+    <HighlightedContent
+      content={page.content} // Original markdown (needed for search)
+      renderedHtml={renderedHtml} // Pre-rendered HTML
     />
   );
 }
@@ -69,7 +69,7 @@ Example:
 
 ```ts
 // src/lib/markdown/plugins/server-only/myServerPlugin.ts
-import type { Plugin } from 'unified';
+import type { Plugin } from "unified";
 
 interface MyPluginOptions {
   // Your options here

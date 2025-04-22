@@ -43,8 +43,8 @@ const loggerPlugin: Plugin<[LoggerPluginOptions?], undefined> = (
       level === "warn"
         ? logger.warn
         : level === "debug"
-        ? logger.debug
-        : logger.info;
+          ? logger.debug
+          : logger.info;
 
     const totalNodes = Object.values(counts).reduce(
       (sum, count) => sum + count,
