@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getServerAuthSession } from "~/lib/auth";
 import { authorizationService } from "~/lib/services";
-import { PermissionIdentifier } from "~/lib/permissions";
+import { PermissionIdentifier } from "@repo/db/client";
 
 // --- Helper function to check if current path is public ---
 function isPublicPath(pathname: string, publicPaths?: string[]): boolean {

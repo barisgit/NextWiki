@@ -3,10 +3,10 @@
  * This file should never be imported directly from client components
  * Only import from server components or API routes
  */
-import { db } from "~/lib/db";
-import { permissions } from "~/lib/db/schema";
+import { db } from "@repo/db";
+import { permissions } from "@repo/db";
 import { eq } from "drizzle-orm";
-import { getAllPermissions, createPermissionId } from "./registry";
+import { getAllPermissions, createPermissionId } from "@repo/db";
 import { logger } from "~/lib/utils/logger";
 
 /**

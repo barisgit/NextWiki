@@ -5,10 +5,10 @@
  * These utilities should be safe to use in client components
  */
 import {
-  PermissionIdentifier,
+  type PermissionIdentifier,
   validatePermissionId,
   getAllPermissionIds,
-} from "./index";
+} from "@repo/db/client";
 import { logger } from "~/lib/utils/logger";
 
 /**

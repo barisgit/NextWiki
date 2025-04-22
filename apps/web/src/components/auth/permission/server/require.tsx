@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { headers } from "next/headers";
 import { getServerAuthSession } from "~/lib/auth";
 import { authorizationService } from "~/lib/services";
-import { PermissionIdentifier } from "~/lib/permissions";
+import { PermissionIdentifier } from "@repo/db";
 import { isPublicPath } from "../utils/path-utils";
 
 interface RequirePermissionProps {

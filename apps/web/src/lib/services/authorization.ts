@@ -1,13 +1,13 @@
-import { db } from "~/lib/db";
+import { db } from "@repo/db";
 import {
   userGroups,
   groupPermissions,
   permissions,
   pagePermissions,
   groups,
-} from "~/lib/db/schema";
+} from "@repo/db";
 import { eq, and, inArray, or, isNull } from "drizzle-orm";
-import { PermissionIdentifier, validatePermissionId } from "~/lib/permissions";
+import { PermissionIdentifier, validatePermissionId } from "@repo/db";
 import { logger } from "~/lib/utils/logger";
 
 /**

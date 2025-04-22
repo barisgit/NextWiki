@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { PermissionIdentifier } from "~/lib/permissions";
+import { PermissionIdentifier } from "@repo/db/client";
 
 // Define permission type with typed identifier
 export interface Permission {

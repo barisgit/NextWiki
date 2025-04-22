@@ -1,12 +1,11 @@
-import { db } from "~/lib/db";
+import { db } from "@repo/db";
 import {
   wikiPages,
   wikiPageRevisions,
   wikiPageToTag,
   wikiTags,
-} from "~/lib/db/schema";
-import { desc, eq } from "drizzle-orm";
-import { sql } from "drizzle-orm";
+} from "@repo/db";
+import { desc, eq, sql } from "drizzle-orm";
 import { lockService } from "~/lib/services";
 import { Transaction } from "~/types/db";
 import { logger } from "~/lib/utils/logger";

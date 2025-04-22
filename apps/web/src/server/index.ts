@@ -1,9 +1,10 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { Session } from "next-auth";
 import { authorizationService } from "~/lib/services/authorization";
-import { PermissionIdentifier, validatePermissionId } from "~/lib/permissions";
+import { PermissionIdentifier, validatePermissionId } from "@repo/db";
 import type { TRPCPanelMeta } from "trpc-ui";
 import { Context } from "./context";
+import { logger } from "~/lib/utils/logger";
 
 // Initialize tRPC server instance
 const t = initTRPC.context<Context>().meta<TRPCPanelMeta>().create();
@@ -62,6 +63,7 @@ export function withPermission(
   allowGuests = false
 ) {
   if (!validatePermissionId(permissionName)) {
+    logger.error(`Invalid permission identifier: ${permissionName}`);
     throw new Error(`Invalid permission identifier: ${permissionName}`);
   }
 
@@ -73,6 +75,7 @@ export function withPermission(
 
     // If guest access is not allowed and user is not logged in
     if (!allowGuests && userId === undefined) {
+      logger.error("User is not logged in");
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "You must be logged in to perform this action",
@@ -85,6 +88,7 @@ export function withPermission(
     );
 
     if (!hasPermission) {
+      logger.error(`User does not have permission: ${permissionName}`);
       throw new TRPCError({
         code: "FORBIDDEN",
         message: `You don't have the required permission: ${permissionName}`,

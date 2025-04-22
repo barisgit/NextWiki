@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { desc, eq, like, gt, and, sql } from "drizzle-orm";
-import { db, wikiPages } from "~/lib/db";
+import { db, wikiPages } from "@repo/db";
 import {
   permissionGuestProcedure,
   permissionProtectedProcedure,

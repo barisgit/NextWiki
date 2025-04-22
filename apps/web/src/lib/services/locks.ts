@@ -1,5 +1,5 @@
-import { db } from "~/lib/db";
-import { wikiPages } from "~/lib/db/schema";
+import { db } from "@repo/db";
+import { wikiPages } from "@repo/db";
 import { eq, sql } from "drizzle-orm";
 import { logger } from "~/lib/utils/logger";
 

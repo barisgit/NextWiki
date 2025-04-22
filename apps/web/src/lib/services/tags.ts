@@ -1,5 +1,5 @@
-import { db } from "~/lib/db";
-import { wikiTags, wikiPageToTag } from "~/lib/db/schema";
+import { db } from "@repo/db";
+import { wikiTags, wikiPageToTag } from "@repo/db";
 import { eq, ilike } from "drizzle-orm";
 
 /**

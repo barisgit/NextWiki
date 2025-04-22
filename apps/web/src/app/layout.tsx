@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "highlight.js/styles/github.css";
-import "~/styles/globals.css";
+import "@repo/ui/styles.css";
+import "@repo/ui/globals.css";
 import { dbService } from "~/lib/services";
 import RegisterPage from "./(auth)/register/page";
 import { Suspense } from "react";
 import { Skeleton } from "@repo/ui";
 import { Providers } from "~/providers";
-import { seed } from "~/lib/db/seed";
+import { seed } from "@repo/db";
 import { PermissionGate } from "~/components/auth/permission/server";
 import { LogOutButton } from "~/components/auth/LogOutButton";
 import { logger } from "~/lib/utils/logger";
@@ -31,6 +32,8 @@ export const metadata: Metadata = {
 async function RootLayoutContent({ children }: { children: React.ReactNode }) {
   let adminGroupExists =
     !!(await dbService.groups.findByName("Administrators"));
+
+  logger.log("adminGroupExists", adminGroupExists);
 
   // Attempt seeding only if the admin group doesn't exist
   if (!adminGroupExists) {

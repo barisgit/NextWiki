@@ -2,7 +2,7 @@ import { ReactNode, Children, isValidElement } from "react";
 import { redirect } from "next/navigation";
 import { getServerAuthSession } from "~/lib/auth";
 import { authorizationService } from "~/lib/services";
-import { PermissionIdentifier } from "~/lib/permissions";
+import { PermissionIdentifier } from "@repo/db";
 import { isPublicPath } from "../utils/path-utils";
 import { headers } from "next/headers";
 

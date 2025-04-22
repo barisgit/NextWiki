@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useTRPC } from "~/server/client";
 import { useQuery } from "@tanstack/react-query";
 import { checkPermission } from "~/lib/permissions/client";
-import { PermissionIdentifier } from "~/lib/permissions";
+import { PermissionIdentifier } from "@repo/db/client";
 import { PermissionContext, Permission } from "./utils/context";
 import { logger } from "~/lib/utils/logger";
 

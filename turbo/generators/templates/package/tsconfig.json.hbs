@@ -1,0 +1,8 @@
+{
+  "extends": "@repo/typescript-config/{{#if (eq type "base")}}base{{/if}}{{#if (eq type "react-library")}}react-library{{/if}}{{#if (eq type "nextjs")}}nextjs{{/if}}.json",
+  "compilerOptions": {
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
+}
