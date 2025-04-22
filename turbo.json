@@ -17,6 +17,21 @@
       "cache": false,
       "persistent": true
     },
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "test:watch": {
+      "dependsOn": ["^build"]
+    },
+    "test:cov": {
+      "dependsOn": ["^build"]
+    },
+    "test:debug": {
+      "dependsOn": ["^build"]
+    },
+    "test:e2e": {
+      "dependsOn": ["^build"]
+    },
     "db:setup": {},
     "db:generate": {},
     "db:migrate": {},
