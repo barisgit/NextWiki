@@ -4,9 +4,9 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { Alert, AlertDescription } from "~/components/ui/alert";
-import { Button } from "~/components/ui/button";
-import { Input } from "../ui/input";
+import { Alert, AlertDescription } from "@repo/ui";
+import { Button } from "@repo/ui";
+import { Input } from "@repo/ui";
 
 // Create a separate component to read searchParams to work with Suspense
 function RegistrationSuccessMessage() {

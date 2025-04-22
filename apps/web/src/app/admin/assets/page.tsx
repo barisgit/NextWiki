@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTRPC } from "~/server/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
-import { Input } from "~/components/ui/input";
+import { Input } from "@repo/ui";
 import Image from "next/image";
 import {
   Select,
@@ -12,7 +12,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select";
+} from "@repo/ui";
 
 export default function AssetsAdminPage() {
   const notification = useNotification();
@@ -80,13 +80,15 @@ export default function AssetsAdminPage() {
             placeholder="Search by file name..."
             className="w-full px-3 py-2 border rounded-md"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setSearchTerm(e.target.value)
+            }
           />
         </div>
         <div>
           <Select
             value={selectedFileType}
-            onValueChange={(value) => setSelectedFileType(value)}
+            onValueChange={(value: string) => setSelectedFileType(value)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="All file types" />

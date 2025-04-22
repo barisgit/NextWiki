@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useTRPC } from "~/server/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Modal from "~/components/ui/modal";
+import { Modal } from "@repo/ui";
 import { PageLocationEditor } from "./PageLocationEditor";
 import { ClientRequirePermission } from "../auth/permission/client";
 

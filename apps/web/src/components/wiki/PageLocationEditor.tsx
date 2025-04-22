@@ -6,10 +6,10 @@ import { WikiFolderTree } from "./WikiFolderTree";
 import { useTRPC } from "~/server/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
-import Modal from "~/components/ui/modal";
-import Radio, { RadioGroup } from "~/components/ui/radio";
-import { Checkbox } from "~/components/ui/checkbox";
-import { Button } from "~/components/ui/button";
+import { Modal } from "@repo/ui";
+import { Radio, RadioGroup } from "@repo/ui";
+import { Checkbox } from "@repo/ui";
+import { Button } from "@repo/ui";
 
 interface PageLocationEditorProps {
   mode: "create" | "move";
@@ -324,10 +324,10 @@ export function PageLocationEditor({
                     : "Creating Folder..."
                   : "Moving..."
                 : mode === "create"
-                ? creationType === "page"
-                  ? "Continue to Editor"
-                  : "Create Folder"
-                : "Move Page"}
+                  ? creationType === "page"
+                    ? "Continue to Editor"
+                    : "Create Folder"
+                  : "Move Page"}
             </Button>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { LoginForm } from "~/components/auth/LoginForm";
 import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePermissions } from "~/components/auth/permission/client";
-import { Button } from "~/components/ui/button";
+import { Button } from "@repo/ui";
 import { ArrowLeftIcon } from "lucide-react";
 
 export default function LoginPage() {

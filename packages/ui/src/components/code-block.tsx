@@ -7,8 +7,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Button } from "./button";
 import { CheckIcon, CopyIcon } from "@radix-ui/react-icons";
-import { cn } from "~/lib/utils";
-import { logger } from "~/lib/utils/logger";
+import { cn } from "../utils";
 
 /**
  * Converts React children nodes to a string, handling <br> tags.
@@ -73,7 +72,7 @@ export function CodeBlock({
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
-      logger.error("Failed to copy code:", err);
+      void err;
     }
   };
 

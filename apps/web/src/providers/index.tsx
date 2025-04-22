@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 import { TRPCClientProvider } from "~/server/providers";
 import { ThemeProvider } from "~/providers/theme-provider";
-import { ModalProvider } from "~/components/ui/modal-provider";
+import { ModalProvider } from "@repo/ui";
 import { PermissionProvider } from "~/components/auth/permission/client";
 import { Toaster } from "sonner";
 import { useTheme } from "~/providers/theme-provider";

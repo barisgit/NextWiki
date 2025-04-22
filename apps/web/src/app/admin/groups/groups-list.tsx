@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "~/components/ui/button";
+import { Button } from "@repo/ui";
 import {
   Table,
   TableBody,
@@ -8,8 +8,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
+} from "@repo/ui";
+import { Badge } from "@repo/ui";
 import { Eye, Pencil, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";

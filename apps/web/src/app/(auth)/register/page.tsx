@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { RegisterForm } from "~/components/auth/RegisterForm";
 import { usePermissions } from "~/components/auth/permission/client";
-import { Button } from "~/components/ui/button";
+import { Button } from "@repo/ui";
 
 export default function RegisterPage({
   isFirstUser = false,

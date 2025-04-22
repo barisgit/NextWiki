@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "~/lib/utils";
+import { cn } from "../utils";
 
 export interface RadioProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "color"> {
@@ -132,7 +132,7 @@ export interface RadioGroupProps {
   name?: string;
 }
 
-export const RadioGroup = ({
+const RadioGroup = ({
   children,
   className,
   orientation = "vertical",
@@ -173,4 +173,4 @@ export const RadioGroup = ({
   );
 };
 
-export default Radio;
+export { Radio, RadioGroup };

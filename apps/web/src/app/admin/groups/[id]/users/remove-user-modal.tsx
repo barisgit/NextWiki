@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { Trash2, Loader2 } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import Modal from "~/components/ui/modal";
+import { Button, Modal } from "@repo/ui";
 import { useTRPC } from "~/server/client";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";

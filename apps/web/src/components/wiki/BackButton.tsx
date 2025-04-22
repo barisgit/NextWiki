@@ -1,5 +1,5 @@
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { Button } from "../ui/button";
+import { Button } from "@repo/ui";
 import { useRouter } from "next/navigation";
 import { cn } from "~/lib/utils";
 

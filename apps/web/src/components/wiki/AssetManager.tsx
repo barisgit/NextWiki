@@ -1,7 +1,5 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { Button } from "~/components/ui/button";
+import { Button } from "@repo/ui";
 import {
   Trash2,
   Upload,
@@ -16,10 +14,10 @@ import { useTRPC } from "~/server/client";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { formatFileSize } from "~/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Modal from "../ui/modal";
-import { Input } from "~/components/ui/input";
+import { Modal } from "@repo/ui";
+import { Input } from "@repo/ui";
 import { PaginationInput, PaginationMeta } from "~/lib/utils/pagination";
-import { ScrollArea } from "~/components/ui/scroll-area";
+import { ScrollArea } from "@repo/ui";
 import { logger } from "~/lib/utils/logger";
 
 export interface AssetType {

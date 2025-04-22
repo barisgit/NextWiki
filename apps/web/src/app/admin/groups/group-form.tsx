@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
-import { toast } from "sonner";
-import { Checkbox } from "~/components/ui/checkbox";
-import { Label } from "~/components/ui/label";
 import {
+  Button,
+  Input,
+  Textarea,
+  Checkbox,
+  Label,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "~/components/ui/tooltip";
+} from "@repo/ui";
+import { toast } from "sonner";
 import { useTRPC } from "~/server/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { logger } from "~/lib/utils/logger";
@@ -256,7 +256,9 @@ export default function GroupForm({
           <Input
             id="name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setName(e.target.value)
+            }
             required
             disabled={isSystem}
           />
@@ -266,7 +268,9 @@ export default function GroupForm({
           <Textarea
             id="description"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setDescription(e.target.value)
+            }
             disabled={isSystem}
           />
         </div>
@@ -318,7 +322,9 @@ export default function GroupForm({
                                     disabled={
                                       !isAllowed || name === "Administrators"
                                     }
-                                    onChange={(e) => {
+                                    onChange={(
+                                      e: React.ChangeEvent<HTMLInputElement>
+                                    ) => {
                                       if (e.target.checked) {
                                         setSelectedPermissions([
                                           ...selectedPermissions,
@@ -391,7 +397,7 @@ export default function GroupForm({
                   <Checkbox
                     id={`module-${module}`}
                     checked={selectedModules.includes(module)}
-                    onChange={(e) => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       if (e.target.checked) {
                         setSelectedModules([...selectedModules, module]);
                       } else {
@@ -430,7 +436,7 @@ export default function GroupForm({
                   <Checkbox
                     id={`action-${action}`}
                     checked={selectedActions.includes(action)}
-                    onChange={(e) => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       if (e.target.checked) {
                         setSelectedActions([...selectedActions, action]);
                       } else {

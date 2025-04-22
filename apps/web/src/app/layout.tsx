@@ -5,7 +5,7 @@ import "~/styles/globals.css";
 import { dbService } from "~/lib/services";
 import RegisterPage from "./(auth)/register/page";
 import { Suspense } from "react";
-import { Skeleton } from "~/components/ui/skeleton";
+import { Skeleton } from "@repo/ui";
 import { Providers } from "~/providers";
 import { seed } from "~/lib/db/seed";
 import { PermissionGate } from "~/components/auth/permission/server";
@@ -29,9 +29,8 @@ export const metadata: Metadata = {
 };
 
 async function RootLayoutContent({ children }: { children: React.ReactNode }) {
-  let adminGroupExists = !!(await dbService.groups.findByName(
-    "Administrators"
-  ));
+  let adminGroupExists =
+    !!(await dbService.groups.findByName("Administrators"));
 
   // Attempt seeding only if the admin group doesn't exist
   if (!adminGroupExists) {
@@ -42,9 +41,8 @@ async function RootLayoutContent({ children }: { children: React.ReactNode }) {
       await seed();
       logger.log("Seed script completed successfully.");
       // Re-check if the group exists now
-      adminGroupExists = !!(await dbService.groups.findByName(
-        "Administrators"
-      ));
+      adminGroupExists =
+        !!(await dbService.groups.findByName("Administrators"));
       if (!adminGroupExists) {
         logger.error(
           "CRITICAL: Seed script ran but Administrators group still not found!"
