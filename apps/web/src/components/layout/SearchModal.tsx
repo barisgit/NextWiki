@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTRPC } from "~/server/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useRouter } from "next/navigation";
-import Modal from "~/components/ui/modal";
+import { Modal } from "@repo/ui";
 import {
   Search,
   FileText,
@@ -13,7 +13,7 @@ import {
   CornerDownLeft,
 } from "lucide-react";
 import { cn } from "~/lib/utils";
-import { ScrollArea } from "../ui/scroll-area";
+import { ScrollArea } from "@repo/ui";
 
 // Utility to highlight text
 function highlightText(text: string, query: string) {

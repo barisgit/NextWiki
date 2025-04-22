@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ClientRequirePermission } from "~/components/auth/permission/client";
-import { Button } from "../ui/button";
+import { Button } from "@repo/ui";
 
 export const CreatePageButton = () => {
   const pathname = usePathname();

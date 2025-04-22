@@ -2,9 +2,9 @@
 
 import React, { useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { cn } from "~/lib/utils";
+import { cn } from "../utils";
 import { X } from "lucide-react";
-import { useScrollLock } from "~/lib/hooks/useScrollLock";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 interface ModalProps {
   children: React.ReactNode;
@@ -114,4 +114,4 @@ const Modal: React.FC<ModalProps> = ({
       );
 };
 
-export default Modal;
+export { Modal };

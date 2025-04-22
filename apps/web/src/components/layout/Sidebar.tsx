@@ -13,14 +13,14 @@ import {
   Search,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { ScrollArea } from "~/components/ui/scroll-area";
+import { ScrollArea } from "@repo/ui";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "~/components/ui/tooltip";
-import { Button } from "~/components/ui/button";
+} from "@repo/ui";
+import { Button } from "@repo/ui";
 import { SearchModal } from "./SearchModal";
 import { ClientRequirePermission } from "~/components/auth/permission/client";
 

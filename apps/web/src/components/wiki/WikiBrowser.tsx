@@ -7,8 +7,8 @@ import { SearchIcon, PlusIcon } from "lucide-react";
 import { useTRPC } from "~/server/client";
 import { useQuery } from "@tanstack/react-query";
 import { PageLocationEditor } from "./PageLocationEditor";
-import { Button } from "~/components/ui/button";
-import { SkeletonText } from "~/components/ui/skeleton";
+import { Button } from "@repo/ui";
+import { SkeletonText } from "@repo/ui";
 import { ClientRequirePermission } from "../auth/permission/client";
 
 interface WikiBrowserProps {

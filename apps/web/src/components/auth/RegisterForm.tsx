@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTRPC } from "~/server/client";
 import { signIn } from "next-auth/react";
-import { Input } from "../ui/input";
+import { Input } from "@repo/ui";
 import { useMutation } from "@tanstack/react-query";
 import { logger } from "~/lib/utils/logger";
 

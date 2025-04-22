@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MainLayout } from "~/components/layout/MainLayout";
-import { Button } from "~/components/ui/button";
+import { Button } from "@repo/ui";
 import { CreatePageButton } from "~/components/wiki/CreatePageButton";
 
 export default function WikiNotFound() {

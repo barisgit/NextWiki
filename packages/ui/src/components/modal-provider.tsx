@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import Modal from "./modal";
+import { Modal } from "./modal";
 
 interface ModalContextType {
   openModal: (content: ReactNode, options?: ModalOptions) => void;

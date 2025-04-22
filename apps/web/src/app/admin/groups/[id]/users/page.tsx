@@ -3,7 +3,7 @@ import { getServerAuthSession } from "~/lib/auth";
 import { redirect } from "next/navigation";
 import { dbService } from "~/lib/services";
 import Link from "next/link";
-import { Button } from "~/components/ui/button";
+import { Button } from "@repo/ui";
 import { ArrowLeft } from "lucide-react";
 import RemoveUserModal from "./remove-user-modal";
 import AddUsersModal from "./add-users-modal";

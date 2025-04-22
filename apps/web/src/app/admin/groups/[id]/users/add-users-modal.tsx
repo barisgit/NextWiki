@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { UserPlus, Loader2, Search } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import Modal from "~/components/ui/modal";
-import { Input } from "~/components/ui/input";
-import { Checkbox } from "~/components/ui/checkbox";
+import { Button, Modal, Input, Checkbox } from "@repo/ui";
 import { useTRPC } from "~/server/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -139,7 +136,9 @@ export default function AddUsersModal({
                 className="pl-10"
                 placeholder="Search users by name or email"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSearchQuery(e.target.value)
+                }
               />
             </div>
 

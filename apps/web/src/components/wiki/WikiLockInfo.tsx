@@ -5,7 +5,7 @@ import { useTRPC } from "~/server/client";
 import { useMutation } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { formatDistanceToNow } from "date-fns";
-import { Button } from "../ui/button";
+import { Button } from "@repo/ui";
 
 interface WikiLockInfoProps {
   pageId: number;

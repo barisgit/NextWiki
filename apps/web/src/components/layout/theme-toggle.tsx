@@ -2,12 +2,8 @@
 
 import React, { useState } from "react";
 import { Moon, Sun, MonitorSmartphone } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "~/components/ui/popover";
+import { Button } from "@repo/ui";
+import { Popover, PopoverTrigger, PopoverContent } from "@repo/ui";
 import { useTheme } from "~/providers/theme-provider";
 
 export function ThemeToggle() {

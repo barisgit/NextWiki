@@ -3,11 +3,7 @@
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "~/components/ui/popover";
+import { Popover, PopoverTrigger, PopoverContent } from "@repo/ui";
 
 export function UserMenu() {
   const { data: session, status } = useSession();

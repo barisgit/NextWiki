@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MainLayout } from "~/components/layout/MainLayout";
-import { CodeBlock } from "~/components/ui/code-block";
+import { CodeBlock } from "@repo/ui";
 
 export default function GettingStartedPage() {
   return (

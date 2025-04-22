@@ -10,11 +10,11 @@ import { WikiSubfolders } from "./WikiSubfolders";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { useTRPC } from "~/server/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Modal from "~/components/ui/modal";
+import { Modal } from "@repo/ui";
 import { PageLocationEditor } from "./PageLocationEditor";
 import { ClientRequirePermission } from "~/components/auth/permission/client";
-import { ScrollArea } from "~/components/ui/scroll-area";
-import { Button } from "../ui/button";
+import { ScrollArea } from "@repo/ui";
+import { Button } from "@repo/ui";
 interface WikiPageProps {
   id: number;
   title: string;

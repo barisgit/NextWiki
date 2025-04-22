@@ -2,14 +2,9 @@ import Link from "next/link";
 import { MainLayout } from "~/components/layout/MainLayout";
 import { dbService } from "~/lib/services";
 import RegisterPage from "./(auth)/register/page";
-import {
-  Card,
-  CardContent,
-  CardTitle,
-  CardDescription,
-} from "~/components/ui/card";
+import { Card, CardContent, CardTitle, CardDescription } from "@repo/ui";
 import { WikiBrowser } from "~/components/wiki/WikiBrowser";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui";
 import { AllPagesList } from "~/components/wiki/AllPagesList";
 
 export default async function Home() {

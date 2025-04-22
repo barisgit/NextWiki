@@ -1,5 +1,5 @@
 import { PermissionGate } from "~/components/auth/permission/server";
-import { Skeleton } from "~/components/ui/skeleton";
+import { Skeleton } from "@repo/ui";
 import { AdminLayout } from "~/components/layout/AdminLayout";
 
 export default async function AdminLayoutWrapper({

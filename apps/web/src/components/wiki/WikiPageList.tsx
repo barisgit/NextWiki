@@ -2,7 +2,7 @@
 
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
-import { Skeleton } from "~/components/ui/skeleton";
+import { Skeleton } from "@repo/ui";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "~/server/routers";
 

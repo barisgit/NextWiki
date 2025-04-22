@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { dbService, authorizationService } from "~/lib/services";
 import GroupsList from "./groups-list";
 import Link from "next/link";
-import { Button } from "~/components/ui/button";
+import { Button } from "@repo/ui";
 
 export const metadata: Metadata = {
   title: "Admin - Groups | NextWiki",

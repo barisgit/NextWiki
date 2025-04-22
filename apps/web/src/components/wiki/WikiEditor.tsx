@@ -21,17 +21,17 @@ import { tags } from "@lezer/highlight";
 import { xcodeLight, xcodeDark } from "@uiw/codemirror-theme-xcode";
 import { HighlightedMarkdown } from "~/lib/markdown/client";
 import { AssetManager } from "./AssetManager";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import { Button } from "@repo/ui";
+import { Badge } from "@repo/ui";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@repo/ui";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
   PopoverAnchor,
-} from "../ui/popover";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+} from "@repo/ui";
+import { Input } from "@repo/ui";
+import { Label } from "@repo/ui";
 import { ThemeToggle } from "../layout/theme-toggle";
 import {
   X,
@@ -42,12 +42,7 @@ import {
   ArrowLeft,
   Loader2,
 } from "lucide-react";
-import {
-  Command,
-  CommandList,
-  CommandItem,
-  CommandEmpty,
-} from "~/components/ui/command";
+import { Command, CommandList, CommandItem, CommandEmpty } from "@repo/ui";
 import { logger } from "~/lib/utils/logger";
 
 const MAX_VIEWABLE_FILE_SIZE_MB = 10;
