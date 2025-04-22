@@ -2,7 +2,7 @@
   /* External links */
   .external-link::after {
     content: "↗";
-    @apply inline-block ml-1 text-xs;
+    @apply ml-1 inline-block text-xs;
   }
 
   /* Links list styling */
@@ -11,28 +11,25 @@
   }
 
   ul.links-list li {
-    @apply bg-background-paper/50 dark:bg-background-level2 rounded-lg shadow-lg dark:shadow-none 
-  hover:border-primary/50 dark:hover:bg-background-level3 border hover:shadow-xl
-  border-transparent dark:border-border-dark transition-all duration-200 flex items-start border-l-4
-  border-l-primary dark:border-l-primary hover:border-l-primary;
+    @apply bg-background-paper/50 dark:bg-background-level2 hover:border-primary/50 dark:hover:bg-background-level3 dark:border-border-dark border-l-primary dark:border-l-primary hover:border-l-primary flex items-start rounded-lg border border-l-4 border-transparent shadow-lg transition-all duration-200 hover:shadow-xl dark:shadow-none;
   }
 
   /* Emoji styling */
   .emoji {
-    @apply inline-block mx-1 text-xl;
+    @apply mx-1 inline-block text-xl;
   }
 
   /* Specific styling for links with emojis */
   ul.links-list li a {
-    @apply flex items-center gap-8 p-4 no-underline text-primary hover:no-underline font-bold w-full;
+    @apply text-primary flex w-full items-center gap-8 p-4 font-bold no-underline hover:no-underline;
   }
 
   ul.links-list li a em {
-    @apply border-l border-border pl-2 -ml-6;
+    @apply border-border -ml-6 border-l pl-2;
   }
 
   ul.links-list li .emoji {
-    @apply text-2xl mt-0.5 flex-shrink-0;
+    @apply mt-0.5 flex-shrink-0 text-2xl;
   }
 
   ul.links-list li a > :not(.emoji) {
@@ -40,7 +37,7 @@
   }
 
   ul.links-list li em {
-    @apply text-sm text-text-secondary font-normal not-italic;
+    @apply text-text-secondary text-sm font-normal not-italic;
   }
 
   a.wiki-link-exists {
@@ -52,20 +49,20 @@
   }
 
   ul.links-list li:has(a.wiki-link-missing) {
-    @apply hover:border-error/50 border border-l-4 border-l-error hover:border-l-error;
+    @apply hover:border-error/50 border-l-error hover:border-l-error border border-l-4;
   }
 
   ul.links-list li a.wiki-link-missing::after {
-    @apply text-text-secondary/50 font-normal text-xs;
+    @apply text-text-secondary/50 text-xs font-normal;
     content: "Page missing";
   }
 
   blockquote {
-    @apply border-l-2 pl-4 py-2 bg-background-level1 rounded-lg;
+    @apply bg-background-level1 rounded-lg border-l-2 py-2 pl-4;
   }
 
   blockquote p {
-    @apply text-sm text-text-secondary font-normal not-italic;
+    @apply text-text-secondary text-sm font-normal not-italic;
   }
 
   blockquote p::before {
@@ -127,11 +124,11 @@
 
   /* Lists */
   ul {
-    @apply list-disc list-inside gap-0 pl-4;
+    @apply list-inside list-disc gap-0 pl-4;
   }
 
   ol {
-    @apply list-decimal list-inside gap-0 pl-4;
+    @apply list-inside list-decimal gap-0 pl-4;
   }
 
   ul li {
@@ -139,7 +136,7 @@
   }
 
   ul li p {
-    @apply py-0 my-0;
+    @apply my-0 py-0;
   }
 
   ol li {
@@ -147,7 +144,7 @@
   }
 
   ol li p {
-    @apply py-0 my-0;
+    @apply my-0 py-0;
   }
 
   /* Asset links */
@@ -157,6 +154,6 @@
 
   a.asset-link::before {
     content: "📄 [Asset]"; /* File emoji */
-    @apply inline-block text-text-tertiary font-normal mr-1;
+    @apply text-text-tertiary mr-1 inline-block font-normal;
   }
 }

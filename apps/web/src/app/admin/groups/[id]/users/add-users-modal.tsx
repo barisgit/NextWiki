@@ -111,9 +111,9 @@ export default function AddUsersModal({
     <>
       <Button
         onClick={() => setIsModalOpen(true)}
-        className="px-4 py-2 rounded-md bg-primary text-primary-foreground"
+        className="bg-primary text-primary-foreground rounded-md px-4 py-2"
       >
-        <UserPlus className="w-4 h-4 mr-2" /> Add Users
+        <UserPlus className="mr-2 h-4 w-4" /> Add Users
       </Button>
 
       {isModalOpen && (
@@ -131,7 +131,7 @@ export default function AddUsersModal({
             </h3>
 
             <div className="relative mb-6">
-              <Search className="absolute w-4 h-4 -translate-y-1/2 left-3 top-1/2 text-text-secondary" />
+              <Search className="text-text-secondary absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
               <Input
                 className="pl-10"
                 placeholder="Search users by name or email"
@@ -145,12 +145,12 @@ export default function AddUsersModal({
             <div className="mb-4">
               {loadingUsers ? (
                 <div className="flex justify-center p-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <Loader2 className="text-primary h-6 w-6 animate-spin" />
                 </div>
               ) : filteredUsers && filteredUsers.length > 0 ? (
-                <div className="border rounded-md max-h-[50vh] overflow-auto">
+                <div className="max-h-[50vh] overflow-auto rounded-md border">
                   <table className="w-full">
-                    <thead className="sticky top-0 z-10 bg-background-paper">
+                    <thead className="bg-background-paper sticky top-0 z-10">
                       <tr className="border-b">
                         <th className="p-3"></th>
                         <th className="p-3 text-left">Name</th>
@@ -174,7 +174,7 @@ export default function AddUsersModal({
                   </table>
                 </div>
               ) : (
-                <p className="py-6 text-center text-text-secondary">
+                <p className="text-text-secondary py-6 text-center">
                   {searchQuery
                     ? "No matching users found"
                     : "No users available to add to this group"}
@@ -183,7 +183,7 @@ export default function AddUsersModal({
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="text-sm text-text-secondary">
+              <div className="text-text-secondary text-sm">
                 {selectedUsers.length} users selected
               </div>
               <div className="flex gap-3">
@@ -201,7 +201,7 @@ export default function AddUsersModal({
                 >
                   {isAdding ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Adding Users...
                     </>
                   ) : (

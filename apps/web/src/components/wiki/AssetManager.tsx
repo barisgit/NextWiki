@@ -276,7 +276,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
           <img
             src={`/api/assets/${asset.id}`}
             alt={asset.fileName}
-            className="object-contain rounded"
+            className="rounded object-contain"
           />
           <FileInfo asset={asset} />
         </div>
@@ -286,11 +286,11 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
     // PDF preview
     if (asset.fileType === "application/pdf") {
       return (
-        <div className="flex flex-col items-center w-full p-4 h-128">
-          <div className="flex items-center justify-center w-full h-full">
+        <div className="h-128 flex w-full flex-col items-center p-4">
+          <div className="flex h-full w-full items-center justify-center">
             <iframe
               src={`/api/assets/${asset.id}`}
-              className="w-full h-full"
+              className="h-full w-full"
               title={`PDF Preview: ${asset.fileName}`}
             />
           </div>
@@ -301,7 +301,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
 
     // Default file preview
     return (
-      <div className="flex flex-col items-center w-full p-4 h-128">
+      <div className="h-128 flex w-full flex-col items-center p-4">
         <File size={64} className="text-text-secondary" />
         <FileInfo asset={asset} />
       </div>
@@ -316,8 +316,8 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
     const totalPages = meta.totalPages;
 
     return (
-      <div className="flex items-center justify-between mt-4">
-        <div className="text-sm text-text-secondary">
+      <div className="mt-4 flex items-center justify-between">
+        <div className="text-text-secondary text-sm">
           {meta.totalItems} {meta.totalItems === 1 ? "asset" : "assets"} • Page{" "}
           {currentPage} of {totalPages || 1}
         </div>
@@ -349,20 +349,20 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
       {assets.map((asset) => (
         <div
           key={asset.id}
-          className={`relative border rounded-md p-2 cursor-pointer transition ${
+          className={`relative cursor-pointer rounded-md border p-2 transition ${
             selectedAsset?.id === asset.id
               ? "border-accent bg-accent/10"
               : "hover:bg-background-level1 border-border-light"
           }`}
           onClick={() => setSelectedAsset(asset)}
         >
-          <div className="absolute z-10 top-1 right-1">
+          <div className="absolute right-1 top-1 z-10">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleDeleteAsset(asset.id);
               }}
-              className="p-2 m-1 rounded-full bg-error/30 text-error hover:bg-error/50"
+              className="bg-error/30 text-error hover:bg-error/50 m-1 rounded-full p-2"
               disabled={isDeleting}
             >
               <Trash2 size={16} />
@@ -370,19 +370,19 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
           </div>
           <div className="flex flex-col items-center">
             {asset.fileType.startsWith("image/") ? (
-              <div className="flex items-center justify-center w-20 h-20">
+              <div className="flex h-20 w-20 items-center justify-center">
                 <img
                   src={`/api/assets/${asset.id}`}
                   alt={asset.fileName}
-                  className="object-contain max-w-full max-h-full"
+                  className="max-h-full max-w-full object-contain"
                 />
               </div>
             ) : (
-              <div className="flex items-center justify-center w-20 h-20">
+              <div className="flex h-20 w-20 items-center justify-center">
                 <File size={32} className="text-gray-400" />
               </div>
             )}
-            <div className="w-full mt-1 text-xs text-center truncate">
+            <div className="mt-1 w-full truncate text-center text-xs">
               {asset.name || asset.fileName}
             </div>
           </div>
@@ -393,55 +393,55 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
 
   // List view for assets
   const ListView = () => (
-    <div className="divide-y divide-border">
+    <div className="divide-border divide-y">
       {assets.map((asset) => (
         <div
           key={asset.id}
-          className={`flex items-center py-2 px-2 cursor-pointer transition ${
+          className={`flex cursor-pointer items-center px-2 py-2 transition ${
             selectedAsset?.id === asset.id
               ? "bg-accent/10"
               : "hover:bg-background-level1"
           }`}
           onClick={() => setSelectedAsset(asset)}
         >
-          <div className="flex-shrink-0 mr-4">
+          <div className="mr-4 flex-shrink-0">
             {asset.fileType.startsWith("image/") ? (
-              <div className="flex items-center justify-center w-12 h-10">
+              <div className="flex h-10 w-12 items-center justify-center">
                 <img
                   src={`/api/assets/${asset.id}`}
                   alt={asset.fileName}
-                  className="object-contain max-w-full max-h-full"
+                  className="max-h-full max-w-full object-contain"
                 />
               </div>
             ) : (
-              <div className="flex items-center justify-center w-12 h-12">
+              <div className="flex h-12 w-12 items-center justify-center">
                 <File size={24} className="text-text-secondary" />
               </div>
             )}
           </div>
           <div className="flex-grow overflow-hidden">
             <div className="flex flex-row items-center gap-2">
-              <div className="text-sm font-medium truncate">
+              <div className="truncate text-sm font-medium">
                 {asset.name || asset.fileName}
               </div>
               {asset.description && (
-                <div className="text-xs truncate text-text-tertiary">
+                <div className="text-text-tertiary truncate text-xs">
                   | {asset.description}
                 </div>
               )}
             </div>
-            <div className="text-xs text-text-tertiary">
+            <div className="text-text-tertiary text-xs">
               {formatFileSize(asset.fileSize)} •{" "}
               {new Date(asset.createdAt || "").toLocaleDateString()}
             </div>
           </div>
-          <div className="flex-shrink-0 ml-4">
+          <div className="ml-4 flex-shrink-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleDeleteAsset(asset.id);
               }}
-              className="p-1 rounded-full bg-error/30 text-error hover:bg-error/50"
+              className="bg-error/30 text-error hover:bg-error/50 rounded-full p-1"
               disabled={isDeleting}
             >
               <Trash2 size={16} />
@@ -455,17 +455,17 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
   return (
     isOpen && (
       <Modal
-        className="w-full h-full"
+        className="h-full w-full"
         size="full"
         onClose={onClose || (() => {})}
       >
-        <div className="flex flex-col h-full min-h-[400px]">
-          <div className="flex items-center justify-between mb-4">
+        <div className="flex h-full min-h-[400px] flex-col">
+          <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold">Asset Manager</h2>
-            <div className="flex items-center mr-10 space-x-2">
+            <div className="mr-10 flex items-center space-x-2">
               <label
                 htmlFor="file-upload"
-                className={`cursor-pointer inline-flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                className={`inline-flex cursor-pointer items-center rounded-md px-3 py-2 text-sm font-medium ${
                   isUploading ? "bg-accent/50" : "bg-accent hover:bg-accent/80"
                 } text-white`}
               >
@@ -484,14 +484,14 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
 
           <div className="grid flex-grow grid-cols-1 gap-4 overflow-y-auto md:grid-cols-2">
             {/* Assets list */}
-            <div className="flex flex-col p-4 overflow-y-auto border rounded-md border-border-light">
-              <div className="flex items-center justify-between mb-2">
+            <div className="border-border-light flex flex-col overflow-y-auto rounded-md border p-4">
+              <div className="mb-2 flex items-center justify-between">
                 <h3 className="font-medium">Available Assets</h3>
                 <div className="flex items-center space-x-2">
                   <div className="relative">
                     <Search
                       size={16}
-                      className="absolute transform -translate-y-1/2 left-3 top-1/2 text-text-secondary"
+                      className="text-text-secondary absolute left-3 top-1/2 -translate-y-1/2 transform"
                     />
                     <Input
                       type="text"
@@ -519,7 +519,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
               </div>
               <ScrollArea className="flex-grow pr-4">
                 {assets.length === 0 ? (
-                  <div className="py-8 text-center text-text-secondary">
+                  <div className="text-text-secondary py-8 text-center">
                     No assets available
                   </div>
                 ) : viewMode === "grid" ? (
@@ -535,10 +535,10 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
             </div>
 
             {/* Asset preview */}
-            <div className="flex flex-col p-4 overflow-hidden border rounded-md border-border-light">
+            <div className="border-border-light flex flex-col overflow-hidden rounded-md border p-4">
               {selectedAsset ? (
                 <>
-                  <div className="flex items-center justify-between flex-shrink-0 mb-2">
+                  <div className="mb-2 flex flex-shrink-0 items-center justify-between">
                     <h3 className="font-medium">Preview</h3>
                     <div className="flex space-x-2">
                       <Button
@@ -572,12 +572,12 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
                     </div>
                   </div>
                   <ScrollArea className="flex-grow pr-4">
-                    <div className="flex items-center justify-center flex-grow p-4">
+                    <div className="flex flex-grow items-center justify-center p-4">
                       <AssetPreview asset={selectedAsset} />
                     </div>
                     <div className="mt-2 text-sm">
                       <div className="mb-3">
-                        <label className="block mb-1 text-sm font-medium">
+                        <label className="mb-1 block text-sm font-medium">
                           Name
                         </label>
                         {isEditing ? (
@@ -589,12 +589,12 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
                           />
                         ) : (
                           <div
-                            className="p-2 rounded cursor-pointer hover:bg-background-level1 min-h-[36px]"
+                            className="hover:bg-background-level1 min-h-[36px] cursor-pointer rounded p-2"
                             onClick={handleStartEdit}
                             title="Click to edit name"
                           >
                             {selectedAsset.name || (
-                              <span className="italic text-text-secondary">
+                              <span className="text-text-secondary italic">
                                 No name set
                               </span>
                             )}
@@ -603,7 +603,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
                       </div>
 
                       <div className="mb-3">
-                        <label className="block mb-1 text-sm font-medium">
+                        <label className="mb-1 block text-sm font-medium">
                           Description
                         </label>
                         {isEditing ? (
@@ -613,17 +613,17 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
                               setEditedDescription(e.target.value)
                             }
                             placeholder="Enter asset description"
-                            className="w-full px-3 py-2 border rounded-md border-border-light"
+                            className="border-border-light w-full rounded-md border px-3 py-2"
                             rows={3}
                           />
                         ) : (
                           <div
-                            className="p-2 rounded cursor-pointer hover:bg-background-level1 min-h-[72px] whitespace-pre-wrap"
+                            className="hover:bg-background-level1 min-h-[72px] cursor-pointer whitespace-pre-wrap rounded p-2"
                             onClick={handleStartEdit}
                             title="Click to edit description"
                           >
                             {selectedAsset.description || (
-                              <span className="italic text-text-secondary">
+                              <span className="text-text-secondary italic">
                                 No description set
                               </span>
                             )}
@@ -632,7 +632,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
                       </div>
 
                       {isEditing && (
-                        <div className="flex justify-end mt-3 mb-3 space-x-2">
+                        <div className="mb-3 mt-3 flex justify-end space-x-2">
                           <Button
                             size="sm"
                             variant="outlined"
@@ -671,7 +671,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
                   </ScrollArea>
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center flex-grow text-text-secondary">
+                <div className="text-text-secondary flex flex-grow flex-col items-center justify-center">
                   <Image size={64} strokeWidth={1} />
                   <p className="mt-2">Select an asset to preview</p>
                 </div>

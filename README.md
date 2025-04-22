@@ -100,7 +100,7 @@ NextWiki includes a powerful search system with several capabilities:
   1. Exact vector matching (highest relevance)
   2. Title matching (high relevance)
   3. Content matching (medium relevance)
-  4. Similarity matching for typos (lower relevance) *(in progress)*
+  4. Similarity matching for typos (lower relevance) _(in progress)_
 
 When a user clicks a search result, they'll be taken directly to the page with all instances of the search term highlighted, and the view will automatically scroll to the first match.
 

@@ -1,7 +1,7 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { db } from './index.js';
-import { sql } from 'drizzle-orm';
+import fs from "node:fs/promises";
+import path from "node:path";
+import { db } from "./index.js";
+import { sql } from "drizzle-orm";
 
 /**
  * Executes a raw SQL migration script from a given file path.
@@ -18,7 +18,7 @@ export async function runRawSqlMigration(
   const absolutePath = path.resolve(relativeToDir, migrationPath);
   try {
     console.log(`Reading migration file: ${absolutePath}`);
-    const migrationSql = await fs.readFile(absolutePath, 'utf-8');
+    const migrationSql = await fs.readFile(absolutePath, "utf-8");
 
     if (!migrationSql.trim()) {
       console.log(`Migration file is empty: ${absolutePath}. Skipping.`);

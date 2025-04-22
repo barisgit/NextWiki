@@ -51,8 +51,8 @@ export function getPaginationParams(pagination: PaginationInput): {
     pagination.pageSize < 1
       ? DEFAULT_PAGE_SIZE
       : pagination.pageSize > MAX_PAGE_SIZE
-      ? MAX_PAGE_SIZE
-      : pagination.pageSize;
+        ? MAX_PAGE_SIZE
+        : pagination.pageSize;
 
   return {
     take: pageSize,

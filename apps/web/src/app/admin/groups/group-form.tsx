@@ -275,7 +275,7 @@ export default function GroupForm({
           />
         </div>
         {isSystem && (
-          <div className="p-4 text-sm border rounded-lg bg-muted">
+          <div className="bg-muted rounded-lg border p-4 text-sm">
             <p className="font-medium">This is a system group</p>
             <p>
               You can manage permissions for this group, but the name and
@@ -284,7 +284,7 @@ export default function GroupForm({
           </div>
         )}
         {name === "Administrators" && (
-          <div className="p-4 text-sm border rounded-lg bg-muted border-amber-200">
+          <div className="bg-muted rounded-lg border border-amber-200 p-4 text-sm">
             <p className="font-medium">Administrator Group</p>
             <p>
               The Administrators group has full access to all system features by
@@ -297,7 +297,7 @@ export default function GroupForm({
       <div className="grid grid-cols-12 gap-6">
         {/* Main permissions area */}
         <div className="col-span-8">
-          <div className="p-4 border rounded-lg bg-card">
+          <div className="bg-card rounded-lg border p-4">
             <h2 className="mb-4 text-lg font-semibold">Permissions</h2>
             <div className="space-y-6">
               {Object.entries(permissionsByModule).map(
@@ -385,9 +385,9 @@ export default function GroupForm({
         {/* Permissions sidebar */}
         <div className="col-span-4 space-y-6">
           {/* Modules */}
-          <div className="p-4 border rounded-lg bg-card">
+          <div className="bg-card rounded-lg border p-4">
             <h2 className="mb-4 text-lg font-semibold">Module Permissions</h2>
-            <p className="mb-4 text-sm text-muted-foreground">
+            <p className="text-muted-foreground mb-4 text-sm">
               Select which modules this group can access. If no modules are
               selected, all modules are allowed.
             </p>
@@ -424,9 +424,9 @@ export default function GroupForm({
           </div>
 
           {/* Actions */}
-          <div className="p-4 border rounded-lg bg-card">
+          <div className="bg-card rounded-lg border p-4">
             <h2 className="mb-4 text-lg font-semibold">Action Permissions</h2>
-            <p className="mb-4 text-sm text-muted-foreground">
+            <p className="text-muted-foreground mb-4 text-sm">
               Select which actions this group can perform. If no actions are
               selected, all actions are allowed.
             </p>

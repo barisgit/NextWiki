@@ -22,7 +22,7 @@ const staticStatsData: StaticStatData[] = [
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="w-6 h-6 text-primary-400"
+        className="text-primary-400 h-6 w-6"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -41,7 +41,7 @@ const staticStatsData: StaticStatData[] = [
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="w-6 h-6 text-secondary-400"
+        className="text-secondary-400 h-6 w-6"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -60,7 +60,7 @@ const staticStatsData: StaticStatData[] = [
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="w-6 h-6 text-accent-400"
+        className="text-accent-400 h-6 w-6"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -79,7 +79,7 @@ const staticStatsData: StaticStatData[] = [
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="w-6 h-6 text-complementary-400"
+        className="text-complementary-400 h-6 w-6"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -147,16 +147,16 @@ export default function AdminDashboardPage() {
         {stats.map((stat, index) => (
           <Card key={index} className="p-6">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-background-level1">
+              <div className="bg-background-level1 rounded-full p-3">
                 {stat.icon}
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-text-secondary">
+                <p className="text-text-secondary text-sm font-medium">
                   {stat.title}
                 </p>
                 <p className="text-2xl font-semibold">
                   {isLoading ? (
-                    <span className="inline-block w-16 h-8 rounded bg-background-level1 animate-pulse"></span>
+                    <span className="bg-background-level1 inline-block h-8 w-16 animate-pulse rounded"></span>
                   ) : (
                     stat.value
                   )}
@@ -175,7 +175,7 @@ export default function AdminDashboardPage() {
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="h-12 rounded bg-background-level1 animate-pulse"
+                  className="bg-background-level1 h-12 animate-pulse rounded"
                 ></div>
               ))}
             </div>
@@ -195,7 +195,7 @@ export default function AdminDashboardPage() {
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="h-12 rounded bg-background-level1 animate-pulse"
+                  className="bg-background-level1 h-12 animate-pulse rounded"
                 ></div>
               ))}
             </div>

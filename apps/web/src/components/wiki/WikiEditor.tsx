@@ -609,10 +609,10 @@ export function WikiEditor({
   // If we're waiting for lock acquisition in edit mode, show loading
   if (mode === "edit" && !isLocked) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-background">
-        <div className="flex flex-col items-center p-8 space-y-4 text-center">
-          <Loader2 className="w-10 h-10 text-primary animate-spin" />
-          <h2 className="text-xl font-medium text-text-primary">
+      <div className="bg-background flex h-screen flex-col items-center justify-center">
+        <div className="flex flex-col items-center space-y-4 p-8 text-center">
+          <Loader2 className="text-primary h-10 w-10 animate-spin" />
+          <h2 className="text-text-primary text-xl font-medium">
             Acquiring edit lock...
           </h2>
           <p className="text-text-secondary">
@@ -624,10 +624,10 @@ export function WikiEditor({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="bg-background flex h-screen flex-col">
       {/* Header Bar */}
-      <header className="sticky top-0 z-10 border-b bg-card border-border">
-        <div className="flex items-center justify-between h-16 px-6 py-2">
+      <header className="bg-card border-border sticky top-0 z-10 border-b">
+        <div className="flex h-16 items-center justify-between px-6 py-2">
           <div className="flex items-center gap-4">
             <Button
               size="sm"
@@ -636,7 +636,7 @@ export function WikiEditor({
               onClick={handleCancel}
               className="flex items-center gap-1"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="h-4 w-4" />
               <span>Back</span>
             </Button>
 
@@ -648,12 +648,12 @@ export function WikiEditor({
                 onBlur={handleTitleBlur}
                 onKeyDown={handleTitleKeyDown}
                 placeholder="Enter page title"
-                className="px-2 py-1 text-xl font-medium w-72"
+                className="w-72 px-2 py-1 text-xl font-medium"
                 autoFocus
               />
             ) : (
               <h2
-                className="max-w-md text-xl font-medium truncate cursor-pointer text-text-primary hover:text-primary"
+                className="text-text-primary hover:text-primary max-w-md cursor-pointer truncate text-xl font-medium"
                 onClick={() => setEditingTitle(true)}
                 title="Click to edit title"
               >
@@ -691,7 +691,7 @@ export function WikiEditor({
                   className="flex items-center gap-1"
                 >
                   <span>Assets</span>
-                  <ChevronDown className="w-4 h-4" />
+                  <ChevronDown className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-48 p-2">
@@ -704,7 +704,7 @@ export function WikiEditor({
                     disabled={uploadAssetMutation.isPending}
                     className="flex items-center justify-start gap-2"
                   >
-                    <Image className="w-4 h-4" />
+                    <Image className="h-4 w-4" />
                     <span>Upload Image</span>
                   </Button>
                   <Button
@@ -714,7 +714,7 @@ export function WikiEditor({
                     onClick={() => setShowAssetManager(true)}
                     className="flex items-center justify-start gap-2"
                   >
-                    <File className="w-4 h-4" />
+                    <File className="h-4 w-4" />
                     <span>Asset Manager</span>
                   </Button>
                 </div>
@@ -736,16 +736,16 @@ export function WikiEditor({
               type="button"
               onClick={handleSave}
               disabled={isSaving || !unsavedChanges}
-              className="flex items-center gap-1 min-w-20"
+              className="flex min-w-20 items-center gap-1"
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                   <span>Saving</span>
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4" />
+                  <Save className="h-4 w-4" />
                   <span>Save</span>
                 </>
               )}
@@ -758,9 +758,9 @@ export function WikiEditor({
       </header>
 
       {/* Metadata Section */}
-      <div className="px-6 py-4 border-b bg-background-level1 border-border">
-        <div className="flex flex-wrap gap-3 mb-2">
-          <Label className="flex items-center text-sm font-medium text-text-secondary">
+      <div className="bg-background-level1 border-border border-b px-6 py-4">
+        <div className="mb-2 flex flex-wrap gap-3">
+          <Label className="text-text-secondary flex items-center text-sm font-medium">
             Tags:
           </Label>
 
@@ -796,7 +796,7 @@ export function WikiEditor({
                       setTimeout(() => setShowSuggestions(false), 150);
                     }}
                     placeholder="Add tag..."
-                    className="w-40 text-xs h-7"
+                    className="h-7 w-40 text-xs"
                     aria-autocomplete="list"
                     aria-controls="tag-suggestions"
                   />
@@ -804,7 +804,7 @@ export function WikiEditor({
 
                 <PopoverContent
                   ref={popoverContentRef}
-                  className="w-48 p-0 mt-1"
+                  className="mt-1 w-48 p-0"
                   align="start"
                   side="bottom"
                   id="tag-suggestions"
@@ -842,7 +842,7 @@ export function WikiEditor({
               variant="ghost"
               color="primary"
               size="sm"
-              className="ml-1 text-xs h-7"
+              className="ml-1 h-7 text-xs"
               disabled={!tagInput.trim()}
             >
               Add
@@ -862,30 +862,30 @@ export function WikiEditor({
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag)}
-                    className="rounded-full hover:bg-primary-100 hover:text-primary-700"
+                    className="hover:bg-primary-100 hover:text-primary-700 rounded-full"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="h-3 w-3" />
                   </button>
                 </Badge>
               ))}
             </div>
           ) : (
             <div className="flex items-center">
-              <span className="text-sm text-text-tertiary">No tags</span>
+              <span className="text-text-tertiary text-sm">No tags</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Editor Tabs and Content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="flex flex-col flex-1 overflow-hidden"
+          className="flex flex-1 flex-col overflow-hidden"
         >
-          <div className="border-b border-border bg-card">
-            <TabsList className="p-0 mt-1 ml-4 bg-transparent">
+          <div className="border-border bg-card border-b">
+            <TabsList className="ml-4 mt-1 bg-transparent p-0">
               <TabsTrigger value="editor" className="px-4 py-2">
                 Editor
               </TabsTrigger>
@@ -901,7 +901,7 @@ export function WikiEditor({
           {/* Editor Tab */}
           <TabsContent
             value="editor"
-            className="flex-1 p-0 m-0 overflow-hidden"
+            className="m-0 flex-1 overflow-hidden p-0"
           >
             <div className="h-full">
               <CodeMirror
@@ -920,8 +920,8 @@ export function WikiEditor({
           </TabsContent>
 
           {/* Preview Tab */}
-          <TabsContent value="preview" className="flex-1 p-0 m-0 overflow-auto">
-            <div className="h-full p-6 overflow-auto bg-background-level1">
+          <TabsContent value="preview" className="m-0 flex-1 overflow-auto p-0">
+            <div className="bg-background-level1 h-full overflow-auto p-6">
               <MarkdownProse>
                 <HighlightedMarkdown
                   content={content || "*No content to preview*"}
@@ -933,11 +933,11 @@ export function WikiEditor({
           {/* Split View Tab */}
           <TabsContent
             value="split"
-            className="flex flex-1 p-0 m-0 overflow-hidden"
+            className="m-0 flex flex-1 overflow-hidden p-0"
           >
-            <div className="flex flex-1 h-full overflow-hidden">
+            <div className="flex h-full flex-1 overflow-hidden">
               {/* Editor Panel */}
-              <div className="w-1/2 h-full overflow-hidden border-r border-border">
+              <div className="border-border h-full w-1/2 overflow-hidden border-r">
                 <CodeMirror
                   value={content}
                   height="100%"
@@ -951,7 +951,7 @@ export function WikiEditor({
               </div>
 
               {/* Preview Panel */}
-              <div className="w-1/2 h-full overflow-auto bg-background-level1">
+              <div className="bg-background-level1 h-full w-1/2 overflow-auto">
                 <div className="p-6">
                   <MarkdownProse>
                     <HighlightedMarkdown

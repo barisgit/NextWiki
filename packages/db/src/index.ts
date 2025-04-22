@@ -1,13 +1,13 @@
-import 'server-only';
+import "server-only";
 
-import * as dotenv from 'dotenv';
-import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
-import { NeonHttpDatabase } from 'drizzle-orm/neon-http';
-import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import pg from 'pg';
-import * as schema from './schema/index.js';
+import * as dotenv from "dotenv";
+import { neon, neonConfig } from "@neondatabase/serverless";
+import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
+import { NeonHttpDatabase } from "drizzle-orm/neon-http";
+import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
+import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import pg from "pg";
+import * as schema from "./schema/index.js";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -17,9 +17,9 @@ const connectionString = process.env.DATABASE_URL;
 
 // Validate connection string
 if (!connectionString) {
-  console.error('DATABASE_URL environment variable is not set!');
+  console.error("DATABASE_URL environment variable is not set!");
   // For development, provide useful information rather than silently using a fallback
-  throw new Error('Please set DATABASE_URL in your .env file');
+  throw new Error("Please set DATABASE_URL in your .env file");
 }
 
 // Define a union type for both possible database types
@@ -31,8 +31,8 @@ let db: DatabaseType;
 
 // Detect if we're using Neon (cloud) or regular PostgreSQL
 if (
-  connectionString.includes('pooler.internal.neon') ||
-  connectionString.includes('.neon.tech')
+  connectionString.includes("pooler.internal.neon") ||
+  connectionString.includes(".neon.tech")
 ) {
   // For Edge runtime compatibility with Neon
   neonConfig.fetchConnectionCache = true;
@@ -41,7 +41,7 @@ if (
   const sql = neon(connectionString);
   // Create Drizzle client with Neon driver
   db = drizzleNeon(sql, { schema });
-  console.log('Using Neon database driver');
+  console.log("Using Neon database driver");
 } else {
   // Use regular PostgreSQL driver for local or other PostgreSQL databases
   const pool = new pg.Pool({ connectionString });
@@ -54,13 +54,13 @@ if (
 export { db };
 
 // Re-export the seed function
-export { seed } from './seeds/run.js';
+export { seed } from "./seeds/run.js";
 
 // Re-export the schema
-export * from './schema/index.js';
+export * from "./schema/index.js";
 
 // Re-export the registry
-export * from './registry/index.js';
+export * from "./registry/index.js";
 
 // Re-export the utils
-export { runRawSqlMigration } from './utils.js';
+export { runRawSqlMigration } from "./utils.js";

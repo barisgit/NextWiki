@@ -25,7 +25,7 @@ function highlightText(text: string, query: string) {
     part.toLowerCase() === query.toLowerCase() ? (
       <mark
         key={i}
-        className="p-0 mx-0 font-semibold bg-transparent text-primary dark:text-primary"
+        className="text-primary dark:text-primary mx-0 bg-transparent p-0 font-semibold"
       >
         {part}
       </mark>
@@ -171,19 +171,19 @@ export function SearchModal({
       onClose={onClose}
       size="lg" // Zod uses a large modal
       animation="fade" // Fade is common for command palettes
-      className="p-0 flex flex-col bg-background-paper/95 dark:bg-background-level1/95 backdrop-blur-sm border border-border-default shadow-2xl max-h-[80vh] max-w-3xl"
+      className="bg-background-paper/95 dark:bg-background-level1/95 border-border-default flex max-h-[80vh] max-w-3xl flex-col border p-0 shadow-2xl backdrop-blur-sm"
       overlayClassName="pt-16 md:pt-20"
       position="top"
       showCloseButton={false} // Zod doesn't show a close button explicitly
     >
       {/* Search Input Area */}
-      <div className="flex items-center flex-shrink-0 p-4 border-b border-border-default">
-        <Search className="w-5 h-5 mr-3 text-text-secondary" />
+      <div className="border-border-default flex flex-shrink-0 items-center border-b p-4">
+        <Search className="text-text-secondary mr-3 h-5 w-5" />
         <input
           ref={inputRef}
           type="search"
           placeholder="Search wiki..."
-          className="flex-1 text-base bg-transparent border-none focus:outline-none text-text-primary placeholder:text-text-secondary/70"
+          className="text-text-primary placeholder:text-text-secondary/70 flex-1 border-none bg-transparent text-base focus:outline-none"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -192,13 +192,13 @@ export function SearchModal({
       {/* Results Area - Scrolls */}
       {/* TODO: Scrollarea doesn't work overflow-y-auto takes over */}
       <ScrollArea
-        className="flex-1 min-h-0 overflow-y-auto"
+        className="min-h-0 flex-1 overflow-y-auto"
         id="search-results-list"
       >
         {isLoading && !paginatedResults.length ? (
-          <div className="flex items-center justify-center p-8 text-center text-text-secondary">
+          <div className="text-text-secondary flex items-center justify-center p-8 text-center">
             {/* Simplified Loader */}
-            <svg className="w-6 h-6 animate-spin" viewBox="0 0 24 24">
+            <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24">
               <circle
                 className="opacity-25"
                 cx="12"
@@ -215,7 +215,7 @@ export function SearchModal({
             </svg>
           </div>
         ) : paginationMeta && paginationMeta.totalItems > 0 ? (
-          <ul ref={listRef} className="p-2 m-0 space-y-1 list-none">
+          <ul ref={listRef} className="m-0 list-none space-y-1 p-2">
             {" "}
             {/* Padding around list, space between items */}
             {paginatedResults.map((result, index) => (
@@ -225,50 +225,50 @@ export function SearchModal({
                 role="option"
                 aria-selected={focusedIndex === index}
                 className={cn(
-                  "p-3 transition-colors cursor-pointer rounded-md border flex items-center justify-between gap-3",
+                  "flex cursor-pointer items-center justify-between gap-3 rounded-md border p-3 transition-colors",
                   focusedIndex === index
                     ? "bg-primary/10 border-primary/50"
-                    : "border-transparent hover:bg-background-level1/50 hover:border-border-light"
+                    : "hover:bg-background-level1/50 hover:border-border-light border-transparent"
                 )}
                 onClick={() => handleResultClick(result.path)}
                 onMouseEnter={() => setFocusedIndex(index)} // Update focus on hover
               >
-                <div className="flex items-start flex-1 min-w-0">
-                  <FileText className="flex-shrink-0 w-4 h-4 mt-1 mr-3 text-text-secondary" />
-                  <div className="flex-1 min-w-0">
+                <div className="flex min-w-0 flex-1 items-start">
+                  <FileText className="text-text-secondary mr-3 mt-1 h-4 w-4 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
                     {/* Path/Category */}
-                    <div className="text-xs text-text-secondary/80 mb-0.5 truncate">
+                    <div className="text-text-secondary/80 mb-0.5 truncate text-xs">
                       {result.path.split("/").slice(0, -1).join(" / ") ||
                         "Wiki Home"}
                     </div>
                     {/* Title */}
-                    <h3 className="text-base font-medium truncate text-text-primary">
+                    <h3 className="text-text-primary truncate text-base font-medium">
                       {highlightText(result.title, searchQuery)}
                     </h3>
                     {/* Excerpt */}
-                    <p className="mt-1 text-sm text-text-secondary line-clamp-1">
+                    <p className="text-text-secondary mt-1 line-clamp-1 text-sm">
                       {highlightText(result.excerpt, searchQuery)}...
                     </p>
                   </div>
                 </div>
                 {/* Enter Icon */}
                 {focusedIndex === index && (
-                  <CornerDownLeft className="flex-shrink-0 w-4 h-4 text-text-secondary" />
+                  <CornerDownLeft className="text-text-secondary h-4 w-4 flex-shrink-0" />
                 )}
               </li>
             ))}
           </ul>
         ) : searchQuery.length >= 1 ? (
-          <div className="flex flex-col items-center justify-center p-8 text-center text-text-secondary">
+          <div className="text-text-secondary flex flex-col items-center justify-center p-8 text-center">
             <p className="text-base">No results found</p>
-            <p className="mt-1 text-sm text-text-secondary/80">
+            <p className="text-text-secondary/80 mt-1 text-sm">
               Try narrowing your search?
             </p>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center p-8 text-center text-text-secondary">
+          <div className="text-text-secondary flex flex-col items-center justify-center p-8 text-center">
             <p className="text-base">Search for pages or content</p>
-            <p className="mt-1 text-sm text-text-secondary/80">
+            <p className="text-text-secondary/80 mt-1 text-sm">
               Start typing to see results.
             </p>
           </div>
@@ -277,33 +277,33 @@ export function SearchModal({
 
       {/* Footer / Pagination Area - Simplified */}
       {(paginationMeta && paginationMeta.totalItems > 0) || isLoading ? ( // Show footer even when loading if results were previously shown
-        <div className="flex items-center justify-between flex-shrink-0 px-4 py-2 border-t border-border-default bg-background-level1/80">
+        <div className="border-border-default bg-background-level1/80 flex flex-shrink-0 items-center justify-between border-t px-4 py-2">
           {paginationMeta && paginationMeta.totalItems > 0 ? (
-            <div className="text-xs text-text-secondary">
+            <div className="text-text-secondary text-xs">
               {paginationMeta.totalItems} result
               {paginationMeta.totalItems !== 1 ? "s" : ""}
             </div>
           ) : (
-            <div className="text-xs italic text-text-secondary/70">
+            <div className="text-text-secondary/70 text-xs italic">
               Loading...
             </div>
           )}
 
           {/* Shortcut Info */}
-          <div className="items-center hidden text-xs md:flex gap-x-2 text-text-secondary/80">
+          <div className="text-text-secondary/80 hidden items-center gap-x-2 text-xs md:flex">
             <span>Navigate:</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-background-level2 border border-border-light">
+            <kbd className="bg-background-level2 border-border-light rounded border px-1.5 py-0.5">
               ↑
             </kbd>
-            <kbd className="px-1.5 py-0.5 rounded bg-background-level2 border border-border-light">
+            <kbd className="bg-background-level2 border-border-light rounded border px-1.5 py-0.5">
               ↓
             </kbd>
             <span>Open:</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-background-level2 border border-border-light">
+            <kbd className="bg-background-level2 border-border-light rounded border px-1.5 py-0.5">
               ↵
             </kbd>
             <span>Close:</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-background-level2 border border-border-light">
+            <kbd className="bg-background-level2 border-border-light rounded border px-1.5 py-0.5">
               Esc
             </kbd>
           </div>
@@ -315,17 +315,17 @@ export function SearchModal({
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={!paginationMeta.hasPreviousPage}
                 className={cn(
-                  "flex items-center p-1.5 text-xs rounded",
+                  "flex items-center rounded p-1.5 text-xs",
                   !paginationMeta.hasPreviousPage
-                    ? "opacity-50 cursor-not-allowed text-text-secondary/50"
+                    ? "text-text-secondary/50 cursor-not-allowed opacity-50"
                     : "hover:bg-background-level2 text-text-secondary hover:text-text-primary"
                 )}
                 aria-label="Previous page"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
 
-              <div className="text-xs text-text-secondary min-w-[60px] text-center">
+              <div className="text-text-secondary min-w-[60px] text-center text-xs">
                 Page {paginationMeta.currentPage} of {paginationMeta.totalPages}
               </div>
 
@@ -339,19 +339,19 @@ export function SearchModal({
                 onMouseEnter={prefetchNextPage}
                 disabled={!paginationMeta.hasNextPage}
                 className={cn(
-                  "flex items-center p-1.5 text-xs rounded",
+                  "flex items-center rounded p-1.5 text-xs",
                   !paginationMeta.hasNextPage
-                    ? "opacity-50 cursor-not-allowed text-text-secondary/50"
+                    ? "text-text-secondary/50 cursor-not-allowed opacity-50"
                     : "hover:bg-background-level2 text-text-secondary hover:text-text-primary"
                 )}
                 aria-label="Next page"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           ) : (
             // Placeholder to balance the flex layout if pagination isn't shown but results are
-            <div className="w-16 h-6"></div>
+            <div className="h-6 w-16"></div>
           )}
         </div>
       ) : null}

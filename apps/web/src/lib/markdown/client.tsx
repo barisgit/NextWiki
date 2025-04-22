@@ -83,19 +83,19 @@ export function HighlightedMarkdown({
   return (
     <>
       {highlightTerm && (
-        <div className="flex items-center justify-between p-3 my-4 rounded-md bg-background-level1">
+        <div className="bg-background-level1 my-4 flex items-center justify-between rounded-md p-3">
           <span className="text-sm">
             Showing results for: <strong>{highlightTerm}</strong>
           </span>
           <button
             onClick={clearHighlights}
-            className="px-2 py-1 text-xs rounded-md bg-accent text-accent-foreground hover:bg-accent/80"
+            className="bg-accent text-accent-foreground hover:bg-accent/80 rounded-md px-2 py-1 text-xs"
           >
             Clear highlights
           </button>
         </div>
       )}
-      <div className={`prose max-w-none dark:prose-invert ${className || ""}`}>
+      <div className={`prose dark:prose-invert max-w-none ${className || ""}`}>
         <div ref={contentRef}>
           <ReactMarkdown
             remarkPlugins={clientMarkdownConfig.remarkPlugins}
@@ -223,13 +223,13 @@ export function HighlightedContent({
   return (
     <>
       {highlightTerm && (
-        <div className="flex items-center justify-between p-3 my-4 rounded-md bg-background-level1">
+        <div className="bg-background-level1 my-4 flex items-center justify-between rounded-md p-3">
           <span className="text-sm">
             Showing results for: <strong>{highlightTerm}</strong>
           </span>
           <button
             onClick={clearHighlights}
-            className="px-2 py-1 text-xs rounded-md bg-accent text-accent-foreground hover:bg-accent/80"
+            className="bg-accent text-accent-foreground hover:bg-accent/80 rounded-md px-2 py-1 text-xs"
           >
             Clear highlights
           </button>

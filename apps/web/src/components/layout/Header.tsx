@@ -7,8 +7,8 @@ import { env } from "~/env";
 
 export function Header() {
   return (
-    <header className="flex items-center justify-between h-16 px-4 border-b shadow-sm border-border-default bg-background-paper">
-      <div className="flex items-center flex-1 max-w-xl">
+    <header className="border-border-default bg-background-paper flex h-16 items-center justify-between border-b px-4 shadow-sm">
+      <div className="flex max-w-xl flex-1 items-center">
         <Suspense fallback={<div>Loading search bar...</div>}></Suspense>
       </div>
 

@@ -55,13 +55,13 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
   return (
     <div className="space-y-6">
       {/* Search bar */}
-      <div className="flex items-center mb-6">
-        <div className="relative flex-1 max-w-md">
-          <SearchIcon className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-text-secondary" />
+      <div className="mb-6 flex items-center">
+        <div className="relative max-w-md flex-1">
+          <SearchIcon className="text-text-secondary absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
           <input
             type="search"
             placeholder="Search wiki..."
-            className="w-full py-2 pl-10 pr-4 border rounded-md border-border-default focus:outline-none focus:ring-2 focus:ring-primary"
+            className="border-border-default focus:ring-primary w-full rounded-md border py-2 pl-10 pr-4 focus:outline-none focus:ring-2"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
@@ -73,7 +73,7 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
             className="ml-4"
             size="default"
           >
-            <PlusIcon className="w-4 h-4 mr-2" />
+            <PlusIcon className="mr-2 h-4 w-4" />
             New Page
           </Button>
         </ClientRequirePermission>
@@ -95,7 +95,7 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
               No results found for &ldquo;{debouncedSearch}&rdquo;
             </div>
           ) : (
-            <div className="overflow-hidden border rounded-lg shadow-sm">
+            <div className="overflow-hidden rounded-lg border shadow-sm">
               <ul className="divide-y">
                 {searchResults?.pages.map((page) => (
                   <li key={page.id}>
@@ -103,7 +103,7 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
                       href={`/${page.path}`}
                       className="block px-5 py-4 hover:bg-slate-50"
                     >
-                      <div className="text-lg font-medium text-primary">
+                      <div className="text-primary text-lg font-medium">
                         {page.title}
                       </div>
                       <div className="mt-1 text-sm text-slate-500">

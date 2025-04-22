@@ -71,14 +71,14 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
 
       switch (variant) {
         case "success":
-          return <CheckCircle className="w-4 h-4" />;
+          return <CheckCircle className="h-4 w-4" />;
         case "info":
-          return <Info className="w-4 h-4" />;
+          return <Info className="h-4 w-4" />;
         case "warning":
-          return <AlertTriangle className="w-4 h-4" />;
+          return <AlertTriangle className="h-4 w-4" />;
         case "error":
         case "destructive":
-          return <AlertCircle className="w-4 h-4" />;
+          return <AlertCircle className="h-4 w-4" />;
         default:
           return null;
       }
@@ -100,7 +100,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         {dismissable && onDismiss && (
           <button
             onClick={onDismiss}
-            className="absolute inline-flex items-center justify-center w-6 h-6 rounded-full right-3 top-3 hover:bg-background-level2"
+            className="hover:bg-background-level2 absolute right-3 top-3 inline-flex h-6 w-6 items-center justify-center rounded-full"
             aria-label="Dismiss alert"
           >
             <X className="h-3.5 w-3.5" />

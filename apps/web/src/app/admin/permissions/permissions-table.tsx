@@ -56,14 +56,14 @@ export default function PermissionsTable({
         <input
           type="text"
           placeholder="Search permissions..."
-          className="w-full p-2 border rounded"
+          className="w-full rounded border p-2"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
       </div>
 
       {filteredModules.length === 0 ? (
-        <div className="py-4 text-center text-text-secondary">
+        <div className="text-text-secondary py-4 text-center">
           No permissions found matching your search.
         </div>
       ) : (
@@ -93,13 +93,13 @@ export default function PermissionsTable({
                     .map((permission) => (
                       <tr
                         key={permission.id}
-                        className="border-b border-background-level2"
+                        className="border-background-level2 border-b"
                       >
                         <td className="p-2 font-mono text-sm">
                           {permission.name}
                         </td>
                         <td className="p-2 capitalize">{permission.action}</td>
-                        <td className="p-2 text-sm text-text-secondary">
+                        <td className="text-text-secondary p-2 text-sm">
                           {permission.description || "-"}
                         </td>
                       </tr>

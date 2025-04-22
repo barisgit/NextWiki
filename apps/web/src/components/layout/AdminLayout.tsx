@@ -18,32 +18,32 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="flex min-h-screen bg-background-paper">
+    <div className="bg-background-paper flex min-h-screen">
       {/* Sidebar */}
       <div
-        className={`fixed top-0 bottom-0 left-0 z-20 border-r border-border-default transition-all duration-300 ${
+        className={`border-border-default fixed bottom-0 left-0 top-0 z-20 border-r transition-all duration-300 ${
           collapsed ? "w-16" : "w-64"
         } bg-background-level1`}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex h-full flex-col">
           <div
-            className={`flex items-center h-16 px-4 border-b border-border-default ${
+            className={`border-border-default flex h-16 items-center border-b px-4 ${
               collapsed ? "justify-center" : "justify-between"
             }`}
           >
             {!collapsed && (
-              <h1 className="text-lg font-semibold text-text-primary">
+              <h1 className="text-text-primary text-lg font-semibold">
                 NextWiki Admin
               </h1>
             )}
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-1 rounded-md hover:bg-background-level2 text-text-secondary"
+              className="hover:bg-background-level2 text-text-secondary rounded-md p-1"
             >
               {collapsed ? (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5"
+                  className="h-5 w-5"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -56,7 +56,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               ) : (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5"
+                  className="h-5 w-5"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -70,12 +70,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </button>
           </div>
 
-          <div className="flex-1 py-5 overflow-y-auto">
-            <nav className="px-2 space-y-1">
+          <div className="flex-1 overflow-y-auto py-5">
+            <nav className="space-y-1 px-2">
               {/* Dashboard */}
               <Link
                 href="/admin/dashboard"
-                className={`flex items-center px-3 py-2 rounded-md transition-colors ${
+                className={`flex items-center rounded-md px-3 py-2 transition-colors ${
                   isActive("/admin/dashboard")
                     ? "bg-primary/10 text-primary"
                     : "text-text-primary hover:bg-background-level2"
@@ -83,7 +83,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`flex-shrink-0 h-5 w-5 ${collapsed ? "" : "mr-3"}`}
+                  className={`h-5 w-5 flex-shrink-0 ${collapsed ? "" : "mr-3"}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -101,7 +101,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               {/* Wiki Pages */}
               <Link
                 href="/admin/wiki"
-                className={`flex items-center px-3 py-2 rounded-md transition-colors ${
+                className={`flex items-center rounded-md px-3 py-2 transition-colors ${
                   isActive("/admin/wiki")
                     ? "bg-primary/10 text-primary"
                     : "text-text-primary hover:bg-background-level2"
@@ -109,7 +109,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`flex-shrink-0 h-5 w-5 ${collapsed ? "" : "mr-3"}`}
+                  className={`h-5 w-5 flex-shrink-0 ${collapsed ? "" : "mr-3"}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -127,7 +127,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               {/* Users */}
               <Link
                 href="/admin/users"
-                className={`flex items-center px-3 py-2 rounded-md transition-colors ${
+                className={`flex items-center rounded-md px-3 py-2 transition-colors ${
                   isActive("/admin/users")
                     ? "bg-primary/10 text-primary"
                     : "text-text-primary hover:bg-background-level2"
@@ -135,7 +135,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`flex-shrink-0 h-5 w-5 ${collapsed ? "" : "mr-3"}`}
+                  className={`h-5 w-5 flex-shrink-0 ${collapsed ? "" : "mr-3"}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -153,7 +153,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               {/* Groups */}
               <Link
                 href="/admin/groups"
-                className={`flex items-center px-3 py-2 rounded-md transition-colors ${
+                className={`flex items-center rounded-md px-3 py-2 transition-colors ${
                   isActive("/admin/groups")
                     ? "bg-primary/10 text-primary"
                     : "text-text-primary hover:bg-background-level2"
@@ -161,7 +161,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`flex-shrink-0 h-5 w-5 ${collapsed ? "" : "mr-3"}`}
+                  className={`h-5 w-5 flex-shrink-0 ${collapsed ? "" : "mr-3"}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -179,7 +179,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               {/* Assets */}
               <Link
                 href="/admin/assets"
-                className={`flex items-center px-3 py-2 rounded-md transition-colors ${
+                className={`flex items-center rounded-md px-3 py-2 transition-colors ${
                   isActive("/admin/assets")
                     ? "bg-primary/10 text-primary"
                     : "text-text-primary hover:bg-background-level2"
@@ -187,7 +187,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`flex-shrink-0 h-5 w-5 ${collapsed ? "" : "mr-3"}`}
+                  className={`h-5 w-5 flex-shrink-0 ${collapsed ? "" : "mr-3"}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -206,7 +206,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               {env.NEXT_PUBLIC_NODE_ENV === "development" && (
                 <Link
                   href="/admin/example"
-                  className={`flex items-center px-3 py-2 rounded-md transition-colors ${
+                  className={`flex items-center rounded-md px-3 py-2 transition-colors ${
                     isActive("/admin/example")
                       ? "bg-primary/10 text-primary"
                       : "text-text-primary hover:bg-background-level2"
@@ -214,7 +214,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className={`flex-shrink-0 h-5 w-5 ${
+                    className={`h-5 w-5 flex-shrink-0 ${
                       collapsed ? "" : "mr-3"
                     }`}
                     fill="none"
@@ -241,7 +241,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               {/* Settings */}
               <Link
                 href="/admin/settings"
-                className={`flex items-center px-3 py-2 rounded-md transition-colors ${
+                className={`flex items-center rounded-md px-3 py-2 transition-colors ${
                   isActive("/admin/settings")
                     ? "bg-primary/10 text-primary"
                     : "text-text-primary hover:bg-background-level2"
@@ -249,7 +249,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`flex-shrink-0 h-5 w-5 ${collapsed ? "" : "mr-3"}`}
+                  className={`h-5 w-5 flex-shrink-0 ${collapsed ? "" : "mr-3"}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -272,16 +272,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </nav>
           </div>
 
-          <div className="p-4 border-t border-border-default">
+          <div className="border-border-default border-t p-4">
             <Link
               href="/"
-              className={`flex items-center px-3 py-2 rounded-md text-text-secondary hover:bg-background-level2 ${
+              className={`text-text-secondary hover:bg-background-level2 flex items-center rounded-md px-3 py-2 ${
                 collapsed ? "justify-center" : ""
               }`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className={`flex-shrink-0 h-5 w-5 ${collapsed ? "" : "mr-3"}`}
+                className={`h-5 w-5 flex-shrink-0 ${collapsed ? "" : "mr-3"}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -301,16 +301,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Main content */}
       <div
-        className={`flex-1 flex flex-col transition-all duration-300 ${
+        className={`flex flex-1 flex-col transition-all duration-300 ${
           collapsed ? "ml-16" : "ml-64"
         }`}
       >
         {/* Top bar */}
-        <header className="sticky top-0 z-10 flex items-center h-16 px-6 border-b bg-background-paper border-border-default">
-          <div className="flex items-center justify-between flex-1">
+        <header className="bg-background-paper border-border-default sticky top-0 z-10 flex h-16 items-center border-b px-6">
+          <div className="flex flex-1 items-center justify-between">
             <h1 className="text-lg font-medium">Admin Panel</h1>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-text-secondary">
+              <span className="text-text-secondary text-sm">
                 Welcome, Admin
               </span>
             </div>
@@ -318,7 +318,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
   );

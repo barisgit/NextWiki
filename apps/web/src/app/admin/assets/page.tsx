@@ -69,16 +69,16 @@ export default function AssetsAdminPage() {
     : [];
 
   return (
-    <div className="container px-6 mx-auto">
+    <div className="container mx-auto px-6">
       <h1 className="mb-6 text-3xl font-bold">Asset Management</h1>
 
       {/* Search and filter controls */}
-      <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center">
         <div className="flex-1">
           <Input
             type="text"
             placeholder="Search by file name..."
-            className="w-full px-3 py-2 border rounded-md"
+            className="w-full rounded-md border px-3 py-2"
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setSearchTerm(e.target.value)
@@ -108,7 +108,7 @@ export default function AssetsAdminPage() {
       {/* Loading state */}
       {assetsQuery.isLoading && (
         <div className="flex items-center justify-center py-8">
-          <div className="w-8 h-8 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
           <span className="ml-2">Loading assets...</span>
         </div>
       )}
@@ -118,7 +118,7 @@ export default function AssetsAdminPage() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="w-16 h-16 text-gray-400"
+            className="h-16 w-16 text-gray-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -144,7 +144,7 @@ export default function AssetsAdminPage() {
       {/* Asset table */}
       {!assetsQuery.isLoading && filteredAssets.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="min-w-full border rounded-lg bg-background-paper border-border-default">
+          <table className="bg-background-paper border-border-default min-w-full rounded-lg border">
             <thead>
               <tr className="bg-background-level1">
                 <th className="px-4 py-2 text-left">Preview</th>
@@ -157,7 +157,7 @@ export default function AssetsAdminPage() {
                 <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border-default">
+            <tbody className="divide-border-default divide-y">
               {filteredAssets.map((asset) => (
                 <tr key={asset.id} className="hover:bg-background-level2">
                   <td className="px-4 py-2">
@@ -167,13 +167,13 @@ export default function AssetsAdminPage() {
                         alt={asset.fileName}
                         width={48}
                         height={48}
-                        className="object-cover w-12 h-12 border rounded border-border-default"
+                        className="border-border-default h-12 w-12 rounded border object-cover"
                       />
                     ) : (
-                      <div className="flex items-center justify-center w-12 h-12 border rounded text-text-secondary bg-background-level1 border-border-default">
+                      <div className="text-text-secondary bg-background-level1 border-border-default flex h-12 w-12 items-center justify-center rounded border">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="w-6 h-6"
+                          className="h-6 w-6"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"

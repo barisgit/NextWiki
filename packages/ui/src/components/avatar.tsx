@@ -100,7 +100,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         ) : (
           <div
             className={cn(
-              "flex h-full w-full items-center justify-center bg-background-level2 dark:bg-background-level3 text-text-secondary",
+              "bg-background-level2 dark:bg-background-level3 text-text-secondary flex h-full w-full items-center justify-center",
               shapeClasses[shape]
             )}
           >
@@ -115,7 +115,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         {status && (
           <span
             className={cn(
-              "absolute block rounded-full ring-2 ring-background dark:ring-background-dark",
+              "ring-background dark:ring-background-dark absolute block rounded-full ring-2",
               statusClasses[status],
               statusPositionClasses[statusPosition],
               statusSizeMap[size]
@@ -191,10 +191,10 @@ const AvatarGroup = React.forwardRef<
             shape={shape}
             bordered={bordered}
             className={cn(
-              "relative inline-block border-2 border-background dark:border-background-dark bg-background-level2"
+              "border-background dark:border-background-dark bg-background-level2 relative inline-block border-2"
             )}
             fallback={
-              <span className="font-medium text-text-secondary">
+              <span className="text-text-secondary font-medium">
                 +{hiddenAvatars}
               </span>
             }

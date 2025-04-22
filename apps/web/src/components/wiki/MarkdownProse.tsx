@@ -18,7 +18,7 @@ export function MarkdownProse({
     <div
       className={cn(
         // Base prose styling
-        "prose max-w-none dark:prose-invert",
+        "prose dark:prose-invert max-w-none",
 
         // Heading styles - using theme variables and more specific selectors
         "prose-h1:!text-markdown-h1 prose-h1:!font-bold prose-h1:!text-2xl prose-h1:!mt-spacing-lg prose-h1:!mb-spacing-md",
@@ -37,7 +37,7 @@ export function MarkdownProse({
         "prose-ul:!space-y-0 prose-ol:!space-y-0 prose-ul:!py-0 prose-ol:!py-0",
         "prose-li:marker:text-markdown-listMarker",
         "prose-li:!my-0",
-        "[&_ul]:!mt-0 [&_ul]:!mb-0",
+        "[&_ul]:!mb-0 [&_ul]:!mt-0",
         "[&_li]:!my-0",
 
         // Nested list styling
@@ -48,7 +48,7 @@ export function MarkdownProse({
         // Code and pre styling
         "prose-code:text-markdown-inlinecodetext prose-code:bg-markdown-inlinecodebg prose-code:px-spacing-xs prose-code:py-0.5 prose-code:rounded prose-code:text-sm",
         "prose-pre:bg-markdown-codebg prose-pre:rounded-md prose-pre:p-spacing-sm prose-pre:my-spacing-md",
-        "[&_pre_code]:text-markdown-codetext [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:m-0",
+        "[&_pre_code]:text-markdown-codetext [&_pre_code]:m-0 [&_pre_code]:bg-transparent [&_pre_code]:p-0",
         "[&_pre]:!overflow-x-auto",
 
         // Blockquote styling

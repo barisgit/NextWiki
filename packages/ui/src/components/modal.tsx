@@ -90,7 +90,7 @@ const Modal: React.FC<ModalProps> = ({
           <div
             ref={modalRef}
             className={cn(
-              "relative max-h-[90vh] overflow-y-auto rounded-lg border border-border-default shadow-xl",
+              "border-border-default relative max-h-[90vh] overflow-y-auto rounded-lg border shadow-xl",
               backgroundClass,
               sizeClasses[size],
               "p-5",
@@ -100,11 +100,11 @@ const Modal: React.FC<ModalProps> = ({
           >
             {showCloseButton && (
               <button
-                className="absolute flex items-center justify-center w-8 h-8 rounded-full bg-background-level1 text-text-secondary hover:bg-background-level2 hover:text-text-primary right-3 top-3"
+                className="bg-background-level1 text-text-secondary hover:bg-background-level2 hover:text-text-primary absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full"
                 onClick={onClose}
                 aria-label="Close modal"
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </button>
             )}
             {children}

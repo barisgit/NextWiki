@@ -73,17 +73,17 @@ const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
 
     return (
       <div className="flex items-start">
-        <div className="relative flex items-center h-5">
+        <div className="relative flex h-5 items-center">
           <input
             id={inputId}
             type="radio"
             ref={ref}
             className={cn(
-              "appearance-none cursor-pointer",
-              "focus:ring-2 focus:ring-offset-2 focus:outline-none focus:ring-opacity-50",
+              "cursor-pointer appearance-none",
+              "focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-offset-2",
               "transition-all duration-200",
               "rounded-full border-2",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "disabled:cursor-not-allowed disabled:opacity-50",
               sizeClasses[size],
               colorClasses[color],
               variantClasses[variant],
@@ -94,7 +94,7 @@ const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
           {/* Custom radio inner circle */}
           <div
             className={cn(
-              "absolute pointer-events-none rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-transform scale-0",
+              "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 scale-0 rounded-full transition-transform",
               dotSizeClasses[size],
               `bg-${color}-500`,
               props.checked && "scale-100"
@@ -106,7 +106,7 @@ const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
             {label && (
               <label
                 htmlFor={inputId}
-                className="font-medium cursor-pointer text-text-primary"
+                className="text-text-primary cursor-pointer font-medium"
               >
                 {label}
               </label>

@@ -25,12 +25,12 @@ export default async function PermissionsPage() {
   const permissions = await dbService.permissions.getAll();
 
   return (
-    <div className="container p-6 mx-auto">
+    <div className="container mx-auto p-6">
       <h1 className="mb-6 text-3xl font-bold">Permissions Management</h1>
 
-      <div className="p-6 rounded-lg shadow-sm bg-background-level1">
+      <div className="bg-background-level1 rounded-lg p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold">System Permissions</h2>
-        <p className="mb-6 text-sm text-text-secondary">
+        <p className="text-text-secondary mb-6 text-sm">
           View and manage the permissions available in the system. Permissions
           can be assigned to groups to control access to various features and
           resources.

@@ -7,20 +7,20 @@ export default async function TagsPage() {
 
   return (
     <MainLayout>
-      <div className="p-4 space-y-6">
+      <div className="space-y-6 p-4">
         <div>
           <h1 className="text-2xl font-bold">Tags</h1>
-          <p className="mt-1 text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Browse wiki pages by tags.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 md:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {tags.map((tag) => (
             <Link
               key={tag.id}
               href={`/tags/${tag.name}`}
-              className="block p-4 transition-colors border rounded-lg hover:border-primary hover:bg-muted/50"
+              className="hover:border-primary hover:bg-muted/50 block rounded-lg border p-4 transition-colors"
             >
               <div className="flex items-center justify-between">
                 <span className="text-lg font-medium">{tag.name}</span>

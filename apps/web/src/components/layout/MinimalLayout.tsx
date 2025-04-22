@@ -7,7 +7,7 @@ interface MinimalLayoutProps {
 
 export function MinimalLayout({ children, header = true }: MinimalLayoutProps) {
   return (
-    <div className="w-full h-screen">
+    <div className="h-screen w-full">
       {header && <Header />}
       <main>{children}</main>
     </div>

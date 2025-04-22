@@ -10,7 +10,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
         <Suspense fallback={<div>Loading...</div>}>
           <main className="flex-1 overflow-auto">{children}</main>
