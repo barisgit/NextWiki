@@ -108,7 +108,7 @@ export function CodeBlock({
           color="neutral"
           onClick={handleCopy}
           disabled={!codeString}
-          className="bg-background-level2/60 hover:bg-background-level2/90 pl-2.5 pr-3 opacity-80 shadow-sm backdrop-blur-md transition-opacity hover:opacity-100"
+          className="bg-background-paper/20 dark:bg-background-level2/60 hover:bg-background-level2/90 pl-2.5 pr-3 text-gray-200 opacity-80 shadow-sm backdrop-blur-md transition-opacity hover:opacity-100"
           aria-label="Copy code to clipboard"
         >
           {isCopied ? (
@@ -118,7 +118,7 @@ export function CodeBlock({
             </>
           ) : (
             <>
-              <CopyIcon className="text-text-tertiary mr-1.5 h-4 w-4" />
+              <CopyIcon className="mr-1.5 h-4 w-4" />
               Copy
             </>
           )}

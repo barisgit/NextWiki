@@ -9,9 +9,9 @@ import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "~/lib/auth";
 import { Suspense } from "react";
-import { PageLocationEditor } from "~/components/wiki/PageLocationEditor";
 import { renderWikiMarkdownToHtml } from "~/lib/services/markdown";
 import { authorizationService } from "~/lib/services/authorization";
+import { MovePageWrapper } from "~/components/wiki/MovePageWrapper";
 
 export const dynamic = "auto";
 export const revalidate = 300; // 5 minutes
@@ -36,26 +36,41 @@ export async function getWikiPageByPath(path: string[]) {
     },
   });
 
-  if (
-    page?.renderedHtml &&
-    page?.renderedHtmlUpdatedAt &&
-    page?.renderedHtmlUpdatedAt > (page?.updatedAt ?? new Date())
-  ) {
-    return page;
+  if (!page) {
+    return null; // Return null if page not found
   }
 
-  // If page is found and has content, pre-render the markdown to HTML with wiki link validation
-  if (page && page.content) {
+  // Ensure tags are loaded even if we return early due to cached HTML
+  const tags = page.tags;
+
+  // Check if rendered HTML is up-to-date
+  if (
+    page.renderedHtml &&
+    page.renderedHtmlUpdatedAt &&
+    page.renderedHtmlUpdatedAt > (page.updatedAt ?? new Date(0)) // Use epoch if no updatedAt
+  ) {
+    // Return page with guaranteed tags
+    return { ...page, tags };
+  }
+
+  // If page is found and has content, render the markdown to HTML
+  if (page.content) {
     const renderedHtml = await renderWikiMarkdownToHtml(
       page.content,
       page.id,
       page.path
     );
-    page.renderedHtml = renderedHtml;
-    page.renderedHtmlUpdatedAt = new Date();
+    // Return page with newly rendered HTML and guaranteed tags
+    return {
+      ...page,
+      renderedHtml,
+      renderedHtmlUpdatedAt: new Date(),
+      tags, // Ensure tags are included here too
+    };
   }
 
-  return page;
+  // If no content, return page with guaranteed tags
+  return { ...page, tags };
 }
 
 type Params = Promise<{ path: string[] }>;
@@ -95,6 +110,30 @@ export default async function WikiPageView({
     notFound();
   }
 
+  // Format tags for the WikiPage component
+  const formattedTags =
+    page.tags?.map((relation) => ({
+      id: relation.tag.id,
+      name: relation.tag.name,
+    })) || [];
+
+  // Determine if the page is currently locked
+  const isLocked = Boolean(
+    page.lockedBy &&
+      page.lockExpiresAt &&
+      new Date(page.lockExpiresAt) > new Date()
+  );
+
+  // Determine if the current user is the lock owner
+  const isCurrentUserLockOwner = Boolean(
+    currentUserId && page.lockedBy && page.lockedBy.id === currentUserId
+  );
+
+  // Format the lockedBy data for the header
+  const formattedLockedBy = page.lockedBy
+    ? { id: page.lockedBy.id, name: page.lockedBy.name || "Unknown" }
+    : null;
+
   // Check operation modes
   const isEditMode = resolvedSearchParams.edit === "true";
   const isMoveMode = resolvedSearchParams.move === "true";
@@ -129,31 +168,42 @@ export default async function WikiPageView({
     if (!canMovePage) {
       redirect("/");
     }
+    // Instead of trying to render the PageLocationEditor directly,
+    // use the MainLayout with a client component wrapper
     return (
-      <MainLayout>
-        <PageLocationEditor
-          mode="move"
-          isOpen={true}
-          onClose={() => {}}
-          initialPath={page.path.split("/").slice(0, -1).join("/")}
-          initialName={page.path.split("/").pop() || ""}
+      <MainLayout
+        pageMetadata={{
+          title: page.title,
+          path: page.path,
+          id: page.id,
+          isLocked: isLocked,
+          lockedBy: formattedLockedBy,
+          lockExpiresAt: page.lockExpiresAt?.toISOString() || null,
+          isCurrentUserLockOwner: isCurrentUserLockOwner,
+        }}
+      >
+        <MovePageWrapper
           pageId={page.id}
           pageTitle={page.title}
+          pagePath={page.path}
         />
       </MainLayout>
     );
   }
 
-  // Format tags for the WikiPage component
-  const formattedTags =
-    page.tags?.map((relation) => ({
-      id: relation.tag.id,
-      name: relation.tag.name,
-    })) || [];
-
   // View mode
   return (
-    <MainLayout>
+    <MainLayout
+      pageMetadata={{
+        title: page.title,
+        path: page.path,
+        id: page.id,
+        isLocked: isLocked,
+        lockedBy: formattedLockedBy,
+        lockExpiresAt: page.lockExpiresAt?.toISOString() || null,
+        isCurrentUserLockOwner: isCurrentUserLockOwner,
+      }}
+    >
       <WikiPage
         id={page.id}
         title={page.title}

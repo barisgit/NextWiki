@@ -3,8 +3,6 @@
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { ReactNode, useState, useEffect } from "react";
-import { WikiLockInfo } from "./WikiLockInfo";
-import { MoveIcon, PencilIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { WikiSubfolders } from "./WikiSubfolders";
 import { Breadcrumbs } from "./Breadcrumbs";
@@ -12,9 +10,8 @@ import { useTRPC } from "~/server/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Modal } from "@repo/ui";
 import { PageLocationEditor } from "./PageLocationEditor";
-import { ClientRequirePermission } from "~/components/auth/permission/client";
 import { ScrollArea } from "@repo/ui";
-import { Button } from "@repo/ui";
+
 interface WikiPageProps {
   id: number;
   title: string;
@@ -53,22 +50,10 @@ export function WikiPage({
   const [renameConflict, setRenameConflict] = useState(false);
   const trpc = useTRPC();
 
-  // Check specific page permissions if needed
-  const { data: hasPageUpdatePermission } = useQuery(
-    trpc.auth.hasPagePermission.queryOptions(
-      { pageId: id, permission: "wiki:page:update" },
-      { enabled: !!id }
-    )
-  );
-
-  // Get utility functions for trpc
-  // const utils = trpc.useUtils();
-
   // Create a mutation for updating a wiki page
   const updateMutation = useMutation(
     trpc.wiki.update.mutationOptions({
       onSuccess: () => {
-        // utils.wiki.getFolderStructure.invalidate();
         router.refresh();
       },
     })
@@ -170,55 +155,7 @@ export function WikiPage({
             {/* Breadcrumbs */}
             <Breadcrumbs path={path} className="mb-3 text-slate-600" />
 
-            <div className="mb-4 flex items-center justify-between">
-              <h1 className="text-3xl font-bold">{title}</h1>
-
-              {/* Combined Actions and Lock Info Area */}
-              <div className="flex items-center space-x-4">
-                {" "}
-                {/* Rename/Move Icons */}
-                <ClientRequirePermission permission="wiki:page:update">
-                  {hasPageUpdatePermission && (
-                    <div className="flex items-center space-x-1">
-                      {" "}
-                      {/* Container for icons */}
-                      <Button
-                        onClick={handleRename}
-                        variant="ghost"
-                        size="sm"
-                        className="hover:bg-muted rounded p-1"
-                        title="Rename"
-                      >
-                        <PencilIcon className="h-4 w-4 text-slate-500 hover:text-slate-700" />
-                      </Button>
-                      <Button
-                        onClick={handleMove}
-                        variant="ghost"
-                        size="sm"
-                        className="hover:bg-muted rounded p-1"
-                        title="Move"
-                      >
-                        <MoveIcon className="h-4 w-4 text-slate-500 hover:text-slate-700" />
-                      </Button>
-                    </div>
-                  )}
-                </ClientRequirePermission>
-                {/* Lock status - Moved here */}
-                <ClientRequirePermission permission="wiki:page:update">
-                  {hasPageUpdatePermission && (
-                    <WikiLockInfo
-                      pageId={id}
-                      isLocked={isLocked}
-                      lockedByName={lockedBy?.name || null}
-                      lockedUntil={lockExpiresAt?.toISOString() || null}
-                      isCurrentUserLockOwner={isCurrentUserLockOwner}
-                      editPath={`/${path}?edit=true`}
-                    />
-                  )}
-                </ClientRequirePermission>
-              </div>
-            </div>
-
+            {/* Page metadata - simpler now */}
             <div className="text-muted-foreground flex items-center space-x-4 text-sm">
               <div className="flex items-center">
                 <svg
@@ -241,13 +178,18 @@ export function WikiPage({
               </div>
             </div>
 
+            {/* Tags shown only on mobile */}
+            {/* Tags display moved below metadata */}
             {tags.length > 0 && (
-              <div className="mt-3 flex items-center space-x-2">
+              <div className="mt-3 flex flex-wrap gap-1">
+                <span className="text-text-secondary mr-2 text-sm font-medium">
+                  Tags:
+                </span>
                 {tags.map((tag) => (
                   <Link
                     key={tag.id}
                     href={`/tags/${tag.name}`}
-                    className="bg-muted hover:bg-muted/80 rounded-full px-2 py-0.5 text-xs"
+                    className="bg-muted hover:bg-muted/80 text-text-secondary hover:text-text-primary rounded-full px-2.5 py-0.5 text-xs transition-colors"
                   >
                     {tag.name}
                   </Link>

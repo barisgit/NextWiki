@@ -7,6 +7,8 @@ import { Suspense } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { getWikiPageByPath } from "./[...path]/page";
 import { WikiFolderTree } from "~/components/wiki/WikiFolderTree";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "~/lib/auth";
 
 export default async function Home() {
   const recentPages = await dbService.wiki.getRecentPages(5);
@@ -16,9 +18,46 @@ export default async function Home() {
 
   const renderedHtml = rootPage?.renderedHtml;
 
+  // Calculate lock status for the home page (if it exists)
+  const session = await getServerSession(authOptions);
+  const currentUserId = session?.user?.id
+    ? parseInt(session.user.id)
+    : undefined;
+  const isLocked = rootPage
+    ? Boolean(
+        rootPage.lockedBy &&
+          rootPage.lockExpiresAt &&
+          new Date(rootPage.lockExpiresAt) > new Date()
+      )
+    : false;
+  const isCurrentUserLockOwner = rootPage
+    ? Boolean(
+        currentUserId &&
+          rootPage.lockedBy &&
+          rootPage.lockedBy.id === currentUserId
+      )
+    : false;
+  const formattedLockedBy = rootPage?.lockedBy
+    ? { id: rootPage.lockedBy.id, name: rootPage.lockedBy.name || "Unknown" }
+    : null;
+
   return (
-    <MainLayout>
-      <div className="flex flex-col gap-3 p-3">
+    <MainLayout
+      pageMetadata={
+        rootPage
+          ? {
+              title: rootPage.title || "NextWiki Home",
+              path: "index",
+              id: rootPage.id,
+              isLocked: isLocked,
+              lockedBy: formattedLockedBy,
+              lockExpiresAt: rootPage.lockExpiresAt?.toISOString() || null,
+              isCurrentUserLockOwner: isCurrentUserLockOwner,
+            }
+          : undefined
+      }
+    >
+      <div className="relative flex flex-col gap-3 p-3">
         {/* Grid layout for content and dashboard */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main Content Area (Left Column) */}
@@ -27,30 +66,11 @@ export default async function Home() {
             <div className="mb-6">
               {rootPage ? (
                 <>
-                  <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-text-primary text-2xl font-bold">
+                  {/* <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-text-primary text-2xl font-bold md:hidden">
                       {rootPage.title}
                     </h2>
-                    <Link
-                      href={`/index?edit=true`}
-                      className="text-primary inline-flex items-center text-sm font-medium hover:underline"
-                    >
-                      Edit
-                      <svg
-                        className="ml-1 h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                        />
-                      </svg>
-                    </Link>
-                  </div>
+                  </div> */}
                   <div className="prose prose-sm dark:prose-invert max-w-none">
                     <Suspense fallback={<div>Loading content...</div>}>
                       <HighlightedContent
@@ -88,7 +108,6 @@ export default async function Home() {
             </div>
             */}
           </section>
-
           {/* Right Column: Dashboard Cards */}
           <section className="flex flex-col gap-3 self-start lg:sticky lg:top-2 lg:col-span-1">
             {/* Combined Dashboard Card */}
@@ -153,7 +172,7 @@ export default async function Home() {
                 <CardTitle className="mb-2 text-lg font-semibold">
                   Wiki Features
                 </CardTitle>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   <Link
                     href="/wiki/getting-started"
                     className="text-primary hover:bg-accent/10 flex flex-col items-center rounded-md p-1.5 text-center text-xs"
@@ -252,9 +271,32 @@ export default async function Home() {
                   showRoot={false}
                   hideHeader={true}
                   card={false}
+                  mode="navigation"
                 />
               </CardContent>
             </Card>
+
+            {/* Tags Card (only if rootPage and tags exist) */}
+            {rootPage && rootPage.tags && rootPage.tags.length > 0 && (
+              <Card className="border-border-light dark:bg-background-paper bg-background-default">
+                <CardContent className="p-2">
+                  <CardTitle className="mb-1 text-lg font-semibold">
+                    Homepage Tags
+                  </CardTitle>
+                  <div className="flex flex-wrap gap-1">
+                    {rootPage.tags.map((relation) => (
+                      <Link
+                        key={relation.tag.id}
+                        href={`/tags/${relation.tag.name}`}
+                        className="bg-accent/20 hover:bg-accent/30 rounded px-2 py-0.5 text-xs"
+                      >
+                        {relation.tag.name}
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </section>
         </div>
       </div>

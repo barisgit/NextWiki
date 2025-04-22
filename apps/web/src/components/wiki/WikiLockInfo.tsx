@@ -5,7 +5,14 @@ import { useTRPC } from "~/server/client";
 import { useMutation } from "@tanstack/react-query";
 import { useNotification } from "~/lib/hooks/useNotification";
 import { formatDistanceToNow } from "date-fns";
-import { Button } from "@repo/ui";
+import {
+  Button,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@repo/ui";
+import { LockIcon, UnlockIcon, PencilIcon, XCircleIcon } from "lucide-react";
 
 interface WikiLockInfoProps {
   pageId: number;
@@ -14,6 +21,7 @@ interface WikiLockInfoProps {
   lockedUntil?: string | null;
   isCurrentUserLockOwner: boolean;
   editPath: string;
+  displayMode?: "full" | "header";
 }
 
 export function WikiLockInfo({
@@ -23,6 +31,7 @@ export function WikiLockInfo({
   lockedUntil,
   isCurrentUserLockOwner,
   editPath,
+  displayMode = "full",
 }: WikiLockInfoProps) {
   const router = useRouter();
   const notification = useNotification();
@@ -51,44 +60,76 @@ export function WikiLockInfo({
     releaseLockMutation.mutate({ id: pageId });
   };
 
-  if (!isLocked) {
+  const lockTooltipContent = `Locked by ${lockedByName || "another user"}${lockedUntil ? ` (expires ${formatDistanceToNow(new Date(lockedUntil), { addSuffix: true })})` : ""}`;
+
+  // Header display mode
+  if (displayMode === "header") {
+    if (!isLocked) {
+      return null;
+    }
+
+    const lockText = isCurrentUserLockOwner ? "Editing" : "Locked";
+    const iconColor = isCurrentUserLockOwner
+      ? "text-blue-500"
+      : "text-orange-500";
+
     return (
-      <div className="flex items-center space-x-2 text-sm">
-        <span className="flex items-center text-green-600">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="mr-1 h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
-            />
-          </svg>
-          Unlocked
-        </span>
-        <Button onClick={handleEdit} variant="outlined" size="sm">
-          Edit
-        </Button>
+      <div className="flex items-center space-x-1">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className={`flex cursor-help items-center space-x-1 ${iconColor}`}
+              >
+                <LockIcon className="h-4 w-4" />
+                <span className="text-xs font-medium">{lockText}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{lockTooltipContent}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        {isCurrentUserLockOwner && (
+          <div className="ml-1 flex items-center space-x-0.5">
+            <button
+              onClick={handleReleaseLock}
+              className="hover:bg-destructive/10 text-destructive hover:text-destructive/80 rounded p-0.5"
+              title="Release Lock"
+            >
+              <XCircleIcon className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
       </div>
     );
   }
 
-  // If locked, render the lock status and relevant actions
+  // Full display mode (original logic)
+  if (!isLocked) {
+    return (
+      <div className="flex items-center space-x-2 text-sm">
+        <span className="flex items-center text-green-600">
+          <UnlockIcon className="mr-1 h-4 w-4" />
+          Unlocked
+        </span>
+      </div>
+    );
+  }
+
+  // If locked, render the full lock status and relevant actions
   return (
-    <div className="border-border flex items-center gap-3 rounded-md border p-2 shadow-md">
+    <div className="border-border flex items-center gap-3 rounded-md border p-2 shadow-sm">
       <div className="flex-grow">
         <h4 className="text-text-primary flex items-center text-sm font-medium">
+          <LockIcon className="mr-1.5 h-4 w-4 text-orange-500" />
           {isCurrentUserLockOwner
             ? "You are currently editing this page"
             : `This page is being edited by ${lockedByName || "another user"}`}
         </h4>
         {lockedUntil && new Date(lockedUntil) > new Date() && (
-          <p className="text-text-secondary mt-1 text-xs">
+          <p className="text-text-secondary pl-5.5 mt-1 text-xs">
             Lock expires{" "}
             {formatDistanceToNow(new Date(lockedUntil), { addSuffix: true })}
           </p>
@@ -98,14 +139,6 @@ export function WikiLockInfo({
       <div className="flex flex-shrink-0 gap-2">
         {isCurrentUserLockOwner ? (
           <>
-            <Button
-              onClick={handleEdit}
-              variant="outlined"
-              size="sm"
-              className="m-0 py-0"
-            >
-              Continue Editing
-            </Button>
             <Button
               onClick={handleReleaseLock}
               variant="destructive"
