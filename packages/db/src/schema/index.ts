@@ -442,9 +442,10 @@ export const verificationTokens = pgTable(
     token: varchar("token", { length: 255 }).notNull(),
     expires: timestamp("expires").notNull(),
   },
-  (t) => ({
-    pk: primaryKey({ columns: [t.identifier, t.token] }),
-  })
+  (t) => [
+    primaryKey({ columns: [t.identifier, t.token] }),
+    index("verification_token_idx").on(t.identifier, t.token),
+  ]
 );
 
 // Assets table for storing uploaded files
