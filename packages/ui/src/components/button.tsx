@@ -4,8 +4,32 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "../utils";
 
+// Simple SVG Spinner
+const Spinner = ({ className }: { className?: string }) => (
+  <svg
+    className={cn("animate-spin", className)}
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <circle
+      className="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="4"
+    ></circle>
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+    ></path>
+  </svg>
+);
+
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative",
   {
     variants: {
       variant: {
@@ -84,6 +108,7 @@ export interface ButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "color">,
     Omit<VariantProps<typeof buttonVariants>, "color"> {
   asChild?: boolean;
+  loading?: boolean;
   color?:
     | "info"
     | "error"
@@ -110,6 +135,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       asChild = false,
       rounded,
       elevation,
+      loading = false,
       ...props
     },
     ref
@@ -128,6 +154,39 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         } as React.CSSProperties)
       : undefined;
 
+    const spinnerSizeClass =
+      size === "sm" ? "h-3 w-3" : size === "icon" ? "h-5 w-5" : "h-4 w-4";
+
+    // If loading, always render a button element with the spinner, ignore asChild and children
+    if (loading) {
+      return (
+        <button
+          className={cn(
+            buttonVariants({
+              variant,
+              size,
+              rounded,
+              color: customColor ? undefined : color,
+              elevation,
+              className,
+            }),
+            "relative" // Ensure relative positioning for the spinner container
+          )}
+          ref={ref}
+          style={customColorStyle}
+          disabled={true} // Explicitly disabled
+          {...props} // Spread other props like aria-label, etc.
+        >
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Spinner className={spinnerSizeClass} />
+          </div>
+          {/* Render original children invisibly to maintain layout spacing if needed, but ensure only one child */}
+          <span className="invisible">{props.children}</span>
+        </button>
+      );
+    }
+
+    // Original rendering logic when not loading
     return (
       <Comp
         className={cn(
@@ -142,8 +201,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         ref={ref}
         style={customColorStyle}
+        disabled={props.disabled} // Use original disabled prop
         {...props}
-      />
+      >
+        {/* Render children directly when not loading */}
+        {props.children}
+      </Comp>
     );
   }
 );

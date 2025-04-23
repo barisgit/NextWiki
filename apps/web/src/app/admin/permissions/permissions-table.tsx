@@ -4,20 +4,35 @@ import { useState } from "react";
 
 interface Permission {
   id: number;
-  name: string;
   description: string | null;
   module: string;
   action: string;
+  resource: string;
 }
 
 interface PermissionsTableProps {
-  permissions: Permission[];
+  permissions: {
+    id: number;
+    description: string | null;
+    resource: string;
+    action: { name: string };
+    module: { name: string };
+  }[];
 }
 
 export default function PermissionsTable({
-  permissions,
+  permissions: rawPermissions,
 }: PermissionsTableProps) {
   const [filter, setFilter] = useState("");
+
+  // Map rawPermissions to the local Permission structure
+  const permissions: Permission[] = rawPermissions.map((p) => ({
+    id: p.id,
+    description: p.description,
+    module: p.module.name,
+    action: p.action.name,
+    resource: p.resource,
+  }));
 
   // Group permissions by module
   const groupedPermissions = permissions.reduce(
@@ -41,11 +56,9 @@ export default function PermissionsTable({
       module.toLowerCase().includes(lowerCaseFilter) ||
       modulePermissions?.some(
         (p) =>
-          p.name.toLowerCase().includes(lowerCaseFilter) ||
+          p.resource.toLowerCase().includes(lowerCaseFilter) ||
           (p.description?.toLowerCase() || "").includes(lowerCaseFilter) ||
-          p.name.toLowerCase().includes(filter.toLowerCase()) ||
-          (p.description?.toLowerCase() || "").includes(filter.toLowerCase()) ||
-          p.action.toLowerCase().includes(filter.toLowerCase())
+          p.action.toLowerCase().includes(lowerCaseFilter)
       )
     );
   });
@@ -55,7 +68,7 @@ export default function PermissionsTable({
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search permissions..."
+          placeholder="Search permissions by module, resource, action, or description..."
           className="w-full rounded border p-2"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
@@ -74,7 +87,7 @@ export default function PermissionsTable({
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-background-level3">
-                    <th className="p-2 text-left">Name</th>
+                    <th className="p-2 text-left">Resource</th>
                     <th className="p-2 text-left">Action</th>
                     <th className="p-2 text-left">Description</th>
                   </tr>
@@ -84,7 +97,9 @@ export default function PermissionsTable({
                     ?.filter(
                       (p) =>
                         !filter ||
-                        p.name.toLowerCase().includes(filter.toLowerCase()) ||
+                        p.resource
+                          .toLowerCase()
+                          .includes(filter.toLowerCase()) ||
                         (p.description?.toLowerCase() || "").includes(
                           filter.toLowerCase()
                         ) ||
@@ -96,7 +111,7 @@ export default function PermissionsTable({
                         className="border-background-level2 border-b"
                       >
                         <td className="p-2 font-mono text-sm">
-                          {permission.name}
+                          {permission.resource}
                         </td>
                         <td className="p-2 capitalize">{permission.action}</td>
                         <td className="text-text-secondary p-2 text-sm">

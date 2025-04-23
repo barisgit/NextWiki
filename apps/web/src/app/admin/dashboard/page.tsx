@@ -1,19 +1,23 @@
 "use client";
 
-import { Card } from "@repo/ui";
+import { Card, Skeleton, Button } from "@repo/ui";
 import { useTRPC } from "~/server/client";
 import { useQuery } from "@tanstack/react-query";
 import type { AppRouter } from "~/server/routers";
+import Link from "next/link";
 
 // Define type for the stats object returned by the API
 type SystemStatsQueryProcedure = AppRouter["admin"]["system"]["getStats"];
 type SystemStats = Awaited<ReturnType<SystemStatsQueryProcedure>>;
+// Note: SystemStats type is now automatically inferred to include dbStatus and dbError
 
 // Define type for the static part, adding a key to link to API data
 interface StaticStatData {
   title: string;
   icon: React.ReactNode;
-  key: keyof SystemStats; // Key to match the field in SystemStats
+  // Ensure key is part of SystemStats, excluding dbStatus and dbError which aren't displayed as cards
+  key: keyof Omit<SystemStats, "dbStatus" | "dbError">;
+  link?: string; // Optional link for the card
 }
 
 // TODO: Make stats clickable and redirect to the respective page
@@ -23,6 +27,7 @@ const staticStatsData: StaticStatData[] = [
   {
     title: "Total Pages",
     key: "pageCount",
+    link: "/admin/wiki",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -43,6 +48,7 @@ const staticStatsData: StaticStatData[] = [
   {
     title: "Total Tags",
     key: "tagCount",
+    link: "/tags",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -63,6 +69,7 @@ const staticStatsData: StaticStatData[] = [
   {
     title: "Total Assets",
     key: "assetCount",
+    link: "/admin/assets",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -83,6 +90,7 @@ const staticStatsData: StaticStatData[] = [
   {
     title: "Total Users",
     key: "userCount",
+    link: "/admin/users",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -103,6 +111,7 @@ const staticStatsData: StaticStatData[] = [
   {
     title: "User Groups",
     key: "groupCount",
+    link: "/admin/groups",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -122,20 +131,102 @@ const staticStatsData: StaticStatData[] = [
   },
 ];
 
+// New HealthCheckItem component
+function HealthCheckItem({
+  label,
+  status,
+  isLoading,
+  error,
+  onRefresh,
+}: {
+  label: string;
+  // Update status type to match systemService
+  status?: "healthy" | "unhealthy" | "pending" | "not-implemented" | "error";
+  isLoading: boolean;
+  error?: string | null;
+  onRefresh?: () => void;
+}) {
+  const getStatusIndicator = () => {
+    if (isLoading) {
+      return <span className="text-text-secondary">Checking...</span>;
+    }
+    // Use the error prop directly
+    if (error) {
+      // Display the error message if available
+      return (
+        <span className="text-destructive-500" title={error}>
+          Error
+        </span>
+      );
+    }
+    switch (status) {
+      case "healthy":
+        return <span className="text-success-500">Healthy</span>;
+      case "unhealthy":
+      case "error": // Treat 'error' status similar to 'unhealthy'
+        return <span className="text-destructive-500">Unhealthy</span>;
+      case "not-implemented":
+        return <span className="text-warning-500">Not Implemented</span>;
+      case "pending": // Handle 'pending' status explicitly
+      default:
+        return <span className="text-text-secondary">Pending...</span>;
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between">
+      <span>{label}</span>
+      <div className="flex items-center gap-2">
+        {getStatusIndicator()}
+        {onRefresh && (
+          <Button
+            variant="outlined_simple"
+            size="sm"
+            onClick={onRefresh}
+            disabled={isLoading}
+          >
+            Ping
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboardPage() {
   // Fetch system stats using tRPC and TanStack Query
   const trpc = useTRPC();
+
   const {
     data: statsData,
-    isLoading,
-    error,
-  } = useQuery(trpc.admin.system.getStats.queryOptions());
+    isLoading: isLoadingStats,
+    error: statsError,
+    refetch: refetchStats,
+  } = useQuery(trpc.admin.system.getStats.queryOptions(undefined, {}));
 
-  // Handle error state
-  if (error) {
+  // Fetch recent pages
+  const recentPagesQueryOptions = trpc.admin.wiki.list.queryOptions(
+    { limit: 5, sortBy: "updatedAt", sortOrder: "desc" },
+    { select: (data) => data.items } // Select only the items array
+  );
+  const {
+    data: recentPages,
+    isLoading: isLoadingPages,
+    error: pagesError,
+  } = useQuery(recentPagesQueryOptions);
+
+  // Handle error state for stats
+  if (statsError) {
     return (
-      <div>Error loading system stats: {error.message}. Check permissions.</div>
+      <div>
+        Error loading system stats: {statsError.message}. Check permissions.
+      </div>
     );
+  }
+  // Handle error state for pages
+  if (pagesError) {
+    // Log or display the error, but allow the rest of the dashboard to render
+    console.error("Error loading recent pages:", pagesError.message);
   }
 
   return (
@@ -147,74 +238,102 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
         {staticStatsData.map((statDef) => (
-          <Card key={statDef.key} className="p-6">
-            <div className="flex items-center">
-              <div className="bg-background-level1 rounded-full p-3">
-                {statDef.icon}
+          <Link key={statDef.key} href={statDef.link || "#"} passHref>
+            <Card className="hover:bg-background-level1 h-full p-6 transition-colors">
+              <div className="flex items-center">
+                <div className="bg-background-level1 rounded-full p-3">
+                  {statDef.icon}
+                </div>
+                <div className="ml-4">
+                  <p className="text-text-secondary text-sm font-medium">
+                    {statDef.title}
+                  </p>
+                  <p className="text-2xl font-semibold">
+                    {isLoadingStats || !statsData ? (
+                      <span className="bg-background-level1 inline-block h-8 w-16 animate-pulse rounded"></span>
+                    ) : (
+                      statsData[statDef.key]
+                    )}
+                  </p>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-text-secondary text-sm font-medium">
-                  {statDef.title}
-                </p>
-                <p className="text-2xl font-semibold">
-                  {isLoading || !statsData ? (
-                    <span className="bg-background-level1 inline-block h-8 w-16 animate-pulse rounded"></span>
-                  ) : (
-                    statsData[statDef.key]
-                  )}
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          </Link>
         ))}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="p-6">
           <h2 className="mb-4 text-lg font-medium">Recent Pages</h2>
-          {isLoading ? (
+          {isLoadingPages ? (
             <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-background-level1 h-12 animate-pulse rounded"
-                ></div>
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-3/5" />
+                  <Skeleton className="h-4 w-1/5" />
+                </div>
               ))}
             </div>
+          ) : pagesError ? (
+            <p className="text-destructive text-sm">
+              Failed to load recent pages.
+            </p>
+          ) : recentPages && recentPages.length > 0 ? (
+            <ul className="space-y-2">
+              {recentPages.map((page) => (
+                <li
+                  key={page.id}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <Link
+                    href={`/${page.path}`}
+                    className="text-primary hover:underline"
+                  >
+                    {page.title}
+                  </Link>
+                  <span className="text-text-secondary whitespace-nowrap">
+                    {page.updatedAtRelative}
+                  </span>
+                </li>
+              ))}
+            </ul>
           ) : (
-            <div className="space-y-4">
-              <p className="text-text-secondary">
-                Recent page activity will be shown here
-              </p>
-            </div>
+            <p className="text-text-secondary text-sm">No pages found.</p>
           )}
         </Card>
 
         <Card className="p-6">
           <h2 className="mb-4 text-lg font-medium">System Health</h2>
-          {isLoading ? (
+          {isLoadingStats ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-background-level1 h-12 animate-pulse rounded"
-                ></div>
+                <div key={i} className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-1/4" />
+                  <Skeleton className="h-4 w-1/4" />
+                </div>
               ))}
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span>Database</span>
-                <span className="text-success-500">Healthy</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Storage</span>
-                <span className="text-success-500">Healthy</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Cache</span>
-                <span className="text-success-500">Healthy</span>
-              </div>
+              <HealthCheckItem
+                label="Database"
+                status={statsData?.dbStatus ?? "pending"}
+                isLoading={isLoadingStats}
+                error={statsData?.dbError}
+                onRefresh={() => {
+                  refetchStats();
+                }}
+              />
+              <HealthCheckItem
+                label="Storage"
+                status="not-implemented"
+                isLoading={false}
+              />
+              <HealthCheckItem
+                label="Cache"
+                status="not-implemented"
+                isLoading={false}
+              />
             </div>
           )}
         </Card>

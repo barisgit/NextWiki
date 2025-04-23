@@ -29,7 +29,6 @@ interface GroupFormProps {
   };
   permissions: {
     id: number;
-    name: string;
     description: string | null;
     moduleId: number;
     resource: string;
