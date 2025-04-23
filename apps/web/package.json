@@ -16,6 +16,7 @@
     "fullclean": "rm -rf dist .next .turbo node_modules"
   },
   "dependencies": {
+    "@repo/types": "workspace:*",
     "@auth/drizzle-adapter": "^1.8.0",
     "@codemirror/collab": "^6.1.1",
     "@codemirror/lang-markdown": "^6.3.2",

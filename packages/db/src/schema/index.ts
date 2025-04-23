@@ -12,8 +12,10 @@ import {
   pgEnum,
   uuid,
   uniqueIndex,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { relations, SQL, sql } from "drizzle-orm";
+import { SettingKey } from "@repo/types";
 
 // Define custom PostgreSQL extension for trigrams
 export const pgExtensions = sql`
@@ -563,3 +565,56 @@ export const assetsToPagesRelations = relations(assetsToPages, ({ one }) => ({
     references: [wikiPages.id],
   }),
 }));
+
+// Settings table - stores application settings
+export const settings = pgTable(
+  "settings",
+  {
+    key: varchar("key", { length: 100 }).primaryKey().$type<SettingKey>(),
+    value: jsonb("value").notNull(), // Store setting value as JSONB
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("settings_key_idx").on(t.key)]
+);
+
+// Settings history table - tracks changes to settings
+export const settingsHistory = pgTable(
+  "settings_history",
+  {
+    id: serial("id").primaryKey(),
+    settingKey: varchar("setting_key", { length: 100 })
+      .notNull()
+      .$type<SettingKey>()
+      .references(() => settings.key),
+    previousValue: jsonb("previous_value"), // Previous value as JSONB
+    changedById: integer("changed_by_id").references(() => users.id),
+    changedAt: timestamp("changed_at").defaultNow().notNull(),
+    changeReason: text("change_reason"),
+  },
+  (t) => [
+    index("settings_history_key_idx").on(t.settingKey),
+    index("settings_history_user_idx").on(t.changedById),
+    index("settings_history_time_idx").on(t.changedAt),
+  ]
+);
+
+// Add relations for settings
+export const settingsRelations = relations(settings, ({ many }) => ({
+  history: many(settingsHistory),
+}));
+
+export const settingsHistoryRelations = relations(
+  settingsHistory,
+  ({ one }) => ({
+    setting: one(settings, {
+      fields: [settingsHistory.settingKey],
+      references: [settings.key],
+    }),
+    changedBy: one(users, {
+      fields: [settingsHistory.changedById],
+      references: [users.id],
+    }),
+  })
+);

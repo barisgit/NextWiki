@@ -222,3 +222,30 @@ Table ASSETS_TO_PAGES {
     asset_page_idx (asset_id, page_id)
   }
 }
+
+Table SETTINGS {
+  key varchar(100) [pk, not null, note: 'Unique key for the setting']
+  value jsonb [note: 'Value of the setting, stored as JSONB'] // Note: Using jsonb type
+  description text [note: 'Description of what the setting controls']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    settings_key_idx (key) [unique]
+  }
+}
+
+Table SETTINGS_HISTORY {
+  id int [pk, increment]
+  setting_key varchar(100) [not null, note: 'The key of the setting that was changed']
+  previous_value jsonb [note: 'Value of the setting *before* this change (JSONB)']
+  changed_by_id int [ref: > USERS.id, note: 'User who made the change']
+  changed_at timestamp [default: `now()`, note: 'Timestamp of the change']
+  change_reason text [note: 'Optional reason for the change']
+
+  indexes {
+    settings_history_key_idx (setting_key)
+    settings_history_user_idx (changed_by_id)
+    settings_history_time_idx (changed_at)
+  }
+}
