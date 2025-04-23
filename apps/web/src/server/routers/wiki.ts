@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { desc, eq, like, gt, and, sql, ilike, or } from "drizzle-orm";
+import { desc, eq, gt, and, sql, ilike, or } from "drizzle-orm";
 import { db, wikiPages } from "@repo/db";
 import {
   permissionGuestProcedure,
@@ -9,7 +9,7 @@ import {
   router,
 } from "..";
 import { dbService, wikiService } from "~/lib/services";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 // Wiki page input validation schema
 const pageInputSchema = z.object({

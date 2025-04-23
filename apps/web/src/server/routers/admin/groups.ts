@@ -2,16 +2,22 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, permissionProtectedProcedure } from "~/server";
 import { dbService } from "~/lib/services";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 export const groupsRouter = router({
-  // Get all groups
+  /**
+   * Get all groups
+   * @requires system:groups:read
+   */
   getAll: permissionProtectedProcedure("system:groups:read").query(async () => {
     const groups = await dbService.groups.getAll();
     return groups;
   }),
 
-  // Get a single group by ID
+  /**
+   * Get a single group by ID
+   * @requires system:groups:read
+   */
   getById: permissionProtectedProcedure("system:groups:read")
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
@@ -25,7 +31,10 @@ export const groupsRouter = router({
       return group;
     }),
 
-  // Get all users in a group
+  /**
+   * Get all users in a group
+   * @requires system:groups:read
+   */
   getGroupUsers: permissionProtectedProcedure("system:groups:read")
     .input(z.object({ groupId: z.number() }))
     .query(async ({ input }) => {
@@ -33,7 +42,10 @@ export const groupsRouter = router({
       return users;
     }),
 
-  // Get all permissions for a group
+  /**
+   * Get all permissions for a group
+   * @requires system:groups:read
+   */
   getGroupPermissions: permissionProtectedProcedure("system:groups:read")
     .input(z.object({ groupId: z.number() }))
     .query(async ({ input }) => {
@@ -43,7 +55,10 @@ export const groupsRouter = router({
       return permissions;
     }),
 
-  // Create a new group
+  /**
+   * Create a new group
+   * @requires system:groups:create
+   */
   create: permissionProtectedProcedure("system:groups:create")
     .input(
       z.object({
@@ -56,7 +71,10 @@ export const groupsRouter = router({
       return newGroup;
     }),
 
-  // Update a group
+  /**
+   * Update a group
+   * @requires system:groups:update
+   */
   update: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
@@ -77,7 +95,10 @@ export const groupsRouter = router({
       return group;
     }),
 
-  // Delete a group
+  /**
+   * Delete a group
+   * @requires system:groups:delete
+   */
   delete: permissionProtectedProcedure("system:groups:delete")
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
@@ -105,7 +126,10 @@ export const groupsRouter = router({
       return { success: true };
     }),
 
-  // Add users to a group
+  /**
+   * Add users to a group
+   * @requires system:groups:update
+   */
   addUsers: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
@@ -121,7 +145,10 @@ export const groupsRouter = router({
       return result;
     }),
 
-  // Remove users from a group
+  /**
+   * Remove users from a group
+   * @requires system:groups:update
+   */
   removeUsers: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
@@ -146,7 +173,10 @@ export const groupsRouter = router({
       return result;
     }),
 
-  // Add permissions to a group
+  /**
+   * Add permissions to a group
+   * @requires system:groups:update
+   */
   addPermissions: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
@@ -162,7 +192,10 @@ export const groupsRouter = router({
       return result;
     }),
 
-  // Remove permissions from a group
+  /**
+   * Remove permissions from a group
+   * @requires system:groups:update
+   */
   removePermissions: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
@@ -178,7 +211,10 @@ export const groupsRouter = router({
       return result;
     }),
 
-  // Add module permissions to a group
+  /**
+   * Add module permissions to a group
+   * @requires system:groups:update
+   */
   addModulePermissions: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
@@ -199,7 +235,10 @@ export const groupsRouter = router({
       return result;
     }),
 
-  // Add action permissions to a group
+  /**
+   * Add action permissions to a group
+   * @requires system:groups:update
+   */
   addActionPermissions: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
@@ -220,7 +259,10 @@ export const groupsRouter = router({
       return result;
     }),
 
-  // Get module permissions for a group
+  /**
+   * Get module permissions for a group
+   * @requires system:groups:read
+   */
   getModulePermissions: permissionProtectedProcedure("system:groups:read")
     .input(z.object({ groupId: z.number() }))
     .query(async ({ input }) => {
@@ -230,7 +272,10 @@ export const groupsRouter = router({
       return permissions;
     }),
 
-  // Get action permissions for a group
+  /**
+   * Get action permissions for a group
+   * @requires system:groups:read
+   */
   getActionPermissions: permissionProtectedProcedure("system:groups:read")
     .input(z.object({ groupId: z.number() }))
     .query(async ({ input }) => {
@@ -240,7 +285,10 @@ export const groupsRouter = router({
       return permissions;
     }),
 
-  // Remove module permissions from a group
+  /**
+   * Remove module permissions from a group
+   * @requires system:groups:update
+   */
   removeModulePermissions: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({
@@ -256,7 +304,10 @@ export const groupsRouter = router({
       return result;
     }),
 
-  // Remove action permissions from a group
+  /**
+   * Remove action permissions from a group
+   * @requires system:groups:update
+   */
   removeActionPermissions: permissionProtectedProcedure("system:groups:update")
     .input(
       z.object({

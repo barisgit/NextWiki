@@ -43,7 +43,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Command, CommandList, CommandItem, CommandEmpty } from "@repo/ui";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 const MAX_VIEWABLE_FILE_SIZE_MB = 10;
 

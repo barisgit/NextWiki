@@ -7,7 +7,7 @@ import { getServerSession, Session } from "next-auth";
 // Socket type might be needed later for WS handling, keep for now
 // import type { Socket } from "net";
 import { authOptions, getServerAuthSession } from "~/lib/auth";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 /**
  * Creates context for an incoming request
@@ -31,12 +31,12 @@ export const createContext = async (
     opts.req !== null &&
     "query" in opts.req
   ) {
-    logger.log("Creating context for Next.js Pages API route");
+    logger.debug("Creating context for Next.js Pages API route");
     // Type assertion needed as we've confirmed the structure
     session = await getServerAuthSession();
     // Check for Fetch API context (has req but not res, used in App Router)
   } else if ("req" in opts && !("res" in opts)) {
-    logger.log("Creating context for Fetch API (App Router)");
+    logger.debug("Creating context for Fetch API (App Router)");
     // In App Router Route Handlers, getServerSession(authOptions) usually works
     session = await getServerSession(authOptions);
     // If session is null, you might need to manually extract/verify cookies/headers
@@ -54,7 +54,7 @@ export const createContext = async (
     // throw new Error("Could not determine context type");
   }
 
-  logger.log(
+  logger.debug(
     "createContext created for",
     session?.user?.name ?? "unknown user"
   );

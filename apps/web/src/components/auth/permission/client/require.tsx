@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { PermissionIdentifier } from "@repo/db/client";
 import { usePermissions } from "../utils/usePermissions";
 import { isPublicPath } from "../utils/path-utils";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 interface ClientRequirePermissionProps {
   /**

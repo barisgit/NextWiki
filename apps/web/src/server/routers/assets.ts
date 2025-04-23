@@ -3,15 +3,35 @@ import { assetService } from "~/lib/services";
 import { permissionProtectedProcedure, router } from "~/server";
 import { TRPCError } from "@trpc/server";
 import { paginationSchema } from "~/lib/utils/pagination";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 const FILE_SIZE_LIMIT_MB = 100; // 100MB
 
+const AssetDTO = z.object({
+  id: z.string().uuid(),
+  fileName: z.string(),
+  fileType: z.string(),
+  fileSize: z.number(),
+  name: z.string().nullable(),
+  description: z.string().nullable(),
+  uploadedById: z.number(),
+  createdAt: z.date(),
+});
+
 export const assetsRouter = router({
+  /**
+   * Get all assets
+   * @deprecated Use getPaginated instead - this endpoint will be removed in a future version
+   */
   getAll: permissionProtectedProcedure("assets:asset:read")
     .input(z.object({}).optional())
+    .output(z.array(AssetDTO))
     .query(async () => {
-      return assetService.getAll();
+      logger.warn(
+        "Deprecated endpoint 'getAll' called - migrate to 'getPaginated'"
+      );
+      const assets = await assetService.getAll();
+      return assets.map((asset) => AssetDTO.parse(asset));
     }),
 
   getPaginated: permissionProtectedProcedure("assets:asset:read")
@@ -40,8 +60,10 @@ export const assetsRouter = router({
 
   getById: permissionProtectedProcedure("assets:asset:read")
     .input(z.object({ id: z.string().uuid() }))
+    .output(AssetDTO.nullable())
     .query(async ({ input }) => {
-      return assetService.getById(input.id);
+      const asset = await assetService.getById(input.id);
+      return asset ? AssetDTO.parse(asset) : null;
     }),
 
   upload: permissionProtectedProcedure("assets:asset:create")

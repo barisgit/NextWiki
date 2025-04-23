@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 import { useTRPC } from "~/server/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 interface GroupFormProps {
   group?: {
@@ -67,14 +67,14 @@ export default function GroupForm({
 
   // Fetch available modules and actions
   const { data: availableModules = [] } = useQuery(
-    trpc.permissions.getModules.queryOptions()
+    trpc.admin.permissions.getModules.queryOptions()
   );
   const { data: availableActions = [] } = useQuery(
-    trpc.permissions.getActions.queryOptions()
+    trpc.admin.permissions.getActions.queryOptions()
   );
 
   const createGroup = useMutation(
-    trpc.groups.create.mutationOptions({
+    trpc.admin.groups.create.mutationOptions({
       onSuccess: () => {
         toast.success("Group created successfully");
         router.push("/admin/groups");
@@ -90,7 +90,7 @@ export default function GroupForm({
   );
 
   const updateGroup = useMutation(
-    trpc.groups.update.mutationOptions({
+    trpc.admin.groups.update.mutationOptions({
       onSuccess: () => {
         toast.success("Group updated successfully");
         router.push("/admin/groups");
@@ -106,7 +106,7 @@ export default function GroupForm({
   );
 
   const addPermissions = useMutation(
-    trpc.groups.addPermissions.mutationOptions({
+    trpc.admin.groups.addPermissions.mutationOptions({
       onError: (error: unknown) => {
         if (error instanceof Error) {
           toast.error(error.message);
@@ -118,7 +118,7 @@ export default function GroupForm({
   );
 
   const addModulePermissions = useMutation(
-    trpc.groups.addModulePermissions.mutationOptions({
+    trpc.admin.groups.addModulePermissions.mutationOptions({
       onError: (error: unknown) => {
         if (error instanceof Error) {
           toast.error(error.message);
@@ -130,7 +130,7 @@ export default function GroupForm({
   );
 
   const addActionPermissions = useMutation(
-    trpc.groups.addActionPermissions.mutationOptions({
+    trpc.admin.groups.addActionPermissions.mutationOptions({
       onError: (error: unknown) => {
         if (error instanceof Error) {
           toast.error(error.message);

@@ -18,7 +18,7 @@ import {
   ClientRequirePermission,
 } from "~/components/auth/permission/client";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,7 +27,7 @@ export default function AdminUsersPage() {
   // Fetch users
   const trpc = useTRPC();
   const { data: users, isLoading: usersLoading } = useQuery(
-    trpc.users.getAll.queryOptions()
+    trpc.admin.users.getAll.queryOptions()
   );
 
   // Infer user type from the fetched data
@@ -38,12 +38,12 @@ export default function AdminUsersPage() {
 
   // Fetch all groups
   const { data: groups, isLoading: groupsLoading } = useQuery(
-    trpc.groups.getAll.queryOptions()
+    trpc.admin.groups.getAll.queryOptions()
   );
 
   // Mutations
   const addToGroupMutation = useMutation(
-    trpc.groups.addUsers.mutationOptions({
+    trpc.admin.groups.addUsers.mutationOptions({
       onSuccess: () => {
         toast.success("User groups updated successfully");
         //   refetchUserGroups(); // Consider refetching user data here if needed
@@ -55,7 +55,7 @@ export default function AdminUsersPage() {
   );
 
   const removeFromGroupMutation = useMutation(
-    trpc.groups.removeUsers.mutationOptions({
+    trpc.admin.groups.removeUsers.mutationOptions({
       onSuccess: () => {
         toast.success("User removed from group successfully");
         //   refetchUserGroups(); // Consider refetching user data here if needed

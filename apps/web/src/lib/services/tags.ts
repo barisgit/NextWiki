@@ -8,6 +8,7 @@ import { eq, ilike } from "drizzle-orm";
 export const tagService = {
   /**
    * Get all tags
+   * @deprecated Implement pagination
    */
   async getAll() {
     return db.query.wikiTags.findMany({

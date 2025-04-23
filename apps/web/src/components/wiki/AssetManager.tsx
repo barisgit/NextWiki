@@ -18,7 +18,7 @@ import { Modal } from "@repo/ui";
 import { Input } from "@repo/ui";
 import { PaginationInput, PaginationMeta } from "~/lib/utils/pagination";
 import { ScrollArea } from "@repo/ui";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 export interface AssetType {
   id: string;

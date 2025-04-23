@@ -2,12 +2,7 @@
  * Auth router - Server only
  */
 import { z } from "zod";
-import {
-  router,
-  protectedProcedure,
-  guestProcedure,
-  publicProcedure,
-} from "~/server";
+import { router, guestProcedure, publicProcedure } from "~/server";
 import { authorizationService } from "~/lib/services";
 import { PermissionIdentifier, validatePermissionId } from "@repo/db";
 
@@ -55,7 +50,7 @@ export const authRouter = router({
   }),
 
   // Check if the current user has a specific permission
-  hasPermission: protectedProcedure
+  hasPermission: guestProcedure
     .input(z.object({ permission: permissionIdentifierSchema }))
     .query(async ({ ctx, input }) => {
       const userId = parseInt(ctx.session.user.id);
@@ -67,7 +62,7 @@ export const authRouter = router({
     }),
 
   // Check if the current user has any of the specified permissions
-  hasAnyPermission: protectedProcedure
+  hasAnyPermission: guestProcedure
     .input(z.object({ permissions: z.array(permissionIdentifierSchema) }))
     .query(async ({ ctx, input }) => {
       const userId = parseInt(ctx.session.user.id);
@@ -79,7 +74,7 @@ export const authRouter = router({
     }),
 
   // Check if the current user has access to a specific page
-  hasPagePermission: protectedProcedure
+  hasPagePermission: guestProcedure
     .input(
       z.object({
         pageId: z.number(),
@@ -96,7 +91,10 @@ export const authRouter = router({
       return hasPermission;
     }),
 
-  // Create a procedure to get guest permissions
+  /*
+   * Get permissions for guest users
+   * @deprecated Use getMyPermissions instead
+   */
   getGuestPermissions: guestProcedure
     .meta({
       description: "Get permissions for guest users",

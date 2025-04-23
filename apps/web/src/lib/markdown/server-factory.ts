@@ -12,7 +12,7 @@ import remarkDirectiveRehype from "remark-directive-rehype";
 import rehypeHighlight from "rehype-highlight";
 import { customPlugins } from "./plugins";
 import { markdownOptions } from "./core/config";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 /**
  * Remark plugins for server-side use

@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import { useTRPC } from "~/server/client";
 import type { AppRouter } from "~/server/routers";
 import { useNotification } from "~/lib/hooks/useNotification";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 /**
  * Displays a random number received from a tRPC subscription (Header Version).

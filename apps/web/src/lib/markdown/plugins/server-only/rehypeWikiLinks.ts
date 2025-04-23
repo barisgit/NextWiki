@@ -12,7 +12,7 @@ import type { Element, Root } from "hast";
 import { db } from "@repo/db";
 import { wikiPages } from "@repo/db";
 import { inArray } from "drizzle-orm";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 // Cache configuration
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minute cache lifetime

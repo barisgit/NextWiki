@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 export function useLocalStorage<T>(
   key: string,

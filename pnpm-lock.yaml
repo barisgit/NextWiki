@@ -442,9 +442,15 @@ importers:
       '@neondatabase/serverless':
         specifier: ^1.0.0
         version: 1.0.0
+      '@repo/logger':
+        specifier: workspace:*
+        version: link:../logger
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.2
+      child_process:
+        specifier: ^1.0.2
+        version: 1.0.2
       dotenv:
         specifier: ^16.5.0
         version: 16.5.0

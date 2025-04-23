@@ -25,14 +25,14 @@ export default function AddUsersModal({
 
   // Get all users
   const { data: allUsers, isLoading: loadingUsers } = useQuery(
-    trpc.users.getAll.queryOptions(undefined, {
+    trpc.admin.users.getAll.queryOptions(undefined, {
       enabled: isModalOpen,
     })
   );
 
   // Get existing group users to exclude them
   const { data: groupUsers } = useQuery(
-    trpc.groups.getGroupUsers.queryOptions(
+    trpc.admin.groups.getGroupUsers.queryOptions(
       { groupId },
       {
         enabled: isModalOpen,
@@ -60,7 +60,7 @@ export default function AddUsersModal({
   });
 
   const addUsersMutation = useMutation(
-    trpc.groups.addUsers.mutationOptions({
+    trpc.admin.groups.addUsers.mutationOptions({
       onSuccess: () => {
         toast.success("Users added to group successfully");
         setIsModalOpen(false);
