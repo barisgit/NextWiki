@@ -9,6 +9,8 @@ import { groupService } from "./groups";
 import { authorizationService } from "./authorization";
 import { markdownService } from "./markdown";
 import { systemService } from "./system";
+import { moduleService } from "./modules";
+import { actionService } from "./actions";
 
 /**
  * Database Services
@@ -20,7 +22,7 @@ import { systemService } from "./system";
  * ```
  * import { dbService } from '~/lib/services';
  *
- * // In a server component:
+ * // In a server component
  * const userCount = await dbService.users.count();
  * const recentPages = await dbService.wiki.getRecentPages(5);
  * ```
@@ -80,6 +82,16 @@ export const dbService = {
    * System operations
    */
   system: systemService,
+
+  /**
+   * Module management operations
+   */
+  modules: moduleService,
+
+  /**
+   * Action management operations
+   */
+  actions: actionService,
 };
 
 // Export individual services for direct use
@@ -94,4 +106,6 @@ export {
   groupService,
   authorizationService,
   markdownService,
+  moduleService,
+  actionService,
 };

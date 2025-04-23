@@ -7,6 +7,7 @@ export const usersRouter = router({
   /**
    * Get all users
    * @requires system:users:read
+   * @deprecated Implement pagination and search
    */
   getAll: permissionProtectedProcedure("system:users:read").query(async () => {
     const users = await dbService.users.getAll();

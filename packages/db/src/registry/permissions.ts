@@ -42,6 +42,26 @@ const PERMISSION_LIST: Permission[] = [
     description: "Move or rename wiki pages",
   },
 
+  // Admin module permissions
+  {
+    module: "admin",
+    resource: "dashboard",
+    action: "read",
+    description: "Access the admin dashboard",
+  },
+  {
+    module: "admin",
+    resource: "wiki",
+    action: "read",
+    description: "Read wiki pages in the admin panel (list view)",
+  },
+  {
+    module: "admin",
+    resource: "wiki",
+    action: "delete",
+    description: "Delete wiki pages from the admin panel",
+  },
+
   // System module permissions
   {
     module: "system",

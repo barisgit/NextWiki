@@ -1,2 +1,2 @@
 // Export your package components here
-export const name = "types";
+export * from "./settings.js";

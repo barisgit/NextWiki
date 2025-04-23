@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
@@ -29,34 +29,39 @@ interface GroupFormProps {
   };
   permissions: {
     id: number;
-    name: string;
     description: string | null;
-    module: string;
+    moduleId: number;
     resource: string;
-    action: string;
+    actionId: number;
+    module?: { name: string };
+    action?: { name: string };
   }[];
   groupPermissions?: number[];
-  groupModulePermissions?: string[];
-  groupActionPermissions?: string[];
+  initialSelectedModuleIds?: number[];
+  initialSelectedActionIds?: number[];
+  initialSelectedModuleNames?: string[];
+  initialSelectedActionNames?: string[];
 }
 
 export default function GroupForm({
   group,
   permissions,
   groupPermissions = [],
-  groupModulePermissions = [],
-  groupActionPermissions = [],
+  initialSelectedModuleIds,
+  initialSelectedActionIds,
+  initialSelectedModuleNames = [],
+  initialSelectedActionNames = [],
 }: GroupFormProps) {
   const router = useRouter();
   const [name, setName] = useState(group?.name ?? "");
   const [description, setDescription] = useState(group?.description ?? "");
   const [selectedPermissions, setSelectedPermissions] =
     useState<number[]>(groupPermissions);
-  const [selectedModules, setSelectedModules] = useState<string[]>(
-    groupModulePermissions
+  const [selectedModules, setSelectedModules] = useState<number[]>(
+    initialSelectedModuleIds ?? []
   );
-  const [selectedActions, setSelectedActions] = useState<string[]>(
-    groupActionPermissions
+  const [selectedActions, setSelectedActions] = useState<number[]>(
+    initialSelectedActionIds ?? []
   );
 
   const isSystem = group?.isSystem ?? false;
@@ -66,12 +71,59 @@ export default function GroupForm({
   const trpc = useTRPC();
 
   // Fetch available modules and actions
-  const { data: availableModules = [] } = useQuery(
+  const { data: availableModules = [], isLoading: modulesLoading } = useQuery(
     trpc.admin.permissions.getModules.queryOptions()
   );
-  const { data: availableActions = [] } = useQuery(
+  const { data: availableActions = [], isLoading: actionsLoading } = useQuery(
     trpc.admin.permissions.getActions.queryOptions()
   );
+
+  // Effect to initialize selected IDs from names once data is loaded
+  useEffect(() => {
+    if (
+      !modulesLoading &&
+      Array.isArray(availableModules) &&
+      initialSelectedModuleNames.length > 0 &&
+      availableModules.length > 0 &&
+      selectedModules.length === 0
+    ) {
+      const moduleNameToIdMap = new Map(
+        availableModules.map((m) => [m.name, m.id])
+      );
+      const ids = initialSelectedModuleNames
+        .map((name) => moduleNameToIdMap.get(name))
+        .filter((id): id is number => id !== undefined);
+      setSelectedModules(ids);
+    }
+  }, [
+    modulesLoading,
+    availableModules,
+    initialSelectedModuleNames,
+    selectedModules,
+  ]);
+
+  useEffect(() => {
+    if (
+      !actionsLoading &&
+      Array.isArray(availableActions) &&
+      initialSelectedActionNames.length > 0 &&
+      availableActions.length > 0 &&
+      selectedActions.length === 0
+    ) {
+      const actionNameToIdMap = new Map(
+        availableActions.map((a) => [a.name, a.id])
+      );
+      const ids = initialSelectedActionNames
+        .map((name) => actionNameToIdMap.get(name))
+        .filter((id): id is number => id !== undefined);
+      setSelectedActions(ids);
+    }
+  }, [
+    actionsLoading,
+    availableActions,
+    initialSelectedActionNames,
+    selectedActions,
+  ]);
 
   const createGroup = useMutation(
     trpc.admin.groups.create.mutationOptions({
@@ -162,19 +214,13 @@ export default function GroupForm({
         // Update module permissions
         await addModulePermissions.mutateAsync({
           groupId: updatedGroup.id,
-          permissions: selectedModules.map((module) => ({
-            module,
-            isAllowed: true,
-          })),
+          moduleIds: selectedModules,
         });
 
         // Update action permissions
         await addActionPermissions.mutateAsync({
           groupId: updatedGroup.id,
-          permissions: selectedActions.map((action) => ({
-            action,
-            isAllowed: true,
-          })),
+          actionIds: selectedActions,
         });
       } else {
         // Create new group
@@ -196,19 +242,13 @@ export default function GroupForm({
         // Add module permissions
         await addModulePermissions.mutateAsync({
           groupId: newGroup.id,
-          permissions: selectedModules.map((module) => ({
-            module,
-            isAllowed: true,
-          })),
+          moduleIds: selectedModules,
         });
 
         // Add action permissions
         await addActionPermissions.mutateAsync({
           groupId: newGroup.id,
-          permissions: selectedActions.map((action) => ({
-            action,
-            isAllowed: true,
-          })),
+          actionIds: selectedActions,
         });
       }
     } catch (error) {
@@ -219,10 +259,17 @@ export default function GroupForm({
   // Group permissions by module
   const permissionsByModule = permissions.reduce(
     (acc, permission) => {
-      if (!acc[permission.module]) {
-        acc[permission.module] = [];
+      if (!permission.module) {
+        return acc;
       }
-      acc[permission.module]?.push(permission);
+      if (!acc[permission.module.name]) {
+        acc[permission.module.name] = [];
+      }
+      const moduleKey = permission.module.name;
+      if (!acc[moduleKey]) {
+        acc[moduleKey] = [];
+      }
+      acc[moduleKey]?.push(permission);
       return acc;
     },
     {} as Record<string, typeof permissions>
@@ -235,14 +282,14 @@ export default function GroupForm({
       // If no actions are selected, all actions are allowed
       if (selectedActions.length === 0) return true;
       // Otherwise, check if the action is allowed
-      return selectedActions.includes(permission.action);
+      return selectedActions.includes(permission.actionId);
     }
     // If modules are selected, check if the module is allowed
-    if (!selectedModules.includes(permission.module)) return false;
+    if (!selectedModules.includes(permission.moduleId)) return false;
     // If actions are selected, check if the action is allowed
     if (
       selectedActions.length > 0 &&
-      !selectedActions.includes(permission.action)
+      !selectedActions.includes(permission.actionId)
     )
       return false;
     return true;
@@ -275,7 +322,7 @@ export default function GroupForm({
           />
         </div>
         {isSystem && (
-          <div className="bg-muted rounded-lg border p-4 text-sm">
+          <div className="dark:bg-warning-800/80 bg-background-level1 border-primary rounded-lg border p-4 text-sm shadow-md">
             <p className="font-medium">This is a system group</p>
             <p>
               You can manage permissions for this group, but the name and
@@ -284,7 +331,7 @@ export default function GroupForm({
           </div>
         )}
         {name === "Administrators" && (
-          <div className="bg-muted rounded-lg border border-amber-200 p-4 text-sm">
+          <div className="bg-background-level1 border-warning rounded-lg border p-4 text-sm shadow-md">
             <p className="font-medium">Administrator Group</p>
             <p>
               The Administrators group has full access to all system features by
@@ -297,7 +344,7 @@ export default function GroupForm({
       <div className="grid grid-cols-12 gap-6">
         {/* Main permissions area */}
         <div className="col-span-8">
-          <div className="bg-card rounded-lg border p-4">
+          <div className="bg-background-level1 border-border-default rounded-lg border p-4">
             <h2 className="mb-4 text-lg font-semibold">Permissions</h2>
             <div className="space-y-6">
               {Object.entries(permissionsByModule).map(
@@ -342,7 +389,7 @@ export default function GroupForm({
                                   <label
                                     htmlFor={`permission-${permission.id}`}
                                     className={`text-sm ${
-                                      !isAllowed ? "text-muted-foreground" : ""
+                                      !isAllowed ? "text-text-tertiary" : ""
                                     }`}
                                   >
                                     {permission.description}
@@ -353,18 +400,23 @@ export default function GroupForm({
                                 <TooltipContent>
                                   <p>
                                     This permission is not available because:
-                                    {!selectedModules.includes(module) && (
+                                    {!selectedModules.includes(
+                                      permission.moduleId
+                                    ) && (
                                       <span className="block">
-                                        • The {module} module is not selected
+                                        • The{" "}
+                                        {permission.module?.name ?? "module"}{" "}
+                                        module is not selected
                                       </span>
                                     )}
                                     {selectedActions.length > 0 &&
                                       !selectedActions.includes(
-                                        permission.action
+                                        permission.actionId
                                       ) && (
                                         <span className="block">
-                                          • The {permission.action} action is
-                                          not allowed
+                                          • The{" "}
+                                          {permission.action?.name ?? "action"}{" "}
+                                          action is not allowed
                                         </span>
                                       )}
                                   </p>
@@ -385,80 +437,64 @@ export default function GroupForm({
         {/* Permissions sidebar */}
         <div className="col-span-4 space-y-6">
           {/* Modules */}
-          <div className="bg-card rounded-lg border p-4">
+          <div className="bg-background-level1 border-border-default rounded-lg border p-4">
             <h2 className="mb-4 text-lg font-semibold">Module Permissions</h2>
-            <p className="text-muted-foreground mb-4 text-sm">
+            <p className="text-text-tertiary mb-4 text-sm">
               Select which modules this group can access. If no modules are
               selected, all modules are allowed.
             </p>
             <div className="grid gap-2">
-              {availableModules.map((module: string) => (
-                <div key={module} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`module-${module}`}
-                    checked={selectedModules.includes(module)}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      if (e.target.checked) {
-                        setSelectedModules([...selectedModules, module]);
-                      } else {
-                        setSelectedModules(
-                          selectedModules.filter((m) => m !== module)
-                        );
-                        // Remove permissions for this module when it's unselected
-                        setSelectedPermissions(
-                          selectedPermissions.filter(
-                            (id) =>
-                              !permissions.find(
-                                (p) => p.id === id && p.module === module
-                              )
-                          )
-                        );
-                      }
-                    }}
-                    disabled={name === "Administrators"}
-                  />
-                  <Label htmlFor={`module-${module}`}>{module}</Label>
-                </div>
-              ))}
+              {Array.isArray(availableModules) &&
+                availableModules.map((module) => (
+                  <div key={module.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`module-${module.id}`}
+                      checked={selectedModules.includes(module.id)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        if (e.target.checked) {
+                          setSelectedModules([...selectedModules, module.id]);
+                        } else {
+                          setSelectedModules(
+                            selectedModules.filter((id) => id !== module.id)
+                          );
+                        }
+                      }}
+                      disabled={name === "Administrators"}
+                    />
+                    <Label htmlFor={`module-${module.id}`}>{module.name}</Label>
+                  </div>
+                ))}
             </div>
           </div>
 
           {/* Actions */}
-          <div className="bg-card rounded-lg border p-4">
+          <div className="bg-background-level1 border-border-default rounded-lg border p-4">
             <h2 className="mb-4 text-lg font-semibold">Action Permissions</h2>
-            <p className="text-muted-foreground mb-4 text-sm">
+            <p className="text-text-tertiary mb-4 text-sm">
               Select which actions this group can perform. If no actions are
               selected, all actions are allowed.
             </p>
             <div className="grid gap-2">
-              {availableActions.map((action: string) => (
-                <div key={action} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`action-${action}`}
-                    checked={selectedActions.includes(action)}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      if (e.target.checked) {
-                        setSelectedActions([...selectedActions, action]);
-                      } else {
-                        setSelectedActions(
-                          selectedActions.filter((a) => a !== action)
-                        );
-                        // Remove permissions for this action when it's unselected
-                        setSelectedPermissions(
-                          selectedPermissions.filter(
-                            (id) =>
-                              !permissions.find(
-                                (p) => p.id === id && p.action === action
-                              )
-                          )
-                        );
-                      }
-                    }}
-                    disabled={name === "Administrators"}
-                  />
-                  <Label htmlFor={`action-${action}`}>{action}</Label>
-                </div>
-              ))}
+              {Array.isArray(availableActions) &&
+                availableActions.map((action) => (
+                  <div key={action.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`action-${action.id}`}
+                      checked={selectedActions.includes(action.id)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        if (e.target.checked) {
+                          setSelectedActions([...selectedActions, action.id]);
+                        } else {
+                          setSelectedActions(
+                            selectedActions.filter((id) => id !== action.id)
+                          );
+                        }
+                      }}
+                      disabled={name === "Administrators"}
+                    />
+                    <Label htmlFor={`action-${action.id}`}>{action.name}</Label>
+                  </div>
+                ))}
             </div>
           </div>
         </div>

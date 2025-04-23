@@ -16,8 +16,9 @@ export const metadata: Metadata = {
 export default async function GroupUsersPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const session = await getServerAuthSession();
 
   // Redirect if not logged in
@@ -30,7 +31,7 @@ export default async function GroupUsersPage({
     redirect("/");
   }
 
-  const groupId = parseInt(params.id);
+  const groupId = parseInt(id);
   const group = await dbService.groups.getById(groupId);
 
   if (!group) {
@@ -61,10 +62,10 @@ export default async function GroupUsersPage({
         </p>
 
         {users.length > 0 ? (
-          <div className="rounded-md border">
+          <div className="border-border-default rounded-md border">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
+                <tr className="border-border-default border-b">
                   <th className="px-4 py-3 text-left">Name</th>
                   <th className="px-4 py-3 text-left">Email</th>
                   <th className="px-4 py-3 text-right">Actions</th>
@@ -72,7 +73,7 @@ export default async function GroupUsersPage({
               </thead>
               <tbody>
                 {users.map((user) => (
-                  <tr key={user.id} className="border-b">
+                  <tr key={user.id} className="hover:bg-background-level2">
                     <td className="px-4 py-3 font-medium">{user.name}</td>
                     <td className="px-4 py-3">{user.email}</td>
                     <td className="px-4 py-3 text-right">

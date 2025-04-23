@@ -1,5 +1,5 @@
 {
-  "id": "beef51f4-c3ed-43a3-a992-7f4409b557d6",
+  "id": "3039bfc9-5805-4f39-b1de-8325ca9a2637",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -113,6 +113,52 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.actions": {
+      "name": "actions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "actions_name_unique": {
+          "name": "actions_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -292,9 +338,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "action": {
-          "name": "action",
-          "type": "varchar(50)",
+        "action_id": {
+          "name": "action_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -317,7 +363,7 @@
               "nulls": "last"
             },
             {
-              "expression": "action",
+              "expression": "action_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -342,14 +388,27 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
+        },
+        "group_action_permissions_action_id_actions_id_fk": {
+          "name": "group_action_permissions_action_id_actions_id_fk",
+          "tableFrom": "group_action_permissions",
+          "tableTo": "actions",
+          "columnsFrom": [
+            "action_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "group_action_permissions_group_id_action_pk": {
-          "name": "group_action_permissions_group_id_action_pk",
+        "group_action_permissions_group_id_action_id_pk": {
+          "name": "group_action_permissions_group_id_action_id_pk",
           "columns": [
             "group_id",
-            "action"
+            "action_id"
           ]
         }
       },
@@ -368,9 +427,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "module": {
-          "name": "module",
-          "type": "varchar(50)",
+        "module_id": {
+          "name": "module_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -393,7 +452,7 @@
               "nulls": "last"
             },
             {
-              "expression": "module",
+              "expression": "module_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -418,14 +477,27 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
+        },
+        "group_module_permissions_module_id_modules_id_fk": {
+          "name": "group_module_permissions_module_id_modules_id_fk",
+          "tableFrom": "group_module_permissions",
+          "tableTo": "modules",
+          "columnsFrom": [
+            "module_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "group_module_permissions_group_id_module_pk": {
-          "name": "group_module_permissions_group_id_module_pk",
+        "group_module_permissions_group_id_module_id_pk": {
+          "name": "group_module_permissions_group_id_module_id_pk",
           "columns": [
             "group_id",
-            "module"
+            "module_id"
           ]
         }
       },
@@ -597,6 +669,52 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.modules": {
+      "name": "modules",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "modules_name_unique": {
+          "name": "modules_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.page_permissions": {
       "name": "page_permissions",
       "schema": "",
@@ -726,9 +844,9 @@
           "primaryKey": true,
           "notNull": true
         },
-        "module": {
-          "name": "module",
-          "type": "varchar(50)",
+        "module_id": {
+          "name": "module_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -738,21 +856,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "action": {
-          "name": "action",
-          "type": "varchar(50)",
+        "action_id": {
+          "name": "action_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true,
-          "generated": {
-            "as": "\"module\" || ':' || \"resource\" || ':' || \"action\"",
-            "type": "stored"
-          }
         },
         "description": {
           "name": "description",
@@ -768,18 +876,65 @@
           "default": "now()"
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "permissions_name_unique": {
-          "name": "permissions_name_unique",
-          "nullsNotDistinct": false,
+      "indexes": {
+        "permission_uniq_idx": {
+          "name": "permission_uniq_idx",
           "columns": [
-            "name"
-          ]
+            {
+              "expression": "module_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "resource",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "action_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
+      "foreignKeys": {
+        "permissions_module_id_modules_id_fk": {
+          "name": "permissions_module_id_modules_id_fk",
+          "tableFrom": "permissions",
+          "tableTo": "modules",
+          "columnsFrom": [
+            "module_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "permissions_action_id_actions_id_fk": {
+          "name": "permissions_action_id_actions_id_fk",
+          "tableFrom": "permissions",
+          "tableTo": "actions",
+          "columnsFrom": [
+            "action_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1042,7 +1197,29 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "verification_token_idx": {
+          "name": "verification_token_idx",
+          "columns": [
+            {
+              "expression": "identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "token",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "verification_tokens_identifier_token_pk": {

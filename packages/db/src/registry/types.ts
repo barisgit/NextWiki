@@ -5,7 +5,7 @@
 /**
  * Valid permission modules in the system
  */
-export type PermissionModule = "wiki" | "system" | "assets";
+export type PermissionModule = "wiki" | "system" | "assets" | "admin";
 
 /**
  * Valid permission actions in the system
@@ -22,7 +22,9 @@ export type PermissionResource =
   | "users"
   | "groups"
   | "asset"
-  | "general";
+  | "general"
+  | "dashboard"
+  | "wiki";
 
 /**
  * Unified permission structure

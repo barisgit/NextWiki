@@ -55,9 +55,9 @@
   --color-dark-text-secondary: #e0e0e0;
   --color-dark-text-tertiary: #a0a7ae;
   --color-dark-text-accent: var(--color-accent-300);
-  --color-dark-border-default: #303030;
-  --color-dark-border-light: #4a4a4a;
-  --color-dark-border-dark: #202020;
+  --color-dark-border-default: #404040;
+  --color-dark-border-light: #5a5a5a;
+  --color-dark-border-dark: #303030;
   --color-dark-border-accent: var(--color-accent-300);
   --color-dark-scrollbar-track: #1f1f1f;
   --color-dark-scrollbar-thumb: #4a4a4a;

@@ -17,6 +17,14 @@ CREATE TABLE "accounts" (
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
+CREATE TABLE "actions" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar(50) NOT NULL,
+	"description" text,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "actions_name_unique" UNIQUE("name")
+);
+--> statement-breakpoint
 CREATE TABLE "assets" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" varchar(255),
@@ -37,16 +45,16 @@ CREATE TABLE "assets_to_pages" (
 --> statement-breakpoint
 CREATE TABLE "group_action_permissions" (
 	"group_id" integer NOT NULL,
-	"action" varchar(50) NOT NULL,
+	"action_id" integer NOT NULL,
 	"created_at" timestamp DEFAULT now(),
-	CONSTRAINT "group_action_permissions_group_id_action_pk" PRIMARY KEY("group_id", "action")
+	CONSTRAINT "group_action_permissions_group_id_action_id_pk" PRIMARY KEY("group_id", "action_id")
 );
 --> statement-breakpoint
 CREATE TABLE "group_module_permissions" (
 	"group_id" integer NOT NULL,
-	"module" varchar(50) NOT NULL,
+	"module_id" integer NOT NULL,
 	"created_at" timestamp DEFAULT now(),
-	CONSTRAINT "group_module_permissions_group_id_module_pk" PRIMARY KEY("group_id", "module")
+	CONSTRAINT "group_module_permissions_group_id_module_id_pk" PRIMARY KEY("group_id", "module_id")
 );
 --> statement-breakpoint
 CREATE TABLE "group_permissions" (
@@ -68,6 +76,14 @@ CREATE TABLE "groups" (
 	CONSTRAINT "groups_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
+CREATE TABLE "modules" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar(50) NOT NULL,
+	"description" text,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "modules_name_unique" UNIQUE("name")
+);
+--> statement-breakpoint
 CREATE TABLE "page_permissions" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"page_id" integer NOT NULL,
@@ -79,13 +95,11 @@ CREATE TABLE "page_permissions" (
 --> statement-breakpoint
 CREATE TABLE "permissions" (
 	"id" serial PRIMARY KEY NOT NULL,
-	"module" varchar(50) NOT NULL,
+	"module_id" integer NOT NULL,
 	"resource" varchar(50) NOT NULL,
-	"action" varchar(50) NOT NULL,
-	"name" varchar(100) GENERATED ALWAYS AS ("module" || ':' || "resource" || ':' || "action") STORED NOT NULL,
+	"action_id" integer NOT NULL,
 	"description" text,
-	"created_at" timestamp DEFAULT now(),
-	CONSTRAINT "permissions_name_unique" UNIQUE("name")
+	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "sessions" (
@@ -187,8 +201,14 @@ ADD CONSTRAINT "assets_to_pages_page_id_wiki_pages_id_fk" FOREIGN KEY ("page_id"
 ALTER TABLE "group_action_permissions"
 ADD CONSTRAINT "group_action_permissions_group_id_groups_id_fk" FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id") ON DELETE no action ON UPDATE no action;
 --> statement-breakpoint
+ALTER TABLE "group_action_permissions"
+ADD CONSTRAINT "group_action_permissions_action_id_actions_id_fk" FOREIGN KEY ("action_id") REFERENCES "public"."actions"("id") ON DELETE no action ON UPDATE no action;
+--> statement-breakpoint
 ALTER TABLE "group_module_permissions"
 ADD CONSTRAINT "group_module_permissions_group_id_groups_id_fk" FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id") ON DELETE no action ON UPDATE no action;
+--> statement-breakpoint
+ALTER TABLE "group_module_permissions"
+ADD CONSTRAINT "group_module_permissions_module_id_modules_id_fk" FOREIGN KEY ("module_id") REFERENCES "public"."modules"("id") ON DELETE no action ON UPDATE no action;
 --> statement-breakpoint
 ALTER TABLE "group_permissions"
 ADD CONSTRAINT "group_permissions_group_id_groups_id_fk" FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id") ON DELETE no action ON UPDATE no action;
@@ -204,6 +224,12 @@ ADD CONSTRAINT "page_permissions_group_id_groups_id_fk" FOREIGN KEY ("group_id")
 --> statement-breakpoint
 ALTER TABLE "page_permissions"
 ADD CONSTRAINT "page_permissions_permission_id_permissions_id_fk" FOREIGN KEY ("permission_id") REFERENCES "public"."permissions"("id") ON DELETE no action ON UPDATE no action;
+--> statement-breakpoint
+ALTER TABLE "permissions"
+ADD CONSTRAINT "permissions_module_id_modules_id_fk" FOREIGN KEY ("module_id") REFERENCES "public"."modules"("id") ON DELETE no action ON UPDATE no action;
+--> statement-breakpoint
+ALTER TABLE "permissions"
+ADD CONSTRAINT "permissions_action_id_actions_id_fk" FOREIGN KEY ("action_id") REFERENCES "public"."actions"("id") ON DELETE no action ON UPDATE no action;
 --> statement-breakpoint
 ALTER TABLE "sessions"
 ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
@@ -237,33 +263,33 @@ ADD CONSTRAINT "wiki_pages_locked_by_id_users_id_fk" FOREIGN KEY ("locked_by_id"
 --> statement-breakpoint
 CREATE INDEX "asset_page_idx" ON "assets_to_pages" USING btree ("asset_id", "page_id");
 --> statement-breakpoint
-CREATE INDEX "group_action_permissions_idx" ON "group_action_permissions" USING btree ("group_id", "action");
+CREATE INDEX "group_action_permissions_idx" ON "group_action_permissions" USING btree ("group_id", "action_id");
 --> statement-breakpoint
-CREATE INDEX "group_module_permissions_idx" ON "group_module_permissions" USING btree ("group_id", "module");
+CREATE INDEX "group_module_permissions_idx" ON "group_module_permissions" USING btree ("group_id", "module_id");
 --> statement-breakpoint
 CREATE INDEX "group_permission_idx" ON "group_permissions" USING btree ("group_id", "permission_id");
 --> statement-breakpoint
 CREATE INDEX "page_group_perm_idx" ON "page_permissions" USING btree ("page_id", "permission_id", "group_id");
 --> statement-breakpoint
+CREATE UNIQUE INDEX "permission_uniq_idx" ON "permissions" USING btree ("module_id", "resource", "action_id");
+--> statement-breakpoint
 CREATE INDEX "user_group_idx" ON "user_groups" USING btree ("user_id", "group_id");
 --> statement-breakpoint
 CREATE INDEX "email_idx" ON "users" USING btree ("email");
 --> statement-breakpoint
+CREATE INDEX "verification_token_idx" ON "verification_tokens" USING btree ("identifier", "token");
+--> statement-breakpoint
 CREATE INDEX "idx_search" ON "wiki_pages" USING gin ("search");
 --> statement-breakpoint
 CREATE INDEX "trgm_idx_title" ON "wiki_pages" USING btree ("title");
---> statement-breakpoint
 -- Enable the pg_trgm extension for fuzzy text matching
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
---> statement-breakpoint
 -- Create trigram GIN indexes for fast similarity searches
 CREATE INDEX IF NOT EXISTS trgm_idx_title ON wiki_pages USING GIN (title gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS trgm_idx_content ON wiki_pages USING GIN (content gin_trgm_ops);
---> statement-breakpoint
 -- Add comment to explain what these indexes are for
 COMMENT ON INDEX trgm_idx_title IS 'Trigram index on wiki page titles for fuzzy search';
 COMMENT ON INDEX trgm_idx_content IS 'Trigram index on wiki page content for fuzzy search';
---> statement-breakpoint
 -- Display information about the created indexes
 SELECT indexname,
 	indexdef

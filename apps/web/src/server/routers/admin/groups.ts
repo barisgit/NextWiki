@@ -219,18 +219,13 @@ export const groupsRouter = router({
     .input(
       z.object({
         groupId: z.number(),
-        permissions: z.array(
-          z.object({
-            module: z.string(),
-            isAllowed: z.boolean(),
-          })
-        ),
+        moduleIds: z.array(z.number()),
       })
     )
     .mutation(async ({ input }) => {
       const result = await dbService.groups.addModulePermissions(
         input.groupId,
-        input.permissions.map((p) => p.module)
+        input.moduleIds
       );
       return result;
     }),
@@ -243,18 +238,13 @@ export const groupsRouter = router({
     .input(
       z.object({
         groupId: z.number(),
-        permissions: z.array(
-          z.object({
-            action: z.string(),
-            isAllowed: z.boolean(),
-          })
-        ),
+        actionIds: z.array(z.number()),
       })
     )
     .mutation(async ({ input }) => {
       const result = await dbService.groups.addActionPermissions(
         input.groupId,
-        input.permissions.map((p) => p.action)
+        input.actionIds
       );
       return result;
     }),
@@ -297,9 +287,22 @@ export const groupsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
+      const allModules = await dbService.modules.getAll();
+      const moduleNameToIdMap = new Map(allModules.map((m) => [m.name, m.id]));
+
+      const moduleIdsToRemove = input.modules
+        .map((name) => moduleNameToIdMap.get(name))
+        .filter((id): id is number => id !== undefined);
+
+      if (moduleIdsToRemove.length === 0 && input.modules.length > 0) {
+        logger.warn(
+          `Could not find any module IDs for names: ${input.modules.join(", ")}`
+        );
+      }
+
       const result = await dbService.groups.removeModulePermissions(
         input.groupId,
-        input.modules
+        moduleIdsToRemove
       );
       return result;
     }),
@@ -316,9 +319,22 @@ export const groupsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
+      const allActions = await dbService.actions.getAll();
+      const actionNameToIdMap = new Map(allActions.map((a) => [a.name, a.id]));
+
+      const actionIdsToRemove = input.actions
+        .map((name) => actionNameToIdMap.get(name))
+        .filter((id): id is number => id !== undefined);
+
+      if (actionIdsToRemove.length === 0 && input.actions.length > 0) {
+        logger.warn(
+          `Could not find any action IDs for names: ${input.actions.join(", ")}`
+        );
+      }
+
       const result = await dbService.groups.removeActionPermissions(
         input.groupId,
-        input.actions
+        actionIdsToRemove
       );
       return result;
     }),

@@ -43,7 +43,7 @@ export default async function GroupsPage() {
     <div className="container mx-auto p-6">
       <h1 className="mb-6 text-3xl font-bold">Groups Management</h1>
 
-      <div className="bg-card rounded-lg p-6 shadow-sm">
+      <div className="bg-background-level1 rounded-lg p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">User Groups</h2>
           {canCreateGroups && (
@@ -52,7 +52,7 @@ export default async function GroupsPage() {
             </Button>
           )}
         </div>
-        <p className="text-muted-foreground mb-6">
+        <p className="text-text-tertiary mb-6">
           User groups allow you to organize users and assign permissions to them
           collectively. Each group can have multiple permissions, and users can
           belong to multiple groups.

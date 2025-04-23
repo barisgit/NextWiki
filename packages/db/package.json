@@ -35,6 +35,7 @@
     "_db:seed:custom": "tsx src/seeds/custom-seeds.ts"
   },
   "dependencies": {
+    "@repo/types": "workspace:*",
     "@neondatabase/serverless": "^1.0.0",
     "@repo/logger": "workspace:*",
     "bcryptjs": "^3.0.2",
