@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { permissionProtectedProcedure, router } from "~/server";
-import { db, wikiPages } from "@repo/db"; // Import db and table
-import { dbService, wikiService } from "~/lib/services";
+import { db, wikiPages } from "@repo/db";
+import { dbService } from "~/lib/services";
 import { logger } from "@repo/logger";
 import { formatDistanceToNow } from "date-fns";
 import { TRPCError } from "@trpc/server";
-import { desc, eq, gt, sql, ilike, or, and } from "drizzle-orm"; // Import necessary Drizzle functions
+import { desc, gt, ilike, or, and, isNotNull } from "drizzle-orm";
 
 export const adminWikiRouter = router({
   /**
@@ -145,6 +145,53 @@ export const adminWikiRouter = router({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch wiki pages",
         });
+      }
+    }),
+
+  /**
+   * Get currently locked wiki pages for the admin dashboard.
+   */
+  listLocked: permissionProtectedProcedure("admin:wiki:read")
+    .input(
+      z.object({
+        limit: z.number().min(1).max(20).default(5),
+      })
+    )
+    .query(async ({ input }) => {
+      const { limit } = input;
+      try {
+        const lockedPages = await db.query.wikiPages.findMany({
+          columns: {
+            id: true,
+            path: true,
+            title: true,
+            lockedAt: true, // Include lock timestamp
+          },
+          where: isNotNull(wikiPages.lockedById), // Filter for locked pages
+          orderBy: [desc(wikiPages.lockedAt)], // Order by most recently locked
+          limit: limit,
+          with: {
+            lockedBy: {
+              // Eager load the user who locked the page
+              columns: { id: true, name: true },
+            },
+          },
+        });
+
+        // Format dates and add relative time
+        const formattedPages = lockedPages.map((page) => ({
+          ...page,
+          // Ensure lockedAt is not null before formatting
+          lockedAtRelative: page.lockedAt
+            ? formatDistanceToNow(page.lockedAt, { addSuffix: true })
+            : "Unknown",
+        }));
+
+        return formattedPages;
+      } catch (error) {
+        logger.error("Failed to fetch locked wiki pages for admin:", error);
+        // Return empty array on error for dashboard resilience
+        return [];
       }
     }),
 });

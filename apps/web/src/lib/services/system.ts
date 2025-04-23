@@ -1,5 +1,13 @@
-import { db, users, wikiTags, wikiPages, assets, groups } from "@repo/db";
-import { sql } from "drizzle-orm";
+import {
+  db,
+  users,
+  wikiTags,
+  wikiPages,
+  assets,
+  groups,
+  sessions,
+} from "@repo/db";
+import { sql, isNotNull, gt } from "drizzle-orm";
 
 /**
  * System service - handles system-related operations
@@ -30,6 +38,14 @@ export const systemService = {
         .from(wikiTags),
       db.select({ count: sql<number>`COUNT(*)`.mapWith(Number) }).from(assets),
       db.select({ count: sql<number>`COUNT(*)`.mapWith(Number) }).from(groups),
+      db
+        .select({ count: sql<number>`COUNT(*)`.mapWith(Number) })
+        .from(wikiPages)
+        .where(isNotNull(wikiPages.lockedById)),
+      db
+        .select({ count: sql<number>`COUNT(*)`.mapWith(Number) })
+        .from(sessions)
+        .where(gt(sessions.expires, new Date())),
     ]);
 
     // Simplified helper to extract count directly from the result array
@@ -56,6 +72,8 @@ export const systemService = {
       tagCountResult,
       assetCountResult,
       groupCountResult,
+      lockedPagesCountResult,
+      activeSessionCountResult,
     ] = results;
 
     const stats = {
@@ -66,6 +84,8 @@ export const systemService = {
       tagCount: getCountFromResult(tagCountResult),
       assetCount: getCountFromResult(assetCountResult),
       groupCount: getCountFromResult(groupCountResult),
+      lockedPagesCount: getCountFromResult(lockedPagesCountResult),
+      activeSessionCount: getCountFromResult(activeSessionCountResult),
     };
     return stats;
   },
