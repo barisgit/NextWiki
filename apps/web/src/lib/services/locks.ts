@@ -1,7 +1,7 @@
 import { db } from "@repo/db";
 import { wikiPages } from "@repo/db";
 import { eq, sql } from "drizzle-orm";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 // Software lock timeout in minutes
 const LOCK_TIMEOUT_MINUTES = 5;

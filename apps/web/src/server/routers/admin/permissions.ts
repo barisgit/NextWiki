@@ -4,7 +4,9 @@ import { router, permissionProtectedProcedure } from "~/server";
 import { dbService } from "~/lib/services";
 
 export const permissionsRouter = router({
-  // Get all permissions
+  /**
+   * Get all permissions
+   */
   getAll: permissionProtectedProcedure("system:permissions:read").query(
     async () => {
       const permissions = await dbService.permissions.getAll();
@@ -12,7 +14,9 @@ export const permissionsRouter = router({
     }
   ),
 
-  // Get all unique modules
+  /**
+   * Get all unique modules
+   */
   getModules: permissionProtectedProcedure("system:permissions:read").query(
     async () => {
       const permissions = await dbService.permissions.getAll();
@@ -21,7 +25,9 @@ export const permissionsRouter = router({
     }
   ),
 
-  // Get all unique actions
+  /**
+   * Get all unique actions
+   */
   getActions: permissionProtectedProcedure("system:permissions:read").query(
     async () => {
       const permissions = await dbService.permissions.getAll();
@@ -30,7 +36,9 @@ export const permissionsRouter = router({
     }
   ),
 
-  // Get a permission by ID
+  /**
+   * Get a permission by ID
+   */
   getById: permissionProtectedProcedure("system:settings:read")
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
@@ -44,7 +52,9 @@ export const permissionsRouter = router({
       return permission;
     }),
 
-  // Create a new permission (very restricted operation)
+  /**
+   * Create a new permission (very restricted operation)
+   */
   create: permissionProtectedProcedure("system:settings:update")
     .input(
       z.object({
@@ -62,7 +72,9 @@ export const permissionsRouter = router({
       return newPermission;
     }),
 
-  // Update a permission
+  /**
+   * Update a permission
+   */
   update: permissionProtectedProcedure("system:settings:update")
     .input(
       z.object({
@@ -85,7 +97,9 @@ export const permissionsRouter = router({
       return permission;
     }),
 
-  // Delete a permission
+  /**
+   * Delete a permission
+   */
   delete: permissionProtectedProcedure("system:settings:update")
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {

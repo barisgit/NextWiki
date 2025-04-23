@@ -2,7 +2,7 @@ import { db } from "@repo/db";
 import { wikiPages } from "@repo/db";
 import { sql, count as drizzleCount } from "drizzle-orm";
 import { PaginationInput, getPaginationParams } from "~/lib/utils/pagination";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 // Define the structure of a search result item
 export interface SearchResultItem {

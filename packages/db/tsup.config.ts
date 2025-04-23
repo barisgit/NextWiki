@@ -20,7 +20,7 @@ export default defineConfig({
     console.log("Build successful, copying pages directory...");
     await new Promise((resolve, reject) => {
       exec(
-        "cp -R src/seeds/custom/pages dist/pages",
+        "cp -R src/seeds/developer/pages dist/pages",
         (error, stdout, stderr) => {
           if (error) {
             console.error(`Error copying pages: ${error}`);

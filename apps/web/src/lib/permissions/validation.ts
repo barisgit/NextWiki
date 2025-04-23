@@ -7,7 +7,7 @@ import { db } from "@repo/db";
 import { permissions } from "@repo/db";
 import { eq } from "drizzle-orm";
 import { getAllPermissions, createPermissionId } from "@repo/db";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 /**
  * Validates permissions in the database against the registry

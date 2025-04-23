@@ -24,7 +24,7 @@ export default function RemoveUserModal({
   const trpc = useTRPC();
 
   const removeUserMutation = useMutation(
-    trpc.groups.removeUsers.mutationOptions({
+    trpc.admin.groups.removeUsers.mutationOptions({
       onSuccess: () => {
         toast.success("User removed from group successfully");
         setIsModalOpen(false);

@@ -1,7 +1,7 @@
 // This file is intended for developers to add their own custom seed data.
 // It is ignored by git by default (see .gitignore).
 // You can copy the contents of custom-seeds.example.ts here to get started.
-// import { logger } from "~/lib/utils/logger";
+// import { logger } from "@repo/logger";
 
 /**
  * Runs custom seed operations defined by the developer.

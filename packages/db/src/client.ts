@@ -11,7 +11,8 @@ export type {
   PermissionAction,
   PermissionResource,
   PermissionIdentifier,
-} from "./registry/types.js";
+  PossiblePermissionIdentifier,
+} from "./registry/index.js";
 
 // Re-export specific functions from the registry that are client-safe
 export {

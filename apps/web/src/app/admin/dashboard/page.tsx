@@ -1,24 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Card } from "@repo/ui";
+import { useTRPC } from "~/server/client";
+import { useQuery } from "@tanstack/react-query";
+import type { AppRouter } from "~/server/routers";
 
-interface StatsItem {
-  title: string;
-  value: number | string;
-  icon: React.ReactNode;
-}
+// Define type for the stats object returned by the API
+type SystemStatsQueryProcedure = AppRouter["admin"]["system"]["getStats"];
+type SystemStats = Awaited<ReturnType<SystemStatsQueryProcedure>>;
 
-// Define type for the static part
+// Define type for the static part, adding a key to link to API data
 interface StaticStatData {
   title: string;
   icon: React.ReactNode;
+  key: keyof SystemStats; // Key to match the field in SystemStats
 }
 
-// Define static parts outside the component with explicit type
+// TODO: Make stats clickable and redirect to the respective page
+
+// Define static parts outside the component with explicit type and key
 const staticStatsData: StaticStatData[] = [
   {
     title: "Total Pages",
+    key: "pageCount",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -37,7 +41,8 @@ const staticStatsData: StaticStatData[] = [
     ),
   },
   {
-    title: "Total Users",
+    title: "Total Tags",
+    key: "tagCount",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -50,13 +55,14 @@ const staticStatsData: StaticStatData[] = [
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+          d="M12.586 2.586a2 2 0 00-2.828 0L7 5.172V4a1 1 0 10-2 0v4.5a.5.5 0 00.146.354l6.5 6.5a2 2 0 002.828 0l4.5-4.5a2 2 0 000-2.828l-6.914-6.914zM6 8.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
         />
       </svg>
     ),
   },
   {
     title: "Total Assets",
+    key: "assetCount",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -75,7 +81,28 @@ const staticStatsData: StaticStatData[] = [
     ),
   },
   {
+    title: "Total Users",
+    key: "userCount",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="text-secondary-400 h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+        />
+      </svg>
+    ),
+  },
+  {
     title: "User Groups",
+    key: "groupCount",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -96,45 +123,20 @@ const staticStatsData: StaticStatData[] = [
 ];
 
 export default function AdminDashboardPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  // Fetch system stats using tRPC and TanStack Query
+  const trpc = useTRPC();
+  const {
+    data: statsData,
+    isLoading,
+    error,
+  } = useQuery(trpc.admin.system.getStats.queryOptions());
 
-  // Initialize state with static titles/icons and placeholder values
-  const [stats, setStats] = useState<StatsItem[]>(() =>
-    staticStatsData.map((item) => ({ ...item, value: "..." }))
-  );
-
-  // Simulate loading data
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Create the new state manually, using non-null assertions
-      const newStats: StatsItem[] = [
-        {
-          title: staticStatsData[0]!.title,
-          icon: staticStatsData[0]!.icon,
-          value: 42,
-        },
-        {
-          title: staticStatsData[1]!.title,
-          icon: staticStatsData[1]!.icon,
-          value: 15,
-        },
-        {
-          title: staticStatsData[2]!.title,
-          icon: staticStatsData[2]!.icon,
-          value: 87,
-        },
-        {
-          title: staticStatsData[3]!.title,
-          icon: staticStatsData[3]!.icon,
-          value: 5,
-        },
-      ];
-      setStats(newStats);
-      setIsLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []); // Keep empty dependency array
+  // Handle error state
+  if (error) {
+    return (
+      <div>Error loading system stats: {error.message}. Check permissions.</div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -143,22 +145,22 @@ export default function AdminDashboardPage() {
         <p className="text-text-secondary">Overview of your NextWiki system</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => (
-          <Card key={index} className="p-6">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
+        {staticStatsData.map((statDef) => (
+          <Card key={statDef.key} className="p-6">
             <div className="flex items-center">
               <div className="bg-background-level1 rounded-full p-3">
-                {stat.icon}
+                {statDef.icon}
               </div>
               <div className="ml-4">
                 <p className="text-text-secondary text-sm font-medium">
-                  {stat.title}
+                  {statDef.title}
                 </p>
                 <p className="text-2xl font-semibold">
-                  {isLoading ? (
+                  {isLoading || !statsData ? (
                     <span className="bg-background-level1 inline-block h-8 w-16 animate-pulse rounded"></span>
                   ) : (
-                    stat.value
+                    statsData[statDef.key]
                   )}
                 </p>
               </div>

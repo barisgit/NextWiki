@@ -32,7 +32,7 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
   const trpc = useTRPC();
 
   const deleteGroup = useMutation(
-    trpc.groups.delete.mutationOptions({
+    trpc.admin.groups.delete.mutationOptions({
       onSuccess: () => {
         toast.success("Group deleted successfully");
         // Refresh the page to get updated data

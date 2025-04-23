@@ -8,7 +8,7 @@ on:
     branches:
       - main
       - development
-  workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch: # Allows manual triggering
 
 jobs:
   lint:
@@ -37,9 +37,6 @@ jobs:
         with:
           node-version: 20
       - run: pnpm install
-      # Copy the example custom-seeds file to satisfy TypeScript during CI
-      - name: Create custom-seeds.ts from example for typecheck
-        run: cp apps/web/src/lib/db/seeds/custom-seeds.example.ts apps/web/src/lib/db/seeds/custom-seeds.ts
       - run: pnpm check-types
 
   build:
@@ -56,7 +53,4 @@ jobs:
         with:
           node-version: 20
       - run: pnpm install
-      # Copy the example custom-seeds file to satisfy TypeScript during CI build
-      - name: Create custom-seeds.ts from example for build
-        run: cp apps/web/src/lib/db/seeds/custom-seeds.example.ts apps/web/src/lib/db/seeds/custom-seeds.ts
       - run: pnpm build

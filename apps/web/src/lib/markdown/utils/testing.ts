@@ -4,7 +4,7 @@
 
 import { createClientMarkdownProcessor } from "../client-factory";
 import { renderMarkdownToHtml } from "../server";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 /**
  * Normalizes HTML structure to account for differences between server-rendered HTML

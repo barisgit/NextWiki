@@ -7,7 +7,7 @@ import { db } from "@repo/db";
 import { wikiPages } from "@repo/db";
 import { eq } from "drizzle-orm";
 import { invalidatePageExistenceCache } from "~/lib/markdown/plugins/server-only/rehypeWikiLinks";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 /**
  * Renders markdown content to HTML with enhanced wiki features

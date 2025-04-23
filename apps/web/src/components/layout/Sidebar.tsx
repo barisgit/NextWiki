@@ -204,9 +204,9 @@ function WikiTreeItem({
                   className="mr-0.5 flex flex-shrink-0 items-center justify-center px-0.5 py-1.5 focus:outline-none"
                 >
                   {isExpanded ? (
-                    <ChevronDown className="text-muted-foreground h-4 w-4" />
+                    <ChevronDown className="text-text-tertiary h-4 w-4" />
                   ) : (
-                    <ChevronRight className="text-muted-foreground h-4 w-4" />
+                    <ChevronRight className="text-text-tertiary h-4 w-4" />
                   )}
                 </button>
               ) : (
@@ -224,7 +224,7 @@ function WikiTreeItem({
                 {item.type === "folder" ? (
                   <Folder className="text-primary mr-2 h-4 w-4 flex-shrink-0" />
                 ) : (
-                  <File className="text-accent-600 mr-2 h-4 w-4 flex-shrink-0" />
+                  <File className="text-accent-600 dark:text-accent-400 mr-2 h-4 w-4 flex-shrink-0" />
                 )}
                 <span className="truncate">{item.title || item.name}</span>
               </Link>
@@ -566,7 +566,7 @@ export function Sidebar() {
 
   return (
     <TooltipProvider>
-      <div className="bg-background-paper border-border text-text-primary flex h-screen w-72 flex-col border-r p-1 shadow-sm">
+      <div className="bg-background-default dark:bg-background-paper border-border text-text-primary flex h-screen w-72 flex-col border-r p-1 shadow-sm">
         <div className="mb-2 flex items-center justify-between p-3">
           <Link href="/" className="text-primary text-2xl font-bold">
             NextWiki
@@ -582,7 +582,7 @@ export function Sidebar() {
         {/* Visual Search Bar */}
         <div className="mb-4 px-3">
           <div
-            className="bg-background-level1 border-border-default hover:border-border-dark dark:hover:border-border-light text-text-secondary flex w-full cursor-pointer items-center rounded-md border px-3 py-2 text-sm"
+            className="bg-background-default dark:bg-background-level3 border-border-default hover:border-border-dark dark:hover:border-border-light text-text-secondary flex w-full cursor-pointer items-center rounded-md border px-3 py-2 text-sm"
             onClick={() => setIsSearchModalOpen(true)}
           >
             <Search className="text-text-secondary mr-2 h-4 w-4" />
@@ -600,13 +600,13 @@ export function Sidebar() {
             href="/"
             className={`text-text-primary flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               pathname === "/"
-                ? "bg-primary/10 text-primary"
-                : "hover:bg-card-hover"
+                ? "bg-accent-50 dark:bg-primary-500/10 text-accent-foreground"
+                : "hover:bg-background-level1"
             }`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="text-primary mr-3 h-4 w-4"
+              className="text-text-primary mr-3 h-4 w-4"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -624,13 +624,13 @@ export function Sidebar() {
             href="/wiki"
             className={`text-text-primary flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               pathname === "/wiki"
-                ? "bg-primary/10 text-primary"
-                : "hover:bg-card-hover"
+                ? "bg-accent-50 dark:bg-primary-500/10 text-accent-foreground"
+                : "hover:bg-background-level1"
             }`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="text-primary mr-3 h-4 w-4"
+              className="text-text-primary mr-3 h-4 w-4"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -648,13 +648,13 @@ export function Sidebar() {
             href="/tags"
             className={`text-text-primary flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               pathname === "/tags"
-                ? "bg-primary/10 text-primary"
-                : "hover:bg-card-hover"
+                ? "bg-accent-50 dark:bg-primary-500/10 text-accent-foreground"
+                : "hover:bg-background-level1"
             }`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="text-primary mr-3 h-4 w-4"
+              className="text-text-primary mr-3 h-4 w-4"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"

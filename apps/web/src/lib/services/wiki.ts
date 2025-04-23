@@ -8,7 +8,7 @@ import {
 import { desc, eq, sql } from "drizzle-orm";
 import { lockService } from "~/lib/services";
 import { Transaction } from "~/types/db";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 /**
  * Wiki service - handles all wiki-related database operations

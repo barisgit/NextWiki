@@ -8,7 +8,7 @@ import {
 } from "@repo/db";
 import { eq, and, inArray, or, isNull } from "drizzle-orm";
 import { PermissionIdentifier, validatePermissionId } from "@repo/db";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 /**
  * Authorization Service

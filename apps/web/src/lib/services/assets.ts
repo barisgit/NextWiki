@@ -1,5 +1,5 @@
 import { db } from "@repo/db";
-import { assets, assetsToPages } from "@repo/db";
+import { assets, assetsToPages, users } from "@repo/db";
 import { eq, like, ilike, and, sql, SQL } from "drizzle-orm";
 import {
   PaginationInput,
@@ -20,6 +20,9 @@ export const assetService = {
   async getById(id: string) {
     return db.query.assets.findFirst({
       where: eq(assets.id, id),
+      with: {
+        uploadedBy: true,
+      },
     });
   },
 
@@ -29,8 +32,12 @@ export const assetService = {
   async getAll() {
     return db.query.assets.findMany({
       orderBy: (assets, { desc }) => [desc(assets.createdAt)],
+      limit: 1000,
       with: {
         uploadedBy: true,
+      },
+      columns: {
+        data: false,
       },
     });
   },
@@ -81,6 +88,9 @@ export const assetService = {
 
     // Get paginated assets
     const items = await db.query.assets.findMany({
+      columns: {
+        data: false,
+      },
       where: whereClause,
       orderBy: (assets, { desc }) => [desc(assets.createdAt)],
       limit: take,
@@ -99,14 +109,29 @@ export const assetService = {
   async getByPageId(pageId: number) {
     // Using the junction table to get assets for a page
     const assetsForPage = await db
-      .select()
+      .select({
+        id: assets.id,
+        fileName: assets.fileName,
+        fileType: assets.fileType,
+        fileSize: assets.fileSize,
+        name: assets.name,
+        description: assets.description,
+        uploadedById: assets.uploadedById,
+        createdAt: assets.createdAt,
+        uploadedBy: {
+          id: users.id,
+          name: users.name,
+          image: users.image,
+        },
+      })
       .from(assets)
       .innerJoin(assetsToPages, eq(assets.id, assetsToPages.assetId))
+      .innerJoin(users, eq(assets.uploadedById, users.id))
       .where(eq(assetsToPages.pageId, pageId))
       .orderBy(assets.createdAt);
 
     // Map the results to return just the assets
-    return assetsForPage.map((row) => row.assets);
+    return assetsForPage;
   },
 
   /**

@@ -9,7 +9,7 @@ import {
   validatePermissionId,
   getAllPermissionIds,
 } from "@repo/db/client";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 /**
  * Client-side function to check if a permission identifier is valid

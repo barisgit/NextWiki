@@ -15,7 +15,7 @@ export function Breadcrumbs({ path, className = "" }: BreadcrumbsProps) {
       <div className={`flex items-center text-sm ${className}`}>
         <Link
           href="/"
-          className="text-accent-600 hover:text-accent-400 flex items-center hover:underline"
+          className="text-text-primary hover:text-text-secondary flex items-center hover:underline"
         >
           <HomeIcon className="mr-1 h-4 w-4" />
           <span>Home</span>
@@ -52,15 +52,15 @@ export function Breadcrumbs({ path, className = "" }: BreadcrumbsProps) {
       {items.map((item, index) => (
         <div key={item.key} className="flex items-center">
           {index > 0 && (
-            <ChevronRightIcon className="text-accent-400 mx-1.5 h-4 w-4" />
+            <ChevronRightIcon className="text-secondary mx-1.5 h-4 w-4" />
           )}
 
           <Link
             href={item.path}
             className={`hover:underline ${
               index === items.length - 1
-                ? "text-accent-600 font-medium"
-                : "text-accent-600 hover:text-accent-400"
+                ? "text-secondary-600 font-medium"
+                : "text-secondary-600 hover:text-secondary-400"
             }`}
           >
             {item.label}
