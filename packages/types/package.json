@@ -15,6 +15,7 @@
   },
   "types": "./dist/index.d.ts",
   "scripts": {
+    "build": "tsc",
     "lint": "eslint . --max-warnings 0",
     "clean": "rm -rf dist .next",
     "fullclean": "rm -rf dist .next .turbo node_modules"
