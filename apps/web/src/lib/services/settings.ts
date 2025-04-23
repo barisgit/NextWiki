@@ -46,11 +46,7 @@ export async function getSettings<K extends SettingKey>(
 
   return keys.reduce(
     (acc, key, index) => {
-      // Ensure the result exists (it should due to getSetting defaults)
-      const result = results[index];
-      if (result !== undefined) {
-        acc[key] = result;
-      }
+      acc[key] = results[index] as SettingValue<K>;
       return acc;
     },
     {} as Record<K, SettingValue<K>>
@@ -69,7 +65,9 @@ export async function getAllSettings(): Promise<
 
   for (const setting of results) {
     const key = setting.key as SettingKey;
-    (settingsMap as any)[key] = setting.value as SettingValue<typeof key>;
+    // Type assertion still needed for the value from DB
+    // @ts-expect-error - TODO: fix this
+    settingsMap[key] = setting.value as SettingValue<typeof key>;
   }
 
   return settingsMap;
@@ -112,7 +110,7 @@ export async function updateSetting<K extends SettingKey>(
       .insert(settings)
       .values({
         key: key,
-        value: value,
+        value: value as any, // Type cast needed due to DB Jsonb vs specific types
         description: (await import("@repo/types")).DEFAULT_SETTINGS[key]
           .description,
         updatedAt: new Date(),
@@ -120,7 +118,7 @@ export async function updateSetting<K extends SettingKey>(
       .onConflictDoUpdate({
         target: settings.key,
         set: {
-          value: value,
+          value: value as any, // Type cast needed
           updatedAt: new Date(),
         },
       });

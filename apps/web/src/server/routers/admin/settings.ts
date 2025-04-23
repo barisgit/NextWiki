@@ -6,6 +6,7 @@ import {
   getSettingHistory,
   updateSetting,
   deleteSetting,
+  initializeDefaultSettings,
 } from "~/lib/services/settings";
 import { DEFAULT_SETTINGS, type SettingKey } from "@repo/types";
 
@@ -62,8 +63,7 @@ export const settingsRouter = router({
       const typedKey = key as SettingKey;
 
       // Validate the value matches the expected type
-      const settingDefinition = DEFAULT_SETTINGS[typedKey];
-      const expectedType = settingDefinition.type;
+      const expectedType = DEFAULT_SETTINGS[typedKey].type;
 
       // Simple type validation
       const valueType = typeof value;
@@ -71,12 +71,11 @@ export const settingsRouter = router({
         (expectedType === "string" && valueType !== "string") ||
         (expectedType === "number" && valueType !== "number") ||
         (expectedType === "boolean" && valueType !== "boolean") ||
-        // For select, check type and use includes with any cast
+        // For select, we need to check if the value is in the options
         (expectedType === "select" &&
           !(
-            valueType === "string" &&
-            settingDefinition.type === "select" &&
-            settingDefinition.options.includes(value as never)
+            "options" in DEFAULT_SETTINGS[typedKey] &&
+            (DEFAULT_SETTINGS[typedKey].options as string[]).includes(value)
           )) ||
         // For JSON, we need to check if it's an object
         (expectedType === "json" && (valueType !== "object" || value === null))
@@ -181,4 +180,14 @@ export const settingsRouter = router({
 
       return categorySettings;
     }),
+
+  /**
+   * Initialize default settings
+   */
+  initialize: permissionProtectedProcedure("system:settings:update").mutation(
+    async ({ ctx }) => {
+      await initializeDefaultSettings();
+      return { success: true };
+    }
+  ),
 });

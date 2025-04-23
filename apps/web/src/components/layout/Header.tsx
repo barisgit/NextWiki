@@ -9,9 +9,17 @@ import Link from "next/link";
 import { WikiLockInfo } from "~/components/wiki/WikiLockInfo";
 import { MoveIcon, PencilIcon } from "lucide-react";
 import { ClientRequirePermission } from "~/components/auth/permission/client";
+import { getSettingValue } from "~/lib/utils/settings";
 
-export function Header({ pageMetadata }: { pageMetadata?: PageMetadata }) {
+export async function Header({
+  pageMetadata,
+}: {
+  pageMetadata?: PageMetadata;
+}) {
   const isHomePage = pageMetadata?.path === "index";
+
+  // Get site title from settings
+  const siteTitle = await getSettingValue("site.title");
 
   return (
     <header
@@ -45,7 +53,7 @@ export function Header({ pageMetadata }: { pageMetadata?: PageMetadata }) {
             <h1
               className={`font-medium ${isHomePage ? "text-text-primary text-xl" : "text-text-primary text-lg"}`}
             >
-              {pageMetadata.title}
+              {siteTitle}
             </h1>
           </div>
         )}

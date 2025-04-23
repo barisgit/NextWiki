@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { Alert, AlertDescription } from "@repo/ui";
 import { Button } from "@repo/ui";
 import { Input } from "@repo/ui";
+import { useSetting } from "~/lib/hooks/use-settings";
 
 // Create a separate component to read searchParams to work with Suspense
 function RegistrationSuccessMessage() {
@@ -32,6 +33,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { value: allowRegistration } = useSetting("auth.allowRegistration");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,14 +129,16 @@ export function LoginForm() {
             Forgot your password?
           </Link>
         </div>
-        <div className="text-sm">
-          <Link
-            href="/register"
-            className="text-primary hover:text-primary/90 font-medium"
-          >
-            Create an account
-          </Link>
-        </div>
+        {allowRegistration && (
+          <div className="text-sm">
+            <Link
+              href="/register"
+              className="text-primary hover:text-primary/90 font-medium"
+            >
+              Create an account
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="mt-6">
