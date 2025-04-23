@@ -141,6 +141,14 @@ const PERMISSION_LIST: Permission[] = [
     action: "delete",
     description: "Delete assets",
   },
+
+  // General module permissions
+  {
+    module: "system",
+    resource: "general",
+    action: "read",
+    description: "View system stats and information",
+  },
 ];
 
 /**

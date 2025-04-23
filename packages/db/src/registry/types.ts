@@ -21,7 +21,8 @@ export type PermissionResource =
   | "permissions"
   | "users"
   | "groups"
-  | "asset";
+  | "asset"
+  | "general";
 
 /**
  * Unified permission structure

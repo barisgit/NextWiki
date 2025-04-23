@@ -8,6 +8,7 @@ import { permissionService } from "./permissions";
 import { groupService } from "./groups";
 import { authorizationService } from "./authorization";
 import { markdownService } from "./markdown";
+import { systemService } from "./system";
 
 /**
  * Database Services
@@ -74,6 +75,11 @@ export const dbService = {
    * Markdown processing operations
    */
   markdown: markdownService,
+
+  /**
+   * System operations
+   */
+  system: systemService,
 };
 
 // Export individual services for direct use

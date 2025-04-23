@@ -21,7 +21,10 @@ export async function generateMetadata({
   };
 }
 
-export default async function EditGroupPage({ params }: EditGroupPageProps) {
+export default async function EditGroupPage(
+  propsPromise: Promise<EditGroupPageProps>
+) {
+  const { params } = await propsPromise;
   const session = await getServerAuthSession();
 
   // Redirect if not logged in

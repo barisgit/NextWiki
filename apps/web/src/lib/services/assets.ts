@@ -23,9 +23,6 @@ export const assetService = {
       with: {
         uploadedBy: true,
       },
-      columns: {
-        data: false,
-      },
     });
   },
 

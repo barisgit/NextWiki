@@ -16,6 +16,13 @@ const AssetDTO = z.object({
   description: z.string().nullable(),
   uploadedById: z.number(),
   createdAt: z.date(),
+  uploadedBy: z
+    .object({
+      id: z.number(),
+      name: z.string().nullable(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export const assetsRouter = router({

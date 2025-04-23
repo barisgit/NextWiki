@@ -138,7 +138,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
 
   useEffect(() => {
     if (paginatedAssets) {
-      setAssets(paginatedAssets.items as AssetType[]);
+      setAssets(paginatedAssets.items as unknown as AssetType[]);
       setMeta(paginatedAssets.meta);
     }
   }, [paginatedAssets]);
