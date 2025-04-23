@@ -11,7 +11,7 @@
   }
 
   ul.links-list li {
-    @apply bg-background-paper/50 dark:bg-background-level2 hover:border-primary/50 dark:hover:bg-background-level3 dark:border-border-dark border-l-primary dark:border-l-primary hover:border-l-primary flex items-start rounded-lg border border-l-4 border-transparent shadow-lg transition-all duration-200 hover:shadow-xl dark:shadow-none;
+    @apply bg-background-paper/50 dark:bg-background-level2 hover:border-complementary/50 dark:hover:bg-background-level3 dark:border-border-dark border-l-secondary hover:border-l-secondary flex items-start rounded-lg border border-l-4 border-transparent shadow-lg transition-all duration-200 hover:shadow-xl dark:shadow-none;
   }
 
   /* Emoji styling */
@@ -21,11 +21,11 @@
 
   /* Specific styling for links with emojis */
   ul.links-list li a {
-    @apply text-primary flex w-full items-center gap-8 p-4 font-bold no-underline hover:no-underline;
+    @apply text-secondary flex w-full items-center gap-8 p-4 font-bold no-underline hover:no-underline;
   }
 
   ul.links-list li a em {
-    @apply border-border -ml-6 border-l pl-2;
+    @apply border-border-default -ml-6 border-l pl-2;
   }
 
   ul.links-list li .emoji {
@@ -41,7 +41,7 @@
   }
 
   a.wiki-link-exists {
-    @apply text-primary no-underline hover:underline;
+    @apply text-complementary no-underline hover:underline;
   }
 
   a.wiki-link-missing {

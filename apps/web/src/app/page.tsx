@@ -137,9 +137,9 @@ export default async function Home() {
                     >
                       <Link
                         href={`/${page.path}`}
-                        className="dark:bg-background-level1 bg-background-paper hover:bg-accent/10 flex items-center justify-between rounded-md py-1 text-xs"
+                        className="dark:bg-background-level1 bg-background-paper hover:bg-primary/10 flex items-center justify-between rounded-md py-1 text-xs"
                       >
-                        <span className="text-primary-600 dark:text-primary-400 ml-2 font-medium">
+                        <span className="text-primary dark:text-text-primary ml-2 font-medium">
                           {page.title}
                         </span>
                         <span className="text-text-secondary mr-2 shrink-0">
@@ -175,7 +175,7 @@ export default async function Home() {
                 <div className="grid grid-cols-4 gap-2">
                   <Link
                     href="/wiki/getting-started"
-                    className="text-primary hover:bg-accent/10 flex flex-col items-center rounded-md p-1.5 text-center text-xs"
+                    className="text-text-secondary hover:bg-primary/10 flex flex-col items-center rounded-md p-1.5 text-center text-xs"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -195,7 +195,7 @@ export default async function Home() {
                   </Link>
                   <Link
                     href="/create"
-                    className="text-primary hover:bg-accent/10 flex flex-col items-center rounded-md p-1.5 text-center text-xs"
+                    className="text-text-secondary hover:bg-primary/10 flex flex-col items-center rounded-md p-1.5 text-center text-xs"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -215,7 +215,7 @@ export default async function Home() {
                   </Link>
                   <Link
                     href="/tags"
-                    className="text-primary hover:bg-accent/10 flex flex-col items-center rounded-md p-1.5 text-center text-xs"
+                    className="text-text-secondary hover:bg-primary/10 flex flex-col items-center rounded-md p-1.5 text-center text-xs"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -235,7 +235,7 @@ export default async function Home() {
                   </Link>
                   <Link
                     href="/profile"
-                    className="text-primary hover:bg-accent/10 flex flex-col items-center rounded-md p-1.5 text-center text-xs"
+                    className="text-text-secondary hover:bg-primary/10 flex flex-col items-center rounded-md p-1.5 text-center text-xs"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

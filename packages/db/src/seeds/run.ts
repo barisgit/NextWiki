@@ -14,16 +14,18 @@ async function seed() {
     // 2. Create Default Groups and assign base permissions
     await createDefaultGroups();
 
-    // 3. Run Developer Seeds (admin user, example pages, etc.)
-    await runDeveloperSeeds();
+    if (!process.env.SKIP_DEVELOPER_SEEDS) {
+      // 3. Run Developer Seeds (admin user, example pages, etc.)
+      await runDeveloperSeeds();
 
-    // 4. Run Custom Seeds
-    try {
-      const customSeeds = await import("./custom-seeds.js");
-      // @ts-expect-error - Custom seeds might not be defined
-      await customSeeds.runCustomSeeds();
-    } catch (error) {
-      console.warn("  Custom seeds probably not defined", error);
+      // 4. Run Custom Seeds
+      try {
+        const customSeeds = await import("./custom-seeds.js");
+        // @ts-expect-error - Custom seeds might not be defined
+        await customSeeds.runCustomSeeds();
+      } catch (error) {
+        console.warn("  Custom seeds probably not defined", error);
+      }
     }
 
     console.log("\n✅ Database seeding completed successfully.");

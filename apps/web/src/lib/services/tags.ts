@@ -1,5 +1,6 @@
 import { db } from "@repo/db";
 import { wikiTags, wikiPageToTag } from "@repo/db";
+import { logger } from "@repo/logger";
 import { eq, ilike } from "drizzle-orm";
 
 /**
@@ -11,6 +12,7 @@ export const tagService = {
    * @deprecated Implement pagination
    */
   async getAll() {
+    logger.warn("Using deprecated tagService.getAll()");
     return db.query.wikiTags.findMany({
       orderBy: (tags, { asc }) => [asc(tags.name)],
     });

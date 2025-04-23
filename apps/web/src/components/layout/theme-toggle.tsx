@@ -27,7 +27,7 @@ export function ThemeToggle() {
       <PopoverContent
         align="center"
         side="bottom"
-        className="w-auto rounded-lg p-0"
+        className="bg-background-default w-auto rounded-lg p-0"
       >
         <div className="flex items-center gap-1">
           <Button

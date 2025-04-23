@@ -426,7 +426,7 @@ export function WikiFolderTree({
               {showPageCount && pageCount > 0 && (
                 <span
                   title={`${pageCount} page${pageCount !== 1 ? "s" : ""}`}
-                  className="bg-accent/30 rounded-md px-1.5 py-0.5"
+                  className="bg-complementary/30 rounded-md px-1.5 py-0.5"
                 >
                   {pageCount}p
                 </span>
@@ -434,7 +434,7 @@ export function WikiFolderTree({
               {folderCount > 0 && (
                 <span
                   title={`${folderCount} folder${folderCount !== 1 ? "s" : ""}`}
-                  className="bg-accent/30 rounded-md px-1.5 py-0.5"
+                  className="bg-complementary/30 rounded-md px-1.5 py-0.5"
                 >
                   {folderCount}f
                 </span>
@@ -485,7 +485,7 @@ export function WikiFolderTree({
     const nodeClasses = `group flex cursor-pointer items-center rounded-md px-2 py-1.5 text-sm hover:bg-background-level2 ${
       // Adjusted py padding
       isSelected
-        ? "bg-accent/20 text-text-primary font-medium" // Highlight selected
+        ? "bg-primary/10 text-text-primary font-medium" // Highlight selected
         : "text-text-secondary"
     }`;
 

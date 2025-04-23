@@ -40,12 +40,10 @@ export function Header({ pageMetadata }: { pageMetadata?: PageMetadata }) {
           </div>
         )}
 
-        <Suspense fallback={<div>Loading search bar...</div>}></Suspense>
-
         {pageMetadata?.title && (
           <div>
             <h1
-              className={`font-medium ${isHomePage ? "text-primary text-xl" : "text-primary text-lg"}`}
+              className={`font-medium ${isHomePage ? "text-text-primary text-xl" : "text-text-primary text-lg"}`}
             >
               {pageMetadata.title}
             </h1>
@@ -58,7 +56,7 @@ export function Header({ pageMetadata }: { pageMetadata?: PageMetadata }) {
             <ClientRequirePermission permission="wiki:page:update">
               <Link
                 href={`/${pageMetadata.path}?edit=true`}
-                className="text-primary/80 hover:text-primary hover:border-accent/20 flex items-center rounded border border-transparent px-2 py-1 text-xs"
+                className="text-text-secondary hover:text-primary hover:border-accent/20 flex items-center rounded border border-transparent px-2 py-1 text-xs"
               >
                 <PencilIcon className="mr-1 h-3.5 w-3.5" />
                 Edit
@@ -66,7 +64,7 @@ export function Header({ pageMetadata }: { pageMetadata?: PageMetadata }) {
               {!isHomePage && (
                 <Link
                   href={`/${pageMetadata.path}?move=true`}
-                  className="text-primary/80 hover:text-primary hover:border-accent/20 flex items-center rounded border border-transparent px-2 py-1 text-xs"
+                  className="text-text-secondary hover:text-primary hover:border-accent/20 flex items-center rounded border border-transparent px-2 py-1 text-xs"
                 >
                   <MoveIcon className="mr-1 h-3.5 w-3.5" />
                   Move

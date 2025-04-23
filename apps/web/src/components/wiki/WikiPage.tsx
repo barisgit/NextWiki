@@ -153,7 +153,7 @@ export function WikiPage({
         <div className="min-w-0 flex-1 space-y-6">
           <div className="mb-6 border-b pb-4">
             {/* Breadcrumbs */}
-            <Breadcrumbs path={path} className="mb-3 text-slate-600" />
+            <Breadcrumbs path={path} className="mb-3" />
 
             {/* Page metadata - simpler now */}
             <div className="text-muted-foreground flex items-center space-x-4 text-sm">
