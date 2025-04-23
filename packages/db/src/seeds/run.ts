@@ -1,7 +1,5 @@
 import { createDefaultGroups, seedPermissions } from "./permissions.js";
-import { runCustomSeeds } from "./custom-seeds.js";
-// import { db } from "../index.js"; // No longer needed for closing
-// import pg from "pg"; // No longer needed for closing
+import { runDeveloperSeeds } from "./developer-seeds.js";
 
 /**
  * Main function to run all seed operations.
@@ -16,8 +14,17 @@ async function seed() {
     // 2. Create Default Groups and assign base permissions
     await createDefaultGroups();
 
-    // 3. Run Custom Seeds (admin user, example pages, etc.)
-    await runCustomSeeds();
+    // 3. Run Developer Seeds (admin user, example pages, etc.)
+    await runDeveloperSeeds();
+
+    // 4. Run Custom Seeds
+    try {
+      const customSeeds = await import("./custom-seeds.js");
+      // @ts-expect-error - Custom seeds might not be defined
+      await customSeeds.runCustomSeeds();
+    } catch (error) {
+      console.warn("  Custom seeds probably not defined", error);
+    }
 
     console.log("\n✅ Database seeding completed successfully.");
   } catch (error) {
