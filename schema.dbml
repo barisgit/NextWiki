@@ -24,12 +24,25 @@ Table USERS {
   }
 }
 
+Table MODULES {
+  id int [pk, increment]
+  name varchar(50) [unique, not null]
+  description text
+  created_at timestamp [default: `now()`]
+}
+
+Table ACTIONS {
+  id int [pk, increment]
+  name varchar(50) [unique, not null]
+  description text
+  created_at timestamp [default: `now()`]
+}
+
 Table PERMISSIONS {
   id int [pk, increment]
-  module varchar(50) [not null]
+  module_id int [not null, ref: > MODULES.id]
   resource varchar(50) [not null]
-  action varchar(50) [not null]
-  name varchar(100) [unique, not null, note: 'Generated: module || ":" || resource || ":" || action']
+  action_id int [not null, ref: > ACTIONS.id]
   description text
   created_at timestamp [default: `now()`]
 }
@@ -69,38 +82,40 @@ Table GROUP_PERMISSIONS {
 
 Table GROUP_MODULE_PERMISSIONS {
   group_id int [not null, ref: > GROUPS.id]
-  module varchar(50) [not null]
+  module_id int [not null, ref: > MODULES.id]
   created_at timestamp [default: `now()`]
 
   indexes {
-    (group_id, module) [pk]
-    group_module_permissions_idx (group_id, module)
+    (group_id, module_id) [pk]
+    group_module_permissions_idx (group_id, module_id)
   }
 }
 
 Table GROUP_ACTION_PERMISSIONS {
   group_id int [not null, ref: > GROUPS.id]
-  action varchar(50) [not null]
+  action_id int [not null, ref: > ACTIONS.id]
   created_at timestamp [default: `now()`]
 
   indexes {
-    (group_id, action) [pk]
-    group_action_permissions_idx (group_id, action)
+    (group_id, action_id) [pk]
+    group_action_permissions_idx (group_id, action_id)
   }
 }
 
-Table PAGE_PERMISSIONS {
+Table PATH_PERMISSIONS {
   id int [pk, increment]
-  page_id int [not null, ref: > WIKI_PAGES.id]
-  group_id int [ref: > GROUPS.id]
+  path_pattern varchar(1000) [not null, note: 'Path pattern using SQL LIKE syntax (e.g., /admin/%, /wiki/page, /docs/_%)']
+  group_id int [not null, ref: > GROUPS.id]
   permission_id int [not null, ref: > PERMISSIONS.id]
-  permission_type varchar(10) [not null, default: 'allow'] // 'allow' or 'deny'
+  permission_type varchar(10) [not null, default: 'allow', note: "'allow' or 'deny'"]
+  precedence int [not null, default: 0, note: 'Higher value takes precedence in case of conflicting patterns']
   created_at timestamp [default: `now()`]
 
   indexes {
-     // Note: Drizzle schema has index on (pageId, permissionId, groupId) which implies uniqueness
-     // DBML might require explicitly marking as unique if needed.
-    page_group_perm_idx (page_id, permission_id, group_id)
+    // Index for efficient lookup based on group and potentially path prefix
+    path_perm_group_idx (group_id)
+    // Potentially add unique constraint depending on desired logic:
+    // unique_path_perm (group_id, permission_id, path_pattern, permission_type)
   }
 }
 

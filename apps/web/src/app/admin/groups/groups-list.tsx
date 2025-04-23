@@ -48,7 +48,7 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
   };
 
   return (
-    <div className="rounded-md border">
+    <div className="border-border rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -83,11 +83,17 @@ export default function GroupsList({ groups: initialGroups }: GroupsListProps) {
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
                   <ClientRequirePermission permission="system:groups:update">
-                    <Link href={`/admin/groups/${group.id}/users`}>
-                      <Button variant="ghost" size="icon" title="Manage Users">
-                        <Users className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                    {group.allowUserAssignment && (
+                      <Link href={`/admin/groups/${group.id}/users`}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Manage Users"
+                        >
+                          <Users className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    )}
                   </ClientRequirePermission>
                   <ClientRequirePermission permission="system:groups:update">
                     <Link href={`/admin/groups/${group.id}/edit`}>

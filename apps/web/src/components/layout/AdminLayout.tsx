@@ -4,6 +4,7 @@ import { ReactNode, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { env } from "~/env";
+import { cn, ScrollArea } from "@repo/ui";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -301,9 +302,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Main content */}
       <div
-        className={`flex flex-1 flex-col transition-all duration-300 ${
+        className={cn(
+          "flex h-screen flex-1 flex-col transition-all duration-300",
           collapsed ? "ml-16" : "ml-64"
-        }`}
+        )}
       >
         {/* Top bar */}
         <header className="bg-background-paper border-border-default sticky top-0 z-10 flex h-16 items-center border-b px-6">
@@ -318,7 +320,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <ScrollArea className="flex-1 overflow-y-auto">{children}</ScrollArea>
       </div>
     </div>
   );

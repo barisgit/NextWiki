@@ -11,7 +11,7 @@ import {
   TabsTrigger,
 } from "@repo/ui";
 import { useTRPC } from "~/server/client";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   usePermissions,
@@ -26,9 +26,13 @@ export default function AdminUsersPage() {
 
   // Fetch users
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
   const { data: users, isLoading: usersLoading } = useQuery(
     trpc.admin.users.getAll.queryOptions()
   );
+
+  const usersQueryKey = trpc.admin.users.getAll.queryKey();
 
   // Infer user type from the fetched data
   type FetchedUser = NonNullable<typeof users>[number];
@@ -131,8 +135,9 @@ export default function AdminUsersPage() {
           )
         );
       }
+
       // Optional: Refetch user data after successful save
-      // await utils.users.getAll.invalidate(); // Or invalidate specific user
+      queryClient.invalidateQueries({ queryKey: usersQueryKey });
       // handleUserSelect(updatedUserData); // Update selectedUser if data structure changes significantly post-save
     } catch (error) {
       // Errors are handled by individual mutation's onError, but you could add general handling here
@@ -141,7 +146,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
       <div>
         <div className="mb-2 flex items-center justify-between">
           <h1 className="text-2xl font-bold">User Management</h1>
@@ -244,7 +249,6 @@ export default function AdminUsersPage() {
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="details">Details</TabsTrigger>
                   <TabsTrigger value="groups">Groups</TabsTrigger>
-                  {/* <TabsTrigger value="permissions">Permissions</TabsTrigger> */}
                 </TabsList>
 
                 <TabsContent value="details" className="mt-4 space-y-4">

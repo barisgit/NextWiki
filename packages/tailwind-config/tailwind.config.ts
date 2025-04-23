@@ -24,7 +24,7 @@ const sharedConfig: Omit<Config, "content"> = {
           accent: "var(--color-text-accent)",
         },
         border: {
-          DEFAULT: "var(--color-border)",
+          DEFAULT: "var(--color-border-default)",
           light: "var(--color-border-light)",
           dark: "var(--color-border-dark)",
           accent: "var(--color-border-accent)",

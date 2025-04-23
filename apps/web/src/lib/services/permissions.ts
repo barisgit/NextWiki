@@ -9,14 +9,27 @@ import { eq } from "drizzle-orm";
  */
 export const permissionService = {
   /**
-   * Get all permissions in the system
+   * Get all permissions in the system including related module and action names
    */
   async getAll() {
     return db.query.permissions.findMany({
       orderBy: (permissions, { asc }) => [
-        asc(permissions.module),
-        asc(permissions.action),
+        asc(permissions.moduleId),
+        asc(permissions.resource),
+        asc(permissions.actionId),
       ],
+      with: {
+        module: {
+          columns: {
+            name: true,
+          },
+        },
+        action: {
+          columns: {
+            name: true,
+          },
+        },
+      },
     });
   },
 
@@ -31,25 +44,26 @@ export const permissionService = {
 
   /**
    * Create a new permission
+   * Note: Expects IDs for module and action
    */
   async create({
     description,
-    module,
+    moduleId,
     resource,
-    action,
+    actionId,
   }: {
     description?: string;
-    module: string;
+    moduleId: number;
     resource: string;
-    action: string;
+    actionId: number;
   }) {
     const result = await db
       .insert(permissions)
       .values({
         description,
-        module,
+        moduleId,
         resource,
-        action,
+        actionId,
       })
       .returning();
 
@@ -58,28 +72,29 @@ export const permissionService = {
 
   /**
    * Update an existing permission
+   * Note: Expects IDs for module and action if provided
    */
   async update(
     id: number,
     {
       description,
-      module,
+      moduleId,
       resource,
-      action,
+      actionId,
     }: {
       description?: string;
-      module?: string;
+      moduleId?: number;
       resource?: string;
-      action?: string;
+      actionId?: number;
     }
   ) {
     const result = await db
       .update(permissions)
       .set({
         description,
-        module,
+        moduleId,
         resource,
-        action,
+        actionId,
       })
       .where(eq(permissions.id, id))
       .returning();

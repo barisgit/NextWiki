@@ -5,6 +5,8 @@ import {
   permissions,
   pagePermissions,
   groups,
+  modules,
+  actions,
 } from "@repo/db";
 import { eq, and, inArray, or, isNull } from "drizzle-orm";
 import { PermissionIdentifier, validatePermissionId } from "@repo/db";
@@ -128,9 +130,13 @@ export const authorizationService = {
       return [];
     }
 
-    // Get permission details
+    // Get permission details, including related module and action names
     return db.query.permissions.findMany({
       where: inArray(permissions.id, permissionIds),
+      with: {
+        module: { columns: { name: true } }, // Include module name
+        action: { columns: { name: true } }, // Include action name
+      },
     });
   },
 
@@ -153,24 +159,48 @@ export const authorizationService = {
       return false;
     }
 
-    // 1. Parse permission name and find the corresponding permission ID
-    const [module, resource, action] = permissionName.split(":");
-    if (!module || !resource || !action) {
+    // 1. Parse permission name and find the corresponding Module, Action, and Permission IDs
+    const [moduleName, resource, actionName] = permissionName.split(":");
+    if (!moduleName || !resource || !actionName) {
       logger.error(`Invalid permission format: ${permissionName}`);
       return false; // Invalid format
     }
 
+    // Fetch Module and Action IDs first
+    const [moduleRecord, actionRecord] = await Promise.all([
+      db.query.modules.findFirst({
+        where: eq(modules.name, moduleName),
+        columns: { id: true },
+      }),
+      db.query.actions.findFirst({
+        where: eq(actions.name, actionName),
+        columns: { id: true },
+      }),
+    ]);
+
+    if (!moduleRecord || !actionRecord) {
+      logger.warn(
+        `Module ('${moduleName}') or Action ('${actionName}') not found for permission: ${permissionName}`
+      );
+      return false; // Module or Action doesn't exist
+    }
+    const moduleId = moduleRecord.id;
+    const actionId = actionRecord.id;
+
+    // Now find the permission using IDs and resource
     const permission = await db.query.permissions.findFirst({
       where: and(
-        eq(permissions.module, module),
+        eq(permissions.moduleId, moduleId),
         eq(permissions.resource, resource),
-        eq(permissions.action, action)
+        eq(permissions.actionId, actionId)
       ),
       columns: { id: true }, // Only need the ID
     });
 
     if (!permission) {
-      // logger.warn(`Permission not found: ${permissionName}`);
+      logger.warn(
+        `Permission not found in DB for components: module=${moduleId}, resource=${resource}, action=${actionId}`
+      );
       return false; // Permission doesn't exist in the system
     }
     const permissionId = permission.id;
@@ -190,10 +220,10 @@ export const authorizationService = {
             columns: { permissionId: true },
           },
           groupModulePermissions: {
-            columns: { module: true },
+            columns: { moduleId: true },
           },
           groupActionPermissions: {
-            columns: { action: true },
+            columns: { actionId: true },
           },
         },
       });
@@ -213,7 +243,7 @@ export const authorizationService = {
 
       // Check module permissions
       const hasModulePermission = guestGroup.groupModulePermissions.some(
-        (mp) => mp.module === module
+        (mp) => mp.moduleId === moduleId
       );
       if (
         !hasModulePermission &&
@@ -224,7 +254,7 @@ export const authorizationService = {
 
       // Check action permissions
       const hasActionPermission = guestGroup.groupActionPermissions.some(
-        (ap) => ap.action === action
+        (ap) => ap.actionId === actionId
       );
       if (
         !hasActionPermission &&
@@ -237,7 +267,7 @@ export const authorizationService = {
       return true;
     }
 
-    // 2. Get all groups the user belongs to, including their permissions and permissions
+    // 2. Get all groups the user belongs to, including their relevant permissions
     const userGroupsData = await db.query.userGroups.findMany({
       where: eq(userGroups.userId, userId),
       with: {
@@ -246,18 +276,12 @@ export const authorizationService = {
             // Eagerly load necessary related data for checking
             groupPermissions: {
               columns: { permissionId: true }, // Only need permissionId
-              // Optimization: Could filter here if DB supports it well
-              // where: eq(groupPermissions.permissionId, permissionId)
             },
             groupModulePermissions: {
-              columns: { module: true }, // Only need module name
-              // Optimization: Could filter here
-              // where: eq(groupModulePermissions.module, module)
+              columns: { moduleId: true },
             },
             groupActionPermissions: {
-              columns: { action: true }, // Only need action name
-              // Optimization: Could filter here
-              // where: eq(groupActionPermissions.action, action)
+              columns: { actionId: true },
             },
           },
         },
@@ -286,7 +310,7 @@ export const authorizationService = {
       // Is this group restricted for the required module?
       // If the group has no module permissions, it is unrestricted
       const hasModulePermission = group.groupModulePermissions.some(
-        (mp) => mp.module === module
+        (mp) => mp.moduleId === moduleId
       );
       if (!hasModulePermission && group.groupModulePermissions.length > 0) {
         continue; // Module restricted for this group, try next group
@@ -295,7 +319,7 @@ export const authorizationService = {
       // Is this group restricted for the required action?
       // If the group has no action permissions, it is unrestricted
       const hasActionPermission = group.groupActionPermissions.some(
-        (ap) => ap.action === action
+        (ap) => ap.actionId === actionId
       );
       if (!hasActionPermission && group.groupActionPermissions.length > 0) {
         continue; // Action restricted for this group, try next group
@@ -347,30 +371,54 @@ export const authorizationService = {
     pageId: number,
     permissionName: PermissionIdentifier
   ) {
-    // Validate permission format
+    // Input validation remains the same
     if (!validatePermissionId(permissionName)) {
       logger.error(`Invalid permission format: ${permissionName}`);
       return false;
     }
 
     // Parse the permission name to get module, resource, and action
-    const [module, resource, action] = permissionName.split(":");
+    const [moduleName, resource, actionName] = permissionName.split(":");
 
-    if (!module || !resource || !action) {
+    if (!moduleName || !resource || !actionName) {
       return false;
     }
 
-    // Get the permission ID using the specific components
+    // Fetch Module and Action IDs first
+    const [moduleRecord, actionRecord] = await Promise.all([
+      db.query.modules.findFirst({
+        where: eq(modules.name, moduleName),
+        columns: { id: true },
+      }),
+      db.query.actions.findFirst({
+        where: eq(actions.name, actionName),
+        columns: { id: true },
+      }),
+    ]);
+
+    if (!moduleRecord || !actionRecord) {
+      logger.warn(
+        `Module ('${moduleName}') or Action ('${actionName}') not found for permission: ${permissionName}`
+      );
+      return false; // Module or Action doesn't exist
+    }
+    const moduleId = moduleRecord.id;
+    const actionId = actionRecord.id;
+
+    // Find the permission ID using fetched IDs and resource
     const permission = await db.query.permissions.findFirst({
       where: and(
-        eq(permissions.module, module),
+        eq(permissions.moduleId, moduleId),
         eq(permissions.resource, resource),
-        eq(permissions.action, action)
+        eq(permissions.actionId, actionId)
       ),
       columns: { id: true }, // Only need the ID
     });
 
     if (!permission) {
+      logger.warn(
+        `Permission not found in DB for components: module=${moduleId}, resource=${resource}, action=${actionId}`
+      );
       return false;
     }
     const permissionId = permission.id;

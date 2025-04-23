@@ -19,8 +19,7 @@ export const permissionsRouter = router({
    */
   getModules: permissionProtectedProcedure("system:permissions:read").query(
     async () => {
-      const permissions = await dbService.permissions.getAll();
-      const modules = [...new Set(permissions.map((p) => p.module))];
+      const modules = await dbService.modules.getAll();
       return modules;
     }
   ),
@@ -30,8 +29,7 @@ export const permissionsRouter = router({
    */
   getActions: permissionProtectedProcedure("system:permissions:read").query(
     async () => {
-      const permissions = await dbService.permissions.getAll();
-      const actions = [...new Set(permissions.map((p) => p.action))];
+      const actions = await dbService.actions.getAll();
       return actions;
     }
   ),
@@ -58,17 +56,14 @@ export const permissionsRouter = router({
   create: permissionProtectedProcedure("system:settings:update")
     .input(
       z.object({
-        name: z.string().min(3).max(100),
+        moduleId: z.number(),
+        resource: z.string().min(1).max(50),
+        actionId: z.number(),
         description: z.string().optional(),
-        module: z.string().min(2).max(50),
-        action: z.string().min(2).max(50),
       })
     )
     .mutation(async ({ input }) => {
-      const newPermission = await dbService.permissions.create({
-        ...input,
-        resource: input.name,
-      });
+      const newPermission = await dbService.permissions.create(input);
       return newPermission;
     }),
 
@@ -79,10 +74,10 @@ export const permissionsRouter = router({
     .input(
       z.object({
         id: z.number(),
-        name: z.string().min(3).max(100).optional(),
+        moduleId: z.number().optional(),
+        resource: z.string().min(1).max(50).optional(),
+        actionId: z.number().optional(),
         description: z.string().optional(),
-        module: z.string().min(2).max(50).optional(),
-        action: z.string().min(2).max(50).optional(),
       })
     )
     .mutation(async ({ input }) => {

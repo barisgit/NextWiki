@@ -11,6 +11,7 @@ import {
   index,
   pgEnum,
   uuid,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { relations, SQL, sql } from "drizzle-orm";
 
@@ -43,21 +44,42 @@ export const users = pgTable(
   (t) => [index("email_idx").on(t.email)]
 );
 
-// Permissions table - defines available permissions in the system
-export const permissions = pgTable("permissions", {
+// Modules table
+export const modules = pgTable("modules", {
   id: serial("id").primaryKey(),
-  module: varchar("module", { length: 50 }).notNull(), // e.g., 'wiki', 'system', 'assets'
-  resource: varchar("resource", { length: 50 }).notNull(), // e.g., 'page', 'asset', 'user'
-  action: varchar("action", { length: 50 }).notNull(), // e.g., 'create', 'read', 'update', 'delete'
-  name: varchar("name", { length: 100 })
-    .notNull()
-    .generatedAlwaysAs(
-      (): SQL => sql`"module" || ':' || "resource" || ':' || "action"`
-    )
-    .unique(),
+  name: varchar("name", { length: 50 }).notNull().unique(),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Actions table
+export const actions = pgTable("actions", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 50 }).notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Permissions table - defines available permissions in the system
+export const permissions = pgTable(
+  "permissions",
+  {
+    id: serial("id").primaryKey(),
+    moduleId: integer("module_id")
+      .notNull()
+      .references(() => modules.id),
+    resource: varchar("resource", { length: 50 }).notNull(),
+    actionId: integer("action_id")
+      .notNull()
+      .references(() => actions.id),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (t) => [
+    // Ensure logical uniqueness for a permission
+    uniqueIndex("permission_uniq_idx").on(t.moduleId, t.resource, t.actionId),
+  ]
+);
 
 // Groups table - custom user groups
 export const groups = pgTable("groups", {
@@ -114,12 +136,14 @@ export const groupModulePermissions = pgTable(
     groupId: integer("group_id")
       .references(() => groups.id)
       .notNull(),
-    module: varchar("module", { length: 50 }).notNull(),
+    moduleId: integer("module_id") // Changed from varchar("module")
+      .references(() => modules.id)
+      .notNull(),
     createdAt: timestamp("created_at").defaultNow(),
   },
   (t) => [
-    primaryKey({ columns: [t.groupId, t.module] }),
-    index("group_module_permissions_idx").on(t.groupId, t.module),
+    primaryKey({ columns: [t.groupId, t.moduleId] }), // Updated primary key column
+    index("group_module_permissions_idx").on(t.groupId, t.moduleId), // Updated index column
   ]
 );
 
@@ -130,12 +154,14 @@ export const groupActionPermissions = pgTable(
     groupId: integer("group_id")
       .references(() => groups.id)
       .notNull(),
-    action: varchar("action", { length: 50 }).notNull(),
+    actionId: integer("action_id") // Changed from varchar("action")
+      .references(() => actions.id)
+      .notNull(),
     createdAt: timestamp("created_at").defaultNow(),
   },
   (t) => [
-    primaryKey({ columns: [t.groupId, t.action] }),
-    index("group_action_permissions_idx").on(t.groupId, t.action),
+    primaryKey({ columns: [t.groupId, t.actionId] }), // Updated primary key column
+    index("group_action_permissions_idx").on(t.groupId, t.actionId), // Updated index column
   ]
 );
 
@@ -185,7 +211,15 @@ export const groupsRelations = relations(groups, ({ many }) => ({
 }));
 
 // Permission relations
-export const permissionsRelations = relations(permissions, ({ many }) => ({
+export const permissionsRelations = relations(permissions, ({ one, many }) => ({
+  module: one(modules, {
+    fields: [permissions.moduleId],
+    references: [modules.id],
+  }),
+  action: one(actions, {
+    fields: [permissions.actionId],
+    references: [actions.id],
+  }),
   groupPermissions: many(groupPermissions),
   pagePermissions: many(pagePermissions),
 }));
@@ -243,6 +277,11 @@ export const groupModulePermissionsRelations = relations(
       fields: [groupModulePermissions.groupId],
       references: [groups.id],
     }),
+    module: one(modules, {
+      // Added relation to modules
+      fields: [groupModulePermissions.moduleId],
+      references: [modules.id],
+    }),
   })
 );
 
@@ -253,8 +292,25 @@ export const groupActionPermissionsRelations = relations(
       fields: [groupActionPermissions.groupId],
       references: [groups.id],
     }),
+    action: one(actions, {
+      // Added relation to actions
+      fields: [groupActionPermissions.actionId],
+      references: [actions.id],
+    }),
   })
 );
+
+// Module relations
+export const modulesRelations = relations(modules, ({ many }) => ({
+  permissions: many(permissions),
+  groupModulePermissions: many(groupModulePermissions),
+}));
+
+// Action relations
+export const actionsRelations = relations(actions, ({ many }) => ({
+  permissions: many(permissions),
+  groupActionPermissions: many(groupActionPermissions),
+}));
 
 export const wikiPageEditorTypeEnum = pgEnum("editor_type", [
   "markdown",

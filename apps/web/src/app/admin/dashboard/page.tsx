@@ -139,7 +139,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
       <div>
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
         <p className="text-text-secondary">Overview of your NextWiki system</p>
