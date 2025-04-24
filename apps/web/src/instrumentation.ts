@@ -8,7 +8,7 @@ export async function register() {
   // Ensure this only runs on the server during startup
   if (process.env.NEXT_RUNTIME === "nodejs") {
     // Dynamically import db functions only when needed (Node.js runtime)
-    const { db, runRawSqlMigration } = await import("@repo/db");
+    const { db } = await import("@repo/db");
     const { createLogger } = await import("@repo/logger");
     const logger = createLogger("INSTRUMENTATION");
 
