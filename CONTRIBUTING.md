@@ -22,7 +22,8 @@ We welcome contributions! Here's how to get started:
 5. Start development server:
 
    ```bash
-   pnpm run dev
+   pnpm run dev:web
+   pnpm run dev:backend # Not actually doing anything yet
    ```
 
 ### Problems with tailwind during development
@@ -30,10 +31,13 @@ We welcome contributions! Here's how to get started:
 If you encounter problems with tailwind during development, try the following:
 
 ```bash
-rm -rf node_modules/ .next/
-rm -f pnpm-lock.yaml
-pnpm install
-pnpm run dev
+pnpm clean
+# or
+pnpm fullclean
+
+pnpm i
+pnpm run dev:web
+pnpm run dev:backend
 ```
 
 ## Reporting Issues
@@ -52,7 +56,7 @@ pnpm run dev
 4. Run tests (when available) and ensure linting passes:
 
    ```bash
-   pnpm run lint
+   pnpm lint check-types test
    ```
 
 5. Ensure that build passed and everything is working:
@@ -68,9 +72,10 @@ pnpm run dev
 ## Code Style
 
 - Follow existing TypeScript patterns
+- Most of types are setup in a way that you can use autocomplete
 - Use Prettier formatting
 - Add comments for complex logic
-- Always use tailwind classes over custom CSS
+- Always use tailwind classes over custom CSS, but you can use custom CSS for things that tailwind doesn't support
 - Use consistent naming conventions
 - Always include types
 - Use pnpm as the package manager
