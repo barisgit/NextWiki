@@ -7,6 +7,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { createWSClient, httpBatchLink, wsLink, splitLink } from "@trpc/client";
 import { createTRPCClient } from "@trpc/client";
 import { AppRouter } from "./routers";
+import { env } from "~/env";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -39,27 +40,39 @@ function getQueryClient() {
 }
 
 export function TRPCClientProvider({ children }: PropsWithChildren) {
-  const wsClient = createWSClient({
-    url: "ws://localhost:3001",
-  });
   const queryClient = getQueryClient();
-  const [trpcClient] = useState(() =>
-    createTRPCClient<AppRouter>({
+
+  const [trpcClient] = useState(() => {
+    if (env.NEXT_PUBLIC_WS_URL) {
+      const wsClient = createWSClient({
+        url: `ws://${env.NEXT_PUBLIC_WS_URL}`,
+      });
+
+      return createTRPCClient<AppRouter>({
+        links: [
+          splitLink({
+            condition(op) {
+              return op.type === "subscription";
+            },
+            true: wsLink({
+              client: wsClient,
+            }),
+            false: httpBatchLink({
+              url: `${env.NEXT_PUBLIC_API_URL}/api/trpc`,
+            }),
+          }),
+        ],
+      });
+    }
+
+    return createTRPCClient<AppRouter>({
       links: [
-        splitLink({
-          condition(op) {
-            return op.type === "subscription";
-          },
-          true: wsLink({
-            client: wsClient,
-          }),
-          false: httpBatchLink({
-            url: "http://localhost:3000/api/trpc",
-          }),
+        httpBatchLink({
+          url: `${env.NEXT_PUBLIC_API_URL}/api/trpc`,
         }),
       ],
-    })
-  );
+    });
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
