@@ -8,7 +8,6 @@ import {
   drizzle as drizzleVercel,
   type VercelPgDatabase,
 } from "drizzle-orm/vercel-postgres";
-// Import the Vercel Postgres *client* which can read DATABASE_URL
 import { createPool as createVercelPool } from "@vercel/postgres";
 import pg from "pg";
 import * as schema from "./schema/index.js";
@@ -29,29 +28,41 @@ if (!connectionString) {
 
 // Define a union type for all possible database types
 export type DatabaseType =
-  | VercelPgDatabase<typeof schema> // Keep Vercel type
+  | VercelPgDatabase<typeof schema>
   | NeonHttpDatabase<typeof schema>
   | NodePgDatabase<typeof schema>;
 
 let db: DatabaseType;
 const runningOnVercel = !!process.env.VERCEL;
+const pooledConnectionString = process.env.POOLED_DATABASE_URL;
 
 // Determine which driver to use
-if (runningOnVercel) {
-  // --- If on Vercel, use Vercel adapter with DATABASE_URL ---
-  // Note: @vercel/postgres createPool uses DATABASE_URL by default if POSTGRES_URL is absent
-  const vercelPool = createVercelPool({ connectionString: connectionString });
+if (runningOnVercel && pooledConnectionString) {
+  // --- If on Vercel AND pooled connection string is provided, use Vercel adapter ---
+  console.log(
+    "Using Vercel Postgres driver (detected Vercel environment and POOLED_DATABASE_URL)"
+  );
+  const vercelPool = createVercelPool({
+    connectionString: pooledConnectionString,
+  });
   db = drizzleVercel(vercelPool, { schema });
-  console.log("Using Vercel Postgres driver (detected Vercel environment)");
 } else if (connectionString.includes(".neon.tech")) {
-  // --- If not on Vercel, check for Neon ---
+  // --- Else, check for Neon ---
   neonConfig.fetchConnectionCache = true;
   const sql = neon(connectionString);
   db = drizzleNeon(sql, { schema });
   console.log("Using Neon database driver (detected .neon.tech URL)");
 } else {
-  // --- Otherwise (not on Vercel, not Neon), use standard node-postgres ---
-  const poolSize = 10;
+  // --- Otherwise, use standard node-postgres (for self-hosted, or Vercel without POOLED_DATABASE_URL) ---
+  let poolSize = 10;
+  if (runningOnVercel) {
+    console.log(
+      "Running on Vercel but POOLED_DATABASE_URL not set, falling back to standard PostgreSQL driver (DATABASE_URL)"
+    );
+    // Decrease pool size for Vercel
+    poolSize = 3;
+  }
+
   console.log(
     `Using standard PostgreSQL driver with pool size ${poolSize} (DATABASE_URL)`
   );
