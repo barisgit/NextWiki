@@ -9,7 +9,7 @@ export const env = createEnv({
   server: {
     NODE_ENV: z.enum(["development", "production"]),
     DATABASE_URL: z.string().url().optional(),
-    POOLED_DATABASE_URL: z.string().url().optional(),
+    POSTGRES_URL: z.string().url().optional(),
     NEXTAUTH_SECRET: z.string().min(1),
     NEXTAUTH_URL: z.string().url().optional(),
     GITHUB_CLIENT_ID: z.string().min(1),
@@ -43,7 +43,7 @@ export const env = createEnv({
     NEXT_PUBLIC_NODE_ENV: process.env.NODE_ENV,
     NODE_ENV: process.env.NODE_ENV,
     DATABASE_URL: process.env.DATABASE_URL,
-    POOLED_DATABASE_URL: process.env.POOLED_DATABASE_URL,
+    POSTGRES_URL: process.env.POSTGRES_URL,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,

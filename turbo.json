@@ -3,7 +3,7 @@
   "ui": "stream",
   "globalPassThroughEnv": [
     "DATABASE_URL",
-    "POOLED_DATABASE_URL",
+    "POSTGRES_URL",
     "PROCESS_ORIGIN",
     "NEXT_PUBLIC_NODE_ENV",
     "NODE_ENV",

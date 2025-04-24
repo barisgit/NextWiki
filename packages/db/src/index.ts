@@ -15,59 +15,64 @@ import * as schema from "./schema/index.js";
 // Load environment variables from .env file if present
 dotenv.config({ path: [".env.local", ".env"] });
 
-// Database connection string - Rely solely on DATABASE_URL
-const connectionString = process.env.DATABASE_URL;
+// Define environment variables we check
+const databaseUrl = process.env.DATABASE_URL;
+const vercelPostgresUrl = process.env.POSTGRES_URL; // Vercel's own managed DB
+const runningOnVercel = !!process.env.VERCEL;
 
-// Validate connection string
-if (!connectionString) {
-  console.error("DATABASE_URL environment variable must be set!");
+// Validate *at least* DATABASE_URL is set (needed as fallback or for non-Vercel/non-Neon)
+if (!databaseUrl && !vercelPostgresUrl) {
+  console.error("At least one of DATABASE_URL or POSTGRES_URL must be set!");
   throw new Error(
-    "Please set DATABASE_URL in your environment (e.g., in .env file)."
+    "Please set DATABASE_URL or POSTGRES_URL in your environment (e.g., in .env file or in Vercel dashboard)."
   );
 }
 
 // Define a union type for all possible database types
 export type DatabaseType =
-  | VercelPgDatabase<typeof schema>
+  | VercelPgDatabase<typeof schema> // Used for Vercel managed DB OR Vercel deployment with external pooler
   | NeonHttpDatabase<typeof schema>
-  | NodePgDatabase<typeof schema>;
+  | NodePgDatabase<typeof schema>; // Used for local/standard non-Vercel hosting
 
 let db: DatabaseType;
-const runningOnVercel = !!process.env.VERCEL;
-const pooledConnectionString = process.env.POOLED_DATABASE_URL;
 
-// Determine which driver to use
-if (runningOnVercel && pooledConnectionString) {
-  // --- If on Vercel AND pooled connection string is provided, use Vercel adapter ---
-  console.log(
-    "Using Vercel Postgres driver (detected Vercel environment and POOLED_DATABASE_URL)"
-  );
-  const vercelPool = createVercelPool({
-    connectionString: pooledConnectionString,
-  });
+// Determine which driver to use based on priority
+if (vercelPostgresUrl) {
+  // --- Priority 1: Using Vercel's integrated Postgres service ---
+  console.log("Using Vercel Postgres driver (POSTGRES_URL detected)");
+  const vercelPool = createVercelPool({ connectionString: vercelPostgresUrl });
   db = drizzleVercel(vercelPool, { schema });
-} else if (connectionString.includes(".neon.tech")) {
-  // --- Else, check for Neon ---
+} else if (databaseUrl && databaseUrl.includes(".neon.tech")) {
+  // --- Priority 2: Using Neon DB (checked via DATABASE_URL) ---
+  console.log("Using Neon database driver (DATABASE_URL contains .neon.tech)");
   neonConfig.fetchConnectionCache = true;
-  const sql = neon(connectionString);
+  const sql = neon(databaseUrl);
   db = drizzleNeon(sql, { schema });
-  console.log("Using Neon database driver (detected .neon.tech URL)");
-} else {
-  // --- Otherwise, use standard node-postgres (for self-hosted, or Vercel without POOLED_DATABASE_URL) ---
-  let poolSize = 10;
-  if (runningOnVercel) {
-    console.log(
-      "Running on Vercel but POOLED_DATABASE_URL not set, falling back to standard PostgreSQL driver (DATABASE_URL)"
-    );
-    // Decrease pool size for Vercel
-    poolSize = 3;
-  }
-
-  console.log(
-    `Using standard PostgreSQL driver with pool size ${poolSize} (DATABASE_URL)`
+} else if (runningOnVercel) {
+  // --- Priority 3: On Vercel, but NOT using Vercel's integrated DB or Neon. ---
+  // USE STANDARD pg.Pool. This simplifies setup but RISKS connection limits on Vercel.
+  // User MUST ensure their DB can handle potential connections from many function instances by eg. providing a PgBouncer or other pooler.
+  console.warn(
+    "WARNING: Running on Vercel without Vercel Postgres or Neon DB. Using standard pg.Pool (DATABASE_URL)."
   );
+  console.warn(
+    "Ensure your database connection limit is high enough for potential Vercel scaling or that you have a PgBouncer or other pooler!"
+  );
+  const poolSize = 3; // Keep pool size very small for Vercel fallback
   const pool = new pg.Pool({
-    connectionString: connectionString,
+    connectionString: databaseUrl,
+    max: poolSize,
+  });
+  db = drizzlePg(pool, { schema });
+} else {
+  // --- Priority 4: Standard/Local setup (Not on Vercel, Not Neon) ---
+  // Use the standard node-postgres pool.
+  console.log(
+    "Using standard PostgreSQL driver (pg.Pool) with DATABASE_URL (Not on Vercel/Neon)"
+  );
+  const poolSize = 10;
+  const pool = new pg.Pool({
+    connectionString: databaseUrl, // Use the main DATABASE_URL
     max: poolSize,
   });
   db = drizzlePg(pool, { schema });
