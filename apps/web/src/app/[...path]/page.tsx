@@ -26,9 +26,14 @@ export async function generateStaticParams() {
     columns: {
       path: true,
     },
+    // Filter out the 'index' path
+    where: (wikiPages) => eq(wikiPages.isPublished, true),
   });
 
-  return pages.map((page) => ({
+  // Filter out the 'index' path before mapping
+  const filteredPages = pages.filter((page) => page.path !== "index");
+
+  return filteredPages.map((page) => ({
     // Split the path string into segments and decode them
     path: page.path.split("/").map((segment) => decodeURIComponent(segment)),
   }));
