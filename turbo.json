@@ -3,6 +3,7 @@
   "ui": "stream",
   "globalPassThroughEnv": [
     "DATABASE_URL",
+    "POSTGRES_URL",
     "PROCESS_ORIGIN",
     "NEXT_PUBLIC_NODE_ENV",
     "NODE_ENV",
@@ -14,7 +15,8 @@
     "GOOGLE_CLIENT_SECRET",
     "OVERRIDE_MAX_LOG_LEVEL",
     "SKIP_ENV_VALIDATION",
-    "SKIP_DEVELOPER_SEEDS"
+    "SKIP_DEVELOPER_SEEDS",
+    "VERCEL"
   ],
   "tasks": {
     "build": {
