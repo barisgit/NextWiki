@@ -7,8 +7,12 @@ import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import {
   drizzle as drizzleVercel,
   type VercelPgDatabase,
+  type VercelPgClient,
 } from "drizzle-orm/vercel-postgres";
-import { createPool as createVercelPool } from "@vercel/postgres";
+import {
+  createClient as createVercelClient,
+  createPool as createVercelPool,
+} from "@vercel/postgres";
 import pg from "pg";
 import * as schema from "./schema/index.js";
 
@@ -18,7 +22,8 @@ dotenv.config({ path: [".env.local", ".env"] });
 // Define environment variables we check
 const databaseUrl = process.env.DATABASE_URL;
 const vercelPostgresUrl = process.env.POSTGRES_URL; // Vercel's own managed DB
-const runningOnVercel = !!process.env.VERCEL;
+// const runningOnVercel = !!process.env.VERCEL;
+const runningOnVercel = true;
 
 // Validate *at least* DATABASE_URL is set (needed as fallback or for non-Vercel/non-Neon)
 if (!databaseUrl && !vercelPostgresUrl) {
@@ -40,24 +45,9 @@ let db: DatabaseType;
 if (vercelPostgresUrl) {
   // --- Priority 1: Using Vercel's integrated Postgres service ---
   // OR using Supabase/external pooler identified via POSTGRES_URL
-  console.log("Using Vercel Postgres driver (POSTGRES_URL detected)");
-  // Apply workaround for non-Vercel pooled URLs (like Supabase) that don't match the expected pattern
-  // Check if 'pooler' (common in Supabase/PgBouncer URLs) or '?pooler=' (the workaround) is present.
-  const needsWorkaround = !/pooler/i.test(vercelPostgresUrl);
-  const effectiveConnectionString = needsWorkaround
-    ? vercelPostgresUrl + "?pooler."
-    : vercelPostgresUrl;
-
-  if (needsWorkaround) {
-    console.warn(
-      "Applied '?pooler.' suffix workaround for potential non-Vercel pooler URL in POSTGRES_URL."
-    );
-  }
-  // console.log(`Effective connection string: ${effectiveConnectionString}`); // Optional: uncomment for debugging
-
-  const vercelPool = createVercelPool({
-    connectionString: effectiveConnectionString,
-  });
+  console.log("Using Vercel Postgres pool driver (POSTGRES_URL detected)");
+  // Use createPool as recommended for Vercel's own Postgres
+  const vercelPool = createVercelPool({ connectionString: vercelPostgresUrl });
   db = drizzleVercel(vercelPool, { schema });
 } else if (databaseUrl && databaseUrl.includes(".neon.tech")) {
   // --- Priority 2: Using Neon DB (checked via DATABASE_URL) ---
@@ -75,24 +65,14 @@ if (vercelPostgresUrl) {
   console.warn(
     "Ensure your DATABASE_URL points to a pooler (like PgBouncer) capable of handling Vercel scaling!"
   );
-  // Let createVercelPool manage the connections suitable for serverless.
-  // Apply the same workaround check here for consistency
-  const needsWorkaround = !/pooler/i.test(databaseUrl);
-  const effectiveConnectionString = needsWorkaround
-    ? databaseUrl + "?pooler."
-    : databaseUrl;
-
-  if (needsWorkaround) {
-    console.warn(
-      "Applied '?pooler.' suffix workaround for potential non-Vercel pooler URL in DATABASE_URL on Vercel."
-    );
-  }
-  // console.log(`Effective connection string: ${effectiveConnectionString}`); // Optional: uncomment for debugging
-
-  const vercelPool = createVercelPool({
-    connectionString: effectiveConnectionString,
+  // Keep using createClient here for external DBs on Vercel, as pool had issues
+  console.warn(
+    "Using createClient with external DATABASE_URL on Vercel. This might bypass pooler issues but could exhaust connections."
+  );
+  const vercelClient: VercelPgClient = createVercelClient({
+    connectionString: databaseUrl,
   });
-  db = drizzleVercel(vercelPool, { schema });
+  db = drizzleVercel(vercelClient, { schema });
 } else if (databaseUrl) {
   // --- Priority 4: Standard/Local setup (Not on Vercel, Not Neon) ---
   // Use the standard node-postgres pool.
