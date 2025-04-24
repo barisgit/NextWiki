@@ -34,13 +34,10 @@ export function WikiPage({
   content,
   createdBy,
   updatedBy,
-  lockedBy,
-  lockExpiresAt,
   createdAt,
   updatedAt,
   tags = [],
   path,
-  currentUserId,
 }: WikiPageProps) {
   const router = useRouter();
   const [hasSubpages, setHasSubpages] = useState(false);
@@ -59,25 +56,6 @@ export function WikiPage({
     })
   );
 
-  // Determine if the page is currently locked
-  const isLocked = Boolean(
-    lockedBy && lockExpiresAt && new Date(lockExpiresAt) > new Date()
-  );
-
-  // Determine if the current user is the lock owner
-  const isCurrentUserLockOwner = Boolean(
-    currentUserId && lockedBy && lockedBy.id === currentUserId
-  );
-
-  // Handle rename action
-  const handleRename = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setNewName(title);
-    setRenameConflict(false);
-    setShowRenameModal(true);
-  };
-
   // Handle rename submission
   const renameNode = () => {
     if (!newName.trim()) return;
@@ -95,13 +73,6 @@ export function WikiPage({
     }
 
     setShowRenameModal(false);
-  };
-
-  // Handle move action
-  const handleMove = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setShowMoveModal(true);
   };
 
   // Check if the current page has subpages

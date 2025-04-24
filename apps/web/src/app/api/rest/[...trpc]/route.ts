@@ -10,7 +10,7 @@ const handler = (req: NextRequest) => {
   return createOpenApiFetchHandler({
     endpoint: "/api/rest", // Match the file path
     router: appRouter,
-    // @ts-ignore - Temporarily ignore type mismatch to focus on runtime error
+    // @ts-expect-error - TODO: Fix this type
     createContext: () => createContext(req),
     req,
   });

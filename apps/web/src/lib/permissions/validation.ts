@@ -4,10 +4,7 @@
  * Only import from server components or API routes
  */
 import { db } from "@repo/db";
-import {
-  permissions as permissionsTable,
-  type Permission as DbPermissionType, // Type for DB permission rows
-} from "@repo/db";
+import { permissions as permissionsTable } from "@repo/db";
 import { eq } from "drizzle-orm";
 import {
   getAllPermissions as getRegistryPermissions, // Rename for clarity

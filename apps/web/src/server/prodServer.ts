@@ -10,7 +10,8 @@ import { logger } from "../lib/utils/logger";
 import { createContext } from "./context";
 import { appRouter } from "./routers";
 
-const port = parseInt(process.env.PORT || "3000", 10);
+// const port = parseInt(process.env.PORT || "3000", 10);
+const port = 3000;
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();

@@ -15,7 +15,7 @@ import { MovePageWrapper } from "~/components/wiki/MovePageWrapper";
 
 export const revalidate = 900; // 15 minutes as we are dynamically telling the server to revalidate
 export const fetchCache = "force-cache";
-export const dynamic = "force-static";
+export const dynamic = "auto";
 
 /**
  * Generates static paths for all existing wiki pages at build time.

@@ -186,6 +186,7 @@ export const settingsRouter = router({
    */
   initialize: permissionProtectedProcedure("system:settings:update").mutation(
     async ({ ctx }) => {
+      void ctx;
       await initializeDefaultSettings();
       return { success: true };
     }
