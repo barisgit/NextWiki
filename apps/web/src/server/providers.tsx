@@ -58,7 +58,7 @@ export function TRPCClientProvider({ children }: PropsWithChildren) {
               client: wsClient,
             }),
             false: httpBatchLink({
-              url: `${env.NEXT_PUBLIC_API_URL}/api/trpc`,
+              url: `/api/trpc`,
             }),
           }),
         ],
@@ -68,7 +68,7 @@ export function TRPCClientProvider({ children }: PropsWithChildren) {
     return createTRPCClient<AppRouter>({
       links: [
         httpBatchLink({
-          url: `${env.NEXT_PUBLIC_API_URL}/api/trpc`,
+          url: `/api/trpc`,
         }),
       ],
     });
