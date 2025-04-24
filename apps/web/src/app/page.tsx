@@ -10,9 +10,8 @@ import { WikiFolderTree } from "~/components/wiki/WikiFolderTree";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "~/lib/auth";
 
-export const revalidate = 300; // Revalidate every 5 minutes
-export const fetchCache = "force-cache";
-export const dynamic = "auto";
+export const revalidate = 900; // Revalidate every 15 minutes
+export const dynamic = "force-static";
 
 export default async function Home() {
   const recentPages = await dbService.wiki.getRecentPages(5);

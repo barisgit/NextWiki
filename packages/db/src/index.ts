@@ -48,34 +48,40 @@ if (vercelPostgresUrl) {
   neonConfig.fetchConnectionCache = true;
   const sql = neon(databaseUrl);
   db = drizzleNeon(sql, { schema });
-} else if (runningOnVercel) {
-  // --- Priority 3: On Vercel, but NOT using Vercel's integrated DB or Neon. ---
-  // USE STANDARD pg.Pool. This simplifies setup but RISKS connection limits on Vercel.
-  // User MUST ensure their DB can handle potential connections from many function instances by eg. providing a PgBouncer or other pooler.
+} else if (runningOnVercel && databaseUrl) {
+  // --- Priority 3: On Vercel, NOT using Vercel PG or Neon. Using external DB (likely via PgBouncer). ---
+  // Use Vercel's pool utility even with a standard DATABASE_URL.
+  // This is generally better suited for the serverless environment than pg.Pool.
   console.warn(
-    "WARNING: Running on Vercel without Vercel Postgres or Neon DB. Using standard pg.Pool (DATABASE_URL)."
+    "WARNING: Running on Vercel with external DATABASE_URL. Using Vercel/Postgres driver."
   );
   console.warn(
-    "Ensure your database connection limit is high enough for potential Vercel scaling or that you have a PgBouncer or other pooler!"
+    "Ensure your DATABASE_URL points to a pooler (like PgBouncer) capable of handling Vercel scaling!"
   );
-  const poolSize = 3; // Keep pool size very small for Vercel fallback
-  const pool = new pg.Pool({
-    connectionString: databaseUrl,
-    max: poolSize,
-  });
-  db = drizzlePg(pool, { schema });
-} else {
+  // Let createVercelPool manage the connections suitable for serverless.
+  const vercelPool = createVercelPool({ connectionString: databaseUrl });
+  db = drizzleVercel(vercelPool, { schema });
+} else if (databaseUrl) {
   // --- Priority 4: Standard/Local setup (Not on Vercel, Not Neon) ---
   // Use the standard node-postgres pool.
   console.log(
     "Using standard PostgreSQL driver (pg.Pool) with DATABASE_URL (Not on Vercel/Neon)"
   );
+  // const poolSize = process.env.DATABASE_POOL_SIZE
+  //   ? parseInt(process.env.DATABASE_POOL_SIZE, 10)
+  //   : 10; // Default pool size
   const poolSize = 10;
+  console.log(`Using pg.Pool with pool size: ${poolSize}`);
   const pool = new pg.Pool({
     connectionString: databaseUrl, // Use the main DATABASE_URL
     max: poolSize,
   });
   db = drizzlePg(pool, { schema });
+} else {
+  // This case should theoretically not be reached due to the initial check,
+  // but provides a fallback / clear error if logic changes.
+  console.error("Could not determine database connection method.");
+  throw new Error("Invalid database configuration state.");
 }
 
 // Export the configured db
