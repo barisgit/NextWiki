@@ -59,7 +59,9 @@ if (vercelPostgresUrl) {
     "Ensure your DATABASE_URL points to a pooler (like PgBouncer) capable of handling Vercel scaling!"
   );
   // Let createVercelPool manage the connections suitable for serverless.
-  const vercelPool = createVercelPool({ connectionString: databaseUrl });
+  const vercelPool = createVercelPool({
+    connectionString: databaseUrl + "?pooler.",
+  });
   db = drizzleVercel(vercelPool, { schema });
 } else if (databaseUrl) {
   // --- Priority 4: Standard/Local setup (Not on Vercel, Not Neon) ---
