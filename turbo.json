@@ -14,7 +14,8 @@
     "GOOGLE_CLIENT_SECRET",
     "OVERRIDE_MAX_LOG_LEVEL",
     "SKIP_ENV_VALIDATION",
-    "SKIP_DEVELOPER_SEEDS"
+    "SKIP_DEVELOPER_SEEDS",
+    "VERCEL"
   ],
   "tasks": {
     "build": {

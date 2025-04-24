@@ -1,51 +1,65 @@
 import * as dotenv from "dotenv";
 import { neon, neonConfig } from "@neondatabase/serverless";
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
-import { NeonHttpDatabase } from "drizzle-orm/neon-http";
+import type { NeonHttpDatabase } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import {
+  drizzle as drizzleVercel,
+  type VercelPgDatabase,
+} from "drizzle-orm/vercel-postgres";
+// Import the Vercel Postgres *client* which can read DATABASE_URL
+import { createPool as createVercelPool } from "@vercel/postgres";
 import pg from "pg";
 import * as schema from "./schema/index.js";
 
-// Load environment variables from .env file
-dotenv.config();
+// Load environment variables from .env file if present
+dotenv.config({ path: [".env.local", ".env"] });
 
-// Database connection string - should be in environment variables in a real app
+// Database connection string - Rely solely on DATABASE_URL
 const connectionString = process.env.DATABASE_URL;
 
 // Validate connection string
 if (!connectionString) {
-  console.error("DATABASE_URL environment variable is not set!");
-  // For development, provide useful information rather than silently using a fallback
-  throw new Error("Please set DATABASE_URL in your .env file");
+  console.error("DATABASE_URL environment variable must be set!");
+  throw new Error(
+    "Please set DATABASE_URL in your environment (e.g., in .env file)."
+  );
 }
 
-// Define a union type for both possible database types
+// Define a union type for all possible database types
 export type DatabaseType =
+  | VercelPgDatabase<typeof schema> // Keep Vercel type
   | NeonHttpDatabase<typeof schema>
   | NodePgDatabase<typeof schema>;
 
 let db: DatabaseType;
+const runningOnVercel = !!process.env.VERCEL;
 
-// Detect if we're using Neon (cloud) or regular PostgreSQL
-if (
-  connectionString.includes("pooler.internal.neon") ||
-  connectionString.includes(".neon.tech")
-) {
-  // For Edge runtime compatibility with Neon
+// Determine which driver to use
+if (runningOnVercel) {
+  // --- If on Vercel, use Vercel adapter with DATABASE_URL ---
+  // Note: @vercel/postgres createPool uses DATABASE_URL by default if POSTGRES_URL is absent
+  const vercelPool = createVercelPool({ connectionString: connectionString });
+  db = drizzleVercel(vercelPool, { schema });
+  console.log("Using Vercel Postgres driver (detected Vercel environment)");
+} else if (connectionString.includes(".neon.tech")) {
+  // --- If not on Vercel, check for Neon ---
   neonConfig.fetchConnectionCache = true;
-
-  // Create Neon SQL client with the connection string
   const sql = neon(connectionString);
-  // Create Drizzle client with Neon driver
   db = drizzleNeon(sql, { schema });
-  console.log("Using Neon database driver");
+  console.log("Using Neon database driver (detected .neon.tech URL)");
 } else {
-  // Use regular PostgreSQL driver for local or other PostgreSQL databases
-  const pool = new pg.Pool({ connectionString });
-  // Create Drizzle client with regular PostgreSQL driver
+  // --- Otherwise (not on Vercel, not Neon), use standard node-postgres ---
+  const poolSize = 10;
+  console.log(
+    `Using standard PostgreSQL driver with pool size ${poolSize} (DATABASE_URL)`
+  );
+  const pool = new pg.Pool({
+    connectionString: connectionString,
+    max: poolSize,
+  });
   db = drizzlePg(pool, { schema });
-  // console.debug("Using standard PostgreSQL driver");
 }
 
 // Export the configured db
