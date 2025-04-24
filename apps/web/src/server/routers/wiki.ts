@@ -20,6 +20,97 @@ const pageInputSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
+// Define User schema for output (based on users table)
+const userOutputSchema = z.object({
+  id: z.number(),
+  name: z.string().nullable(),
+  email: z.string().email(), // Kept email, adjust if needed
+  image: z.string().nullable(),
+  // Omitting password, emailVerified, createdAt, updatedAt for this output
+});
+
+// Define Tag schema for output (based on tags table)
+const tagOutputSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  // Omitting createdAt
+});
+
+// Define WikiPageTag relation schema (based on wikiPageTags table and relations)
+const wikiPageTagOutputSchema = z.object({
+  // Assuming the relation loads the tag directly
+  tag: tagOutputSchema,
+  // Omitting pageId, tagId, createdAt from the join table itself
+});
+
+// Define the output schema for getByPath (based on wikiPages table and relations)
+const wikiPageDetailedOutputSchema = z.object({
+  id: z.number(),
+  path: z.string(),
+  title: z.string(),
+  content: z.string().nullable(),
+  renderedHtml: z.string().nullable(),
+  editorType: z.enum(["markdown", "html"]).nullable(),
+  isPublished: z.boolean().nullable(),
+  createdAt: z.date().nullable(),
+  updatedAt: z.date().nullable(),
+  renderedHtmlUpdatedAt: z.date().nullable(),
+  // search: tsvector - Cannot easily represent tsvector in Zod/JSON, omitting
+  createdById: z.number().nullable(),
+  updatedById: z.number().nullable(),
+  lockedById: z.number().nullable(),
+  lockedAt: z.date().nullable(),
+  lockExpiresAt: z.date().nullable(),
+  // Relations included in the query
+  createdBy: userOutputSchema.nullable(),
+  updatedBy: userOutputSchema.nullable(),
+  lockedBy: userOutputSchema.nullable(),
+  tags: z.array(wikiPageTagOutputSchema),
+});
+
+// Define output schema for pageExists
+const pageExistsOutputSchema = z.object({ exists: z.boolean() });
+
+// Define a specific output schema for the create endpoint (omitting some IDs)
+const wikiPageCreateOutputSchema = wikiPageDetailedOutputSchema.omit({
+  createdById: true,
+  updatedById: true,
+  lockedById: true,
+});
+
+// Define a specific output schema for pages returned by lock operations
+const wikiPageLockOutputSchema = wikiPageDetailedOutputSchema.omit({
+  tags: true,
+  createdBy: true,
+  updatedBy: true,
+  lockedBy: true,
+});
+
+// Define a specific output schema for the list endpoint
+const wikiPageListOutputSchema = wikiPageDetailedOutputSchema.omit({
+  content: true,
+  renderedHtml: true,
+  renderedHtmlUpdatedAt: true,
+  createdById: true,
+  updatedById: true,
+  lockedById: true,
+  createdBy: true,
+});
+
+// Define the overall output schema for the list endpoint
+const listOutputSchema = z.object({
+  pages: z.array(wikiPageListOutputSchema),
+  nextCursor: z.number().optional(),
+});
+
+// Define a specific output schema for the delete endpoint (includes search)
+const wikiPageDeleteOutputSchema = wikiPageLockOutputSchema.extend({
+  // .returning() likely includes the search column, even if tsvector
+  search: z.string().nullable(),
+});
+
+// --- End Zod Schemas ---
+
 export const wikiRouter = router({
   randomNumber: publicProcedure.subscription(async function* (opts?) {
     let idx = 0;
@@ -66,7 +157,16 @@ export const wikiRouter = router({
 
   // Get a page by path
   getByPath: permissionGuestProcedure("wiki:page:read")
-    .meta({ description: "Fetches a specific wiki page by its full path." })
+    .meta({
+      description: "Fetches a specific wiki page by its full path.",
+      openapi: {
+        method: "GET",
+        path: "/wiki/pages/{path}",
+        protect: false,
+        summary: "Get wiki page by path",
+        tags: ["wiki"],
+      },
+    })
     .input(
       z.object({
         path: z
@@ -76,6 +176,7 @@ export const wikiRouter = router({
           ),
       })
     )
+    .output(wikiPageDetailedOutputSchema)
     .query(async ({ input }) => {
       const page = await db.query.wikiPages.findFirst({
         where: eq(wikiPages.path, input.path),
@@ -103,7 +204,17 @@ export const wikiRouter = router({
 
   // Check if a page exists at a path without throwing an error
   pageExists: permissionProtectedProcedure("wiki:page:read")
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/wiki/pages/exists",
+        protect: true,
+        summary: "Check if wiki page exists by path",
+        tags: ["wiki"],
+      },
+    })
     .input(z.object({ path: z.string() }))
+    .output(pageExistsOutputSchema)
     .query(async ({ input }) => {
       const page = await db.query.wikiPages.findFirst({
         where: eq(wikiPages.path, input.path),
@@ -115,7 +226,17 @@ export const wikiRouter = router({
 
   // Create a new page
   create: permissionProtectedProcedure("wiki:page:create")
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/wiki/pages",
+        protect: true,
+        summary: "Create a new wiki page",
+        tags: ["wiki"],
+      },
+    })
     .input(pageInputSchema)
+    .output(wikiPageCreateOutputSchema)
     .mutation(async ({ input, ctx }) => {
       const { path, title, content, isPublished, tags } = input;
       const userId = parseInt(ctx.session.user.id);
@@ -151,7 +272,34 @@ export const wikiRouter = router({
 
   // Acquire a lock on a page for editing
   acquireLock: permissionProtectedProcedure("wiki:page:update")
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/wiki/pages/{id}/acquire-lock",
+        protect: true,
+        summary: "Acquire edit lock on a wiki page",
+        tags: ["wiki"],
+      },
+    })
     .input(z.object({ id: z.number() }))
+    .output(
+      z.union([
+        // Success case
+        z.object({
+          success: z.literal(true),
+          // Page can potentially be null even on success according to types
+          page: wikiPageLockOutputSchema.nullable(),
+        }),
+        // Failure case (already locked)
+        z.object({
+          success: z.literal(false),
+          // Use the lock-specific page schema
+          page: wikiPageLockOutputSchema,
+          lockOwner: z.string(),
+        }),
+        // Note: The NOT_FOUND case throws an error, so it's not part of the success output schema
+      ])
+    )
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
       const userId = parseInt(ctx.session.user.id);
@@ -192,7 +340,17 @@ export const wikiRouter = router({
 
   // Release a software lock on a page
   releaseLock: permissionProtectedProcedure("wiki:page:update")
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/wiki/pages/{id}/release-lock",
+        protect: true,
+        summary: "Release edit lock on a wiki page",
+        tags: ["wiki"],
+      },
+    })
     .input(z.object({ id: z.number() }))
+    .output(wikiPageLockOutputSchema) // Output schema without relations
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
       const userId = parseInt(ctx.session.user.id);
@@ -223,7 +381,17 @@ export const wikiRouter = router({
 
   // Refresh a software lock to prevent timeout
   refreshLock: permissionProtectedProcedure("wiki:page:update")
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/wiki/pages/{id}/refresh-lock",
+        protect: true,
+        summary: "Refresh edit lock on a wiki page",
+        tags: ["wiki"],
+      },
+    })
     .input(z.object({ id: z.number() }))
+    .output(z.object({ page: wikiPageLockOutputSchema.nullable() }))
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
       const userId = parseInt(ctx.session.user.id);
@@ -252,11 +420,21 @@ export const wikiRouter = router({
 
   // Update an existing page
   update: permissionProtectedProcedure("wiki:page:update")
+    .meta({
+      openapi: {
+        method: "PUT",
+        path: "/wiki/pages/{id}",
+        protect: true,
+        summary: "Update an existing wiki page",
+        tags: ["wiki"],
+      },
+    })
     .input(
       pageInputSchema.extend({
         id: z.number(),
       })
     )
+    .output(wikiPageCreateOutputSchema)
     .mutation(async ({ input, ctx }) => {
       const { id, path, title, content, isPublished, tags } = input;
       const userId = parseInt(ctx.session.user.id);
@@ -322,6 +500,15 @@ export const wikiRouter = router({
 
   // List pages (paginated) with lock information
   list: permissionGuestProcedure("wiki:page:read")
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/wiki/pages",
+        protect: false,
+        summary: "List wiki pages (paginated)",
+        tags: ["wiki"],
+      },
+    })
     .input(
       z.object({
         limit: z.number().min(1).max(100).default(10),
@@ -332,6 +519,7 @@ export const wikiRouter = router({
         showLockedOnly: z.boolean().optional().default(false),
       })
     )
+    .output(listOutputSchema)
     .query(async ({ input }) => {
       const { limit, cursor, search, sortBy, sortOrder, showLockedOnly } =
         input;
@@ -425,7 +613,18 @@ export const wikiRouter = router({
 
   // Delete a page
   delete: permissionProtectedProcedure("wiki:page:delete")
+    .meta({
+      openapi: {
+        method: "DELETE",
+        path: "/wiki/pages/{id}",
+        protect: true,
+        summary: "Delete a wiki page",
+        tags: ["wiki"],
+      },
+    })
+    // Use the specific delete output schema, potentially nullable
     .input(z.object({ id: z.number() }))
+    .output(wikiPageDeleteOutputSchema.nullable())
     .mutation(async ({ input, ctx }) => {
       const { id } = input;
       const userId = parseInt(ctx.session.user.id);
@@ -464,7 +663,8 @@ export const wikiRouter = router({
             .where(eq(wikiPages.id, id))
             .returning();
 
-          return deleted;
+          // Explicitly return null if deleted is undefined/falsy to match nullable schema
+          return deleted || null;
         });
       } catch (error) {
         logger.error("Failed to delete page:", error);
@@ -488,8 +688,9 @@ export const wikiRouter = router({
     }),
 
   // Get folder structure
-  getFolderStructure: permissionGuestProcedure("wiki:page:read").query(
-    async () => {
+  getFolderStructure: permissionGuestProcedure("wiki:page:read")
+    .input(z.void())
+    .query(async () => {
       // Get all pages from database
       const pages = await db.query.wikiPages.findMany({
         orderBy: [wikiPages.path],
@@ -505,8 +706,7 @@ export const wikiRouter = router({
       // Build folder structure
       const folderStructure = buildFolderStructure(pages);
       return folderStructure;
-    }
-  ),
+    }),
 
   // Get subfolders for a specific path
   getSubfolders: permissionGuestProcedure("wiki:page:read")

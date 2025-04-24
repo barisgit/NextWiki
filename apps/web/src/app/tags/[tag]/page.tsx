@@ -2,6 +2,20 @@ import { MainLayout } from "~/components/layout/MainLayout";
 import { WikiPageList } from "~/components/wiki/WikiPageList";
 import { dbService } from "~/lib/services";
 
+export const dynamic = "force-static";
+export const revalidate = 300; // Revalidate every 5 minutes
+
+/**
+ * Generates static paths for all existing tag pages at build time.
+ */
+export async function generateStaticParams() {
+  const tags = await dbService.tags.getAll(); // Fetch all tags
+
+  return tags.map((tag) => ({
+    tag: tag.name, // Parameter name must match the folder name '[tag]'
+  }));
+}
+
 export default async function TagPage({
   params,
 }: {

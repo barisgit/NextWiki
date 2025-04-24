@@ -3,11 +3,15 @@ import type { Session } from "next-auth";
 import { authorizationService } from "~/lib/services/authorization";
 import { PermissionIdentifier, validatePermissionId } from "@repo/db";
 import type { TRPCPanelMeta } from "trpc-ui";
+import type { OpenApiMeta } from "trpc-to-openapi";
 import { Context } from "./context";
 import { logger } from "@repo/logger";
 
 // Initialize tRPC server instance
-const t = initTRPC.context<Context>().meta<TRPCPanelMeta>().create();
+const t = initTRPC
+  .context<Context>()
+  .meta<TRPCPanelMeta & OpenApiMeta>()
+  .create();
 
 // Create middlewares, procedures, and routers
 export const middleware = t.middleware;

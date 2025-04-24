@@ -2,8 +2,6 @@ import { UserMenu } from "../auth/UserMenu";
 import { Suspense } from "react";
 import { ThemeToggle } from "~/components/layout/theme-toggle";
 import { AdminButton } from "~/components/layout/AdminButton";
-import { RandomNumberDisplay } from "../wiki/RandomNumberDisplay";
-import { env } from "~/env";
 import { PageMetadata } from "./MainLayout";
 import Link from "next/link";
 import { WikiLockInfo } from "~/components/wiki/WikiLockInfo";
@@ -99,9 +97,22 @@ export async function Header({
       <div className="flex items-center space-x-3">
         {/* Tags removed from here */}
         {/* {env.NODE_ENV === "development" && <RandomNumberDisplay />} */}
-        <AdminButton />
         <ThemeToggle />
-        <UserMenu />
+        {/* Wrap client components needing session in Suspense */}
+        <Suspense
+          fallback={
+            <div className="h-9 w-20 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700"></div>
+          }
+        >
+          <AdminButton />
+        </Suspense>
+        <Suspense
+          fallback={
+            <div className="h-9 w-24 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+          }
+        >
+          <UserMenu />
+        </Suspense>
       </div>
     </header>
   );
