@@ -202,8 +202,8 @@ export function PermissionsActions() {
         </div>
         <p className="text-text-tertiary mt-2 w-full text-sm">
           Validate checks registry against DB. Fix actions are only available if
-          validation fails. 'Remove Extras' deletes DB permissions not in the
-          code registry (potentially impactful).
+          validation fails. &apos;Remove Extras&apos; deletes DB permissions not
+          in the code registry (potentially impactful).
         </p>
       </div>
 

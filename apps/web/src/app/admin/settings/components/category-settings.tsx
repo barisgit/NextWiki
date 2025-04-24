@@ -42,6 +42,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { logger } from "@repo/logger";
 
 interface CategorySettingsProps {
   category: SettingCategory;
@@ -62,7 +63,9 @@ export function CategorySettings({
   );
 
   // State for edited values
-  const [editedValues, setEditedValues] = useState<Record<string, any>>({});
+  const [editedValues, setEditedValues] = useState<
+    Record<string, string | number | boolean | object>
+  >({});
   const [historyKey, setHistoryKey] = useState<string | null>(null);
 
   const byCategoryQueryKey = trpc.admin.settings.getByCategory.queryKey();
@@ -105,7 +108,10 @@ export function CategorySettings({
     )
   );
 
-  const handleValueChange = (key: string, value: any) => {
+  const handleValueChange = (
+    key: string,
+    value: string | number | boolean | object
+  ) => {
     setEditedValues((prev) => ({
       ...prev,
       [key]: value,
@@ -132,7 +138,7 @@ export function CategorySettings({
     const key = setting.key;
     const value = key in editedValues ? editedValues[key] : setting.value;
     const type = setting.meta.type;
-    const isEdited = key in editedValues;
+    // const isEdited = key in editedValues;
     const isSecret = setting.meta.isSecret;
 
     switch (type) {
@@ -208,7 +214,11 @@ export function CategorySettings({
                   const parsed = JSON.parse(e.target.value);
                   handleValueChange(key, parsed);
                 } catch (error) {
-                  // Don't update if invalid JSON
+                  if (error instanceof Error) {
+                    logger.error(error.message);
+                  } else {
+                    logger.error(error as string);
+                  }
                 }
               }}
               className="border-input bg-background-paper min-h-[100px] w-full rounded-md border px-3 py-2 text-sm"

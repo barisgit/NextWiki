@@ -5,7 +5,6 @@ import { useTRPC } from "~/server/client";
 import { useQuery } from "@tanstack/react-query";
 import type { AppRouter } from "~/server/routers";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
 
 // Define type for the stats object returned by the API
 type SystemStatsQueryProcedure = AppRouter["admin"]["system"]["getStats"];

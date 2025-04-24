@@ -16,7 +16,8 @@
     "OVERRIDE_MAX_LOG_LEVEL",
     "SKIP_ENV_VALIDATION",
     "SKIP_DEVELOPER_SEEDS",
-    "VERCEL"
+    "VERCEL",
+    "PORT"
   ],
   "tasks": {
     "build": {

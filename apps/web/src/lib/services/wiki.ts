@@ -264,8 +264,8 @@ export const wikiService = {
 
     try {
       let updatedPageIds: number[] = [];
-      let oldPaths: string[] = []; // Store old paths
-      let movedChildOldPaths: string[] = []; // Store old paths of moved children
+      const oldPaths: string[] = []; // Store old paths
+      const movedChildOldPaths: string[] = []; // Store old paths of moved children
 
       await db.transaction(async (tx) => {
         // First fetch all pages to check if they exist and aren't locked by others

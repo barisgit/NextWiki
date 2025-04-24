@@ -10,6 +10,7 @@ export const openApiDocument = generateOpenApiDocument(appRouter, {
 });
 
 export async function GET(request: NextRequest) {
+  void request;
   return new Response(JSON.stringify(openApiDocument), {
     headers: { "Content-Type": "application/json" },
   });

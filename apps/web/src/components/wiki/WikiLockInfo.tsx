@@ -12,7 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@repo/ui";
-import { LockIcon, UnlockIcon, PencilIcon, XCircleIcon } from "lucide-react";
+import { LockIcon, UnlockIcon, XCircleIcon } from "lucide-react";
 
 interface WikiLockInfoProps {
   pageId: number;
@@ -30,7 +30,6 @@ export function WikiLockInfo({
   lockedByName,
   lockedUntil,
   isCurrentUserLockOwner,
-  editPath,
   displayMode = "full",
 }: WikiLockInfoProps) {
   const router = useRouter();
@@ -49,11 +48,6 @@ export function WikiLockInfo({
       },
     })
   );
-
-  // Handle edit button click
-  const handleEdit = () => {
-    router.push(editPath);
-  };
 
   // Handle release lock button click
   const handleReleaseLock = () => {
