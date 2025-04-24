@@ -39,8 +39,25 @@ let db: DatabaseType;
 // Determine which driver to use based on priority
 if (vercelPostgresUrl) {
   // --- Priority 1: Using Vercel's integrated Postgres service ---
+  // OR using Supabase/external pooler identified via POSTGRES_URL
   console.log("Using Vercel Postgres driver (POSTGRES_URL detected)");
-  const vercelPool = createVercelPool({ connectionString: vercelPostgresUrl });
+  // Apply workaround for non-Vercel pooled URLs (like Supabase) that don't match the expected pattern
+  // Check if 'pooler' (common in Supabase/PgBouncer URLs) or '?pooler=' (the workaround) is present.
+  const needsWorkaround = !/pooler/i.test(vercelPostgresUrl);
+  const effectiveConnectionString = needsWorkaround
+    ? vercelPostgresUrl + "?pooler."
+    : vercelPostgresUrl;
+
+  if (needsWorkaround) {
+    console.warn(
+      "Applied '?pooler.' suffix workaround for potential non-Vercel pooler URL in POSTGRES_URL."
+    );
+  }
+  // console.log(`Effective connection string: ${effectiveConnectionString}`); // Optional: uncomment for debugging
+
+  const vercelPool = createVercelPool({
+    connectionString: effectiveConnectionString,
+  });
   db = drizzleVercel(vercelPool, { schema });
 } else if (databaseUrl && databaseUrl.includes(".neon.tech")) {
   // --- Priority 2: Using Neon DB (checked via DATABASE_URL) ---
@@ -59,8 +76,21 @@ if (vercelPostgresUrl) {
     "Ensure your DATABASE_URL points to a pooler (like PgBouncer) capable of handling Vercel scaling!"
   );
   // Let createVercelPool manage the connections suitable for serverless.
+  // Apply the same workaround check here for consistency
+  const needsWorkaround = !/pooler/i.test(databaseUrl);
+  const effectiveConnectionString = needsWorkaround
+    ? databaseUrl + "?pooler."
+    : databaseUrl;
+
+  if (needsWorkaround) {
+    console.warn(
+      "Applied '?pooler.' suffix workaround for potential non-Vercel pooler URL in DATABASE_URL on Vercel."
+    );
+  }
+  // console.log(`Effective connection string: ${effectiveConnectionString}`); // Optional: uncomment for debugging
+
   const vercelPool = createVercelPool({
-    connectionString: databaseUrl + "?pooler.",
+    connectionString: effectiveConnectionString,
   });
   db = drizzleVercel(vercelPool, { schema });
 } else if (databaseUrl) {
