@@ -2,6 +2,8 @@ import Link from "next/link";
 import { MainLayout } from "~/components/layout/MainLayout";
 import { dbService } from "~/lib/services";
 
+export const revalidate = 300; // Revalidate every 5 minutes
+
 export default async function TagsPage() {
   const tags = await dbService.tags.getAll();
 
