@@ -12,7 +12,7 @@ import { authOptions } from "~/lib/auth";
 
 export const revalidate = 300; // Revalidate every 5 minutes
 export const fetchCache = "force-cache";
-export const dynamic = "force-static";
+export const dynamic = "auto";
 
 export default async function Home() {
   const recentPages = await dbService.wiki.getRecentPages(5);
