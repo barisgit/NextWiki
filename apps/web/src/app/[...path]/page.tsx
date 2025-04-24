@@ -13,9 +13,26 @@ import { renderWikiMarkdownToHtml } from "~/lib/services/markdown";
 import { authorizationService } from "~/lib/services/authorization";
 import { MovePageWrapper } from "~/components/wiki/MovePageWrapper";
 
-export const dynamic = "auto";
-export const revalidate = 300; // 5 minutes
+export const revalidate = 900; // 15 minutes as we are dynamically telling the server to revalidate
 export const fetchCache = "force-cache";
+export const dynamic = "force-static";
+
+/**
+ * Generates static paths for all existing wiki pages at build time.
+ * This enables SSG for these pages.
+ */
+export async function generateStaticParams() {
+  const pages = await db.query.wikiPages.findMany({
+    columns: {
+      path: true,
+    },
+  });
+
+  return pages.map((page) => ({
+    // Split the path string into segments and decode them
+    path: page.path.split("/").map((segment) => decodeURIComponent(segment)),
+  }));
+}
 
 export async function getWikiPageByPath(path: string[]) {
   // Decode each path segment individually

@@ -31,6 +31,14 @@ export const assetsRouter = router({
    * @deprecated Use getPaginated instead - this endpoint will be removed in a future version
    */
   getAll: permissionProtectedProcedure("assets:asset:read")
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/assets/all",
+        protect: true,
+        description: "Get all assets",
+      },
+    })
     .input(z.object({}).optional())
     .output(z.array(AssetDTO))
     .query(async () => {

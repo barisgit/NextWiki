@@ -9,6 +9,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { lockService } from "~/lib/services";
 import { Transaction } from "~/types/db";
 import { logger } from "@repo/logger";
+import { revalidatePath } from "next/cache";
 
 /**
  * Wiki service - handles all wiki-related database operations
@@ -69,7 +70,7 @@ export const wikiService = {
     const { path, title, content, isPublished, userId, tags = [] } = data;
 
     // Use a transaction to create the page and associate tags
-    return await db.transaction(async (tx) => {
+    const newPage = await db.transaction(async (tx) => {
       // Create the page
       const [page] = await tx
         .insert(wikiPages)
@@ -94,6 +95,24 @@ export const wikiService = {
 
       return page;
     });
+
+    // After successful transaction, trigger revalidation
+    if (newPage) {
+      try {
+        const validatedPath = newPage.path.startsWith("/")
+          ? newPage.path
+          : `/${newPage.path}`;
+        revalidatePath(validatedPath);
+        logger.info(`Revalidated path after creation: ${validatedPath}`);
+      } catch (err) {
+        logger.error(
+          `Error triggering revalidation for created path ${newPage.path}:`,
+          err
+        );
+      }
+    }
+
+    return newPage;
   },
 
   /**
@@ -113,7 +132,7 @@ export const wikiService = {
     const { path, title, content, isPublished, userId, tags } = data;
 
     // Use a transaction to update the page and handle tags
-    return await db.transaction(async (tx) => {
+    const updatedPageResult = await db.transaction(async (tx) => {
       // Create a page revision before updating
       const page = await this.getById(id);
       if (page) {
@@ -145,6 +164,25 @@ export const wikiService = {
 
       return updatedPage;
     });
+
+    // After successful transaction, trigger revalidation
+    if (updatedPageResult) {
+      try {
+        // Ensure the path starts with a '/' for revalidatePath
+        const validatedPath = updatedPageResult.path.startsWith("/")
+          ? updatedPageResult.path
+          : `/${updatedPageResult.path}`;
+        revalidatePath(validatedPath);
+        logger.info(`Revalidated path: ${validatedPath}`);
+      } catch (err) {
+        logger.error(
+          `Error triggering revalidation for path ${updatedPageResult.path}:`,
+          err
+        );
+      }
+    }
+
+    return updatedPageResult;
   },
 
   /**
@@ -182,10 +220,30 @@ export const wikiService = {
    * Delete a wiki page
    */
   async delete(id: number) {
+    // Get the page path before deleting for revalidation
+    const pageToDelete = await this.getById(id);
+    const pathToDelete = pageToDelete?.path;
+
     const [deleted] = await db
       .delete(wikiPages)
       .where(eq(wikiPages.id, id))
       .returning();
+
+    // After successful deletion, trigger revalidation
+    if (deleted && pathToDelete) {
+      try {
+        const validatedPath = pathToDelete.startsWith("/")
+          ? pathToDelete
+          : `/${pathToDelete}`;
+        revalidatePath(validatedPath);
+        logger.info(`Revalidated path after deletion: ${validatedPath}`);
+      } catch (err) {
+        logger.error(
+          `Error triggering revalidation for deleted path ${pathToDelete}:`,
+          err
+        );
+      }
+    }
 
     return deleted;
   },
@@ -206,10 +264,12 @@ export const wikiService = {
 
     try {
       let updatedPageIds: number[] = [];
+      let oldPaths: string[] = []; // Store old paths
+      let movedChildOldPaths: string[] = []; // Store old paths of moved children
 
       await db.transaction(async (tx) => {
         // First fetch all pages to check if they exist and aren't locked by others
-        const pagesToMove = await Promise.all(
+        const pagesToMoveData = await Promise.all(
           pageIds.map(async (pageId) => {
             const page = await this.getById(pageId);
             if (!page) {
@@ -236,7 +296,8 @@ export const wikiService = {
 
         try {
           // First acquire hardware locks for all pages
-          for (const page of pagesToMove) {
+          for (const page of pagesToMoveData) {
+            oldPaths.push(page.path); // Store old path
             // Lock the page with a hardware lock
             const result = await tx.execute(
               sql`SELECT * FROM wiki_pages WHERE id = ${page.id} FOR UPDATE NOWAIT`
@@ -252,7 +313,7 @@ export const wikiService = {
           }
 
           // Now safely process each page
-          for (const page of pagesToMove) {
+          for (const page of pagesToMoveData) {
             // Calculate new path based on operation
             let newPath = page.path;
 
@@ -307,6 +368,11 @@ export const wikiService = {
               const childPages = await tx.query.wikiPages.findMany({
                 where: (wiki) => sql`${wiki.path} LIKE ${childPrefix + "%"}`,
               });
+
+              // Store old paths of children before locking/moving
+              childPages.forEach((child) =>
+                movedChildOldPaths.push(child.path)
+              );
 
               // Lock all child pages
               for (const childPage of childPages) {
@@ -399,10 +465,67 @@ export const wikiService = {
         updatedPageIds.map((id: number) => this.getById(id))
       );
 
-      // Filter out any nulls in case a page couldn't be fetched (shouldn't happen)
-      return finalUpdatedPages.filter((p) => p !== null) as NonNullable<
+      // Combine old paths
+      const allOldPaths = [...oldPaths, ...movedChildOldPaths];
+
+      // Trigger revalidation for old and new paths
+      const finalPages = finalUpdatedPages.filter(Boolean) as NonNullable<
         (typeof finalUpdatedPages)[number]
       >[];
+
+      const revalidationPromises: Promise<void>[] = [];
+
+      // Revalidate NEW paths
+      finalPages.forEach((page) => {
+        const validatedPath = page.path.startsWith("/")
+          ? page.path
+          : `/${page.path}`;
+        revalidationPromises.push(
+          (async () => {
+            try {
+              revalidatePath(validatedPath);
+              logger.info(`Revalidated new path after move: ${validatedPath}`);
+            } catch (err) {
+              logger.error(
+                `Error revalidating new path ${validatedPath}:`,
+                err
+              );
+            }
+          })()
+        );
+      });
+
+      // Revalidate OLD paths (only if different from new paths)
+      const finalNewPaths = new Set(finalPages.map((p) => p.path));
+      allOldPaths.forEach((oldPath) => {
+        if (!finalNewPaths.has(oldPath)) {
+          // Avoid revalidating if path didn't actually change
+          const validatedPath = oldPath.startsWith("/")
+            ? oldPath
+            : `/${oldPath}`;
+          revalidationPromises.push(
+            (async () => {
+              try {
+                revalidatePath(validatedPath);
+                logger.info(
+                  `Revalidated old path after move: ${validatedPath}`
+                );
+              } catch (err) {
+                logger.error(
+                  `Error revalidating old path ${validatedPath}:`,
+                  err
+                );
+              }
+            })()
+          );
+        }
+      });
+
+      // Wait for all revalidations (optional, can run in background)
+      // await Promise.all(revalidationPromises);
+
+      // Return the final updated pages
+      return finalPages;
     } catch (error) {
       logger.error("Error in movePages service:", error);
       throw error;
