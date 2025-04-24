@@ -30,7 +30,8 @@ export const env = createEnv({
     NEXT_PUBLIC_NODE_ENV: z
       .enum(["development", "production"])
       .default("development"),
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_API_URL: z.string().url(),
+    NEXT_PUBLIC_WS_URL: z.string().url().optional(),
   },
 
   /**
@@ -50,6 +51,8 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     OVERRIDE_MAX_LOG_LEVEL: process.env.OVERRIDE_MAX_LOG_LEVEL,
     PROCESS_ORIGIN: process.env.PROCESS_ORIGIN,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
     // Client-side env vars
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
