@@ -92,7 +92,7 @@ const poolSize = 10;
 
 switch (connectionType) {
   case ConnectionType.VERCEL_POSTGRES:
-    console.log("Using Vercel Postgres pool driver (POSTGRES_URL detected)");
+    logger.log("Using Vercel Postgres pool driver (POSTGRES_URL detected)");
     // Use createPool as recommended for Vercel's own Postgres
     // We know vercelPostgresUrl is defined here due to getConnectionType logic
     db = drizzleVercel(
@@ -104,17 +104,18 @@ switch (connectionType) {
     break;
 
   case ConnectionType.NEON:
-    console.log(
-      "Using Neon database driver (DATABASE_URL contains .neon.tech)"
-    );
+    logger.log("Using Neon database driver (DATABASE_URL contains .neon.tech)");
     // We know databaseUrl is defined here due to getConnectionType logic
     neonConfig.fetchConnectionCache = true;
     db = drizzleNeon(neon(databaseUrl!), { schema });
     break;
 
   case ConnectionType.VERCEL_EXTERNAL_POOL:
-    console.warn(
+    logger.warn(
       "Using standard pg.Pool with external DATABASE_URL on Vercel. Ensure the URL points to a pooler."
+    );
+    logger.warn(
+      "[CRITICAL] Ensure the pooler mode is set to 'transaction' or that you have a very beefy database server otherwise IT WILL use all your database connections."
     );
     // We know databaseUrl is defined here due to getConnectionType logic
     db = drizzlePg(
@@ -127,11 +128,11 @@ switch (connectionType) {
     break;
 
   case ConnectionType.STANDARD_POOL:
-    console.log(
+    logger.log(
       "Using standard PostgreSQL driver (pg.Pool) with DATABASE_URL (Not on Vercel/Neon)"
     );
     // We know databaseUrl is defined here due to getConnectionType logic
-    console.log(`Using pg.Pool with pool size: ${poolSize}`);
+    logger.log(`Using pg.Pool with pool size: ${poolSize}`);
     db = drizzlePg(
       new pg.Pool({
         connectionString: databaseUrl!,
