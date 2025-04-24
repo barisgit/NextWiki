@@ -18,7 +18,7 @@ import { Modal } from "@repo/ui";
 import { Input } from "@repo/ui";
 import { PaginationInput, PaginationMeta } from "~/lib/utils/pagination";
 import { ScrollArea } from "@repo/ui";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 export interface AssetType {
   id: string;
@@ -138,7 +138,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({
 
   useEffect(() => {
     if (paginatedAssets) {
-      setAssets(paginatedAssets.items as AssetType[]);
+      setAssets(paginatedAssets.items as unknown as AssetType[]);
       setMeta(paginatedAssets.meta);
     }
   }, [paginatedAssets]);

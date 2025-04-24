@@ -7,7 +7,7 @@ import { useTRPC } from "~/server/client";
 import { signIn } from "next-auth/react";
 import { Input } from "@repo/ui";
 import { useMutation } from "@tanstack/react-query";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 interface RegisterFormProps {
   isFirstUser: boolean;
@@ -35,7 +35,7 @@ export function RegisterForm({ isFirstUser }: RegisterFormProps) {
   }, [isFirstUser, pathname, router]);
 
   const registerMutation = useMutation(
-    trpc.user.register.mutationOptions({
+    trpc.users.register.mutationOptions({
       onSuccess: async () => {
         try {
           // After successful registration, sign in the user

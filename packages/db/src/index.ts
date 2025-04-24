@@ -1,5 +1,3 @@
-import "server-only";
-
 import * as dotenv from "dotenv";
 import { neon, neonConfig } from "@neondatabase/serverless";
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";

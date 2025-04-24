@@ -5,7 +5,7 @@
 /**
  * Valid permission modules in the system
  */
-export type PermissionModule = "wiki" | "system" | "assets";
+export type PermissionModule = "wiki" | "system" | "assets" | "admin";
 
 /**
  * Valid permission actions in the system
@@ -21,7 +21,10 @@ export type PermissionResource =
   | "permissions"
   | "users"
   | "groups"
-  | "asset";
+  | "asset"
+  | "general"
+  | "dashboard"
+  | "wiki";
 
 /**
  * Unified permission structure
@@ -35,6 +38,9 @@ export interface Permission {
 
 /**
  * Type for the permission identifier string in format module:resource:action
+ * Represents any possible combination based on defined modules, resources, and actions.
+ * For a stricter type derived from actual registered permissions, use `PermissionIdentifier`
+ * from `packages/db/src/registry/index.ts`.
  */
-export type PermissionIdentifier =
+export type PossiblePermissionIdentifier =
   `${PermissionModule}:${PermissionResource}:${PermissionAction}`;

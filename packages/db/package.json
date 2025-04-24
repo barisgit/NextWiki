@@ -21,7 +21,8 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "lint": "eslint . --max-warnings 0",
-    "clean": "rm -rf .turbo node_modules dist",
+    "clean": "rm -rf dist .next",
+    "fullclean": "rm -rf dist .next .turbo node_modules",
     "build": "tsup",
     "dev": "tsup --watch",
     "db:generate": "drizzle-kit generate",
@@ -34,8 +35,11 @@
     "_db:seed:custom": "tsx src/seeds/custom-seeds.ts"
   },
   "dependencies": {
+    "@repo/types": "workspace:*",
     "@neondatabase/serverless": "^1.0.0",
+    "@repo/logger": "workspace:*",
     "bcryptjs": "^3.0.2",
+    "child_process": "^1.0.2",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.42.0",
     "gray-matter": "^4.0.3",

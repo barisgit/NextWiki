@@ -1,10 +1,10 @@
 import {
   Permission,
-  PermissionIdentifier,
+  PossiblePermissionIdentifier,
   PermissionModule,
   PermissionAction,
   PermissionResource,
-} from "./types.js"; // Added .js extension
+} from "./types.js";
 
 /**
  * Define all system permissions
@@ -40,6 +40,26 @@ const PERMISSION_LIST: Permission[] = [
     resource: "page",
     action: "move",
     description: "Move or rename wiki pages",
+  },
+
+  // Admin module permissions
+  {
+    module: "admin",
+    resource: "dashboard",
+    action: "read",
+    description: "Access the admin dashboard",
+  },
+  {
+    module: "admin",
+    resource: "wiki",
+    action: "read",
+    description: "Read wiki pages in the admin panel (list view)",
+  },
+  {
+    module: "admin",
+    resource: "wiki",
+    action: "delete",
+    description: "Delete wiki pages from the admin panel",
   },
 
   // System module permissions
@@ -141,6 +161,14 @@ const PERMISSION_LIST: Permission[] = [
     action: "delete",
     description: "Delete assets",
   },
+
+  // General module permissions
+  {
+    module: "system",
+    resource: "general",
+    action: "read",
+    description: "View system stats and information",
+  },
 ];
 
 /**
@@ -148,28 +176,29 @@ const PERMISSION_LIST: Permission[] = [
  */
 export function createPermissionId(
   permission: Permission
-): PermissionIdentifier {
-  return `${permission.module}:${permission.resource}:${permission.action}` as PermissionIdentifier;
+): PossiblePermissionIdentifier {
+  return `${permission.module}:${permission.resource}:${permission.action}`;
 }
 
 /**
  * Build the permissions record from the list
  */
-export const PERMISSIONS = PERMISSION_LIST.reduce<
-  Record<PermissionIdentifier, Permission>
->(
-  (acc, permission) => {
-    const id = createPermissionId(permission);
-    acc[id] = permission;
-    return acc;
-  },
-  {} as Record<PermissionIdentifier, Permission>
-);
+export const PERMISSIONS: Record<PossiblePermissionIdentifier, Permission> =
+  PERMISSION_LIST.reduce<Record<PossiblePermissionIdentifier, Permission>>(
+    (acc, permission) => {
+      const id = createPermissionId(permission);
+      acc[id] = permission;
+      return acc;
+    },
+    {} as Record<PossiblePermissionIdentifier, Permission>
+  );
 
 /**
- * Validates if a string is a valid permission identifier
+ * Validates if a string is a valid permission identifier by checking against the generated PERMISSIONS object.
  */
-export function validatePermissionId(id: string): id is PermissionIdentifier {
+export function validatePermissionId(
+  id: string
+): id is PossiblePermissionIdentifier {
   return id in PERMISSIONS;
 }
 
@@ -183,8 +212,8 @@ export function getAllPermissions(): Permission[] {
 /**
  * Gets all permission identifiers
  */
-export function getAllPermissionIds(): PermissionIdentifier[] {
-  return Object.keys(PERMISSIONS) as PermissionIdentifier[];
+export function getAllPermissionIds(): PossiblePermissionIdentifier[] {
+  return Object.keys(PERMISSIONS) as PossiblePermissionIdentifier[];
 }
 
 /**

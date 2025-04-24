@@ -10,7 +10,7 @@ import remarkDirective from "remark-directive";
 import remarkDirectiveRehype from "remark-directive-rehype";
 import rehypeHighlight from "rehype-highlight";
 import type { PluggableList } from "unified";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 // Import custom plugins
 import { customPlugins } from "../plugins";

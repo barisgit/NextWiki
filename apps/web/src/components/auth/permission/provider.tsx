@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { checkPermission } from "~/lib/permissions/client";
 import { PermissionIdentifier } from "@repo/db/client";
 import { PermissionContext, Permission } from "./utils/context";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 // Define the permissions data structure returned by the API
 interface PermissionsData {

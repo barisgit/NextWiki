@@ -9,6 +9,7 @@ import {
 import { eq, and, inArray } from "drizzle-orm";
 import type { groups as groupsTable } from "@repo/db";
 import { logger } from "../utils/logger";
+import { TRPCError } from "@trpc/server";
 
 type Group = typeof groupsTable.$inferSelect;
 
@@ -125,7 +126,18 @@ export const groupService = {
     // Ensure the group exists
     const group = await this.getById(groupId);
     if (!group) {
-      throw new Error(`Group with id ${groupId} not found`);
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: `Group with id ${groupId} not found`,
+      });
+    }
+
+    // Check if users can be assigned to this group
+    if (!group.allowUserAssignment) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Users cannot be assigned to the group "${group.name}".`,
+      });
     }
 
     // Get existing user-group associations
@@ -311,8 +323,10 @@ export const groupService = {
 
   /**
    * Add module permissions to a group
+   * @param groupId The group ID
+   * @param moduleIds An array of module IDs to assign
    */
-  async addModulePermissions(groupId: number, modules: string[]) {
+  async addModulePermissions(groupId: number, moduleIds: number[]) {
     // Ensure the group exists
     const group = await this.getById(groupId);
     if (!group) {
@@ -321,19 +335,19 @@ export const groupService = {
 
     // Get existing module permissions
     const existingModulePermissions = await this.getModulePermissions(groupId);
-    const existingModules = existingModulePermissions.map((p) => p.module);
+    const existingModuleIds = existingModulePermissions.map((p) => p.moduleId);
 
     // Remove modules that are not in the new list
-    const modulesToRemove = existingModules.filter(
-      (module) => !modules.includes(module)
+    const modulesToRemove = existingModuleIds.filter(
+      (id) => !moduleIds.includes(id)
     );
     if (modulesToRemove.length > 0) {
       await this.removeModulePermissions(groupId, modulesToRemove);
     }
 
     // Find modules that need to be added (not already existing)
-    const modulesToAdd = modules.filter(
-      (module) => !existingModules.includes(module)
+    const modulesToAdd = moduleIds.filter(
+      (id) => !existingModuleIds.includes(id)
     );
 
     if (modulesToAdd.length === 0) {
@@ -342,9 +356,9 @@ export const groupService = {
 
     // Add new module permissions
     await db.insert(groupModulePermissions).values(
-      modulesToAdd.map((module) => ({
+      modulesToAdd.map((moduleId) => ({
         groupId,
-        module,
+        moduleId,
       }))
     );
 
@@ -353,8 +367,10 @@ export const groupService = {
 
   /**
    * Add action permissions to a group
+   * @param groupId The group ID
+   * @param actionIds An array of action IDs to assign
    */
-  async addActionPermissions(groupId: number, actions: string[]) {
+  async addActionPermissions(groupId: number, actionIds: number[]) {
     // Ensure the group exists
     const group = await this.getById(groupId);
     if (!group) {
@@ -363,19 +379,19 @@ export const groupService = {
 
     // Get existing action permissions
     const existingActionPermissions = await this.getActionPermissions(groupId);
-    const existingActions = existingActionPermissions.map((p) => p.action);
+    const existingActionIds = existingActionPermissions.map((p) => p.actionId);
 
     // Remove actions that are not in the new list
-    const actionsToRemove = existingActions.filter(
-      (action) => !actions.includes(action)
+    const actionsToRemove = existingActionIds.filter(
+      (id) => !actionIds.includes(id)
     );
     if (actionsToRemove.length > 0) {
       await this.removeActionPermissions(groupId, actionsToRemove);
     }
 
     // Find actions that need to be added (not already existing)
-    const actionsToAdd = actions.filter(
-      (action) => !existingActions.includes(action)
+    const actionsToAdd = actionIds.filter(
+      (id) => !existingActionIds.includes(id)
     );
 
     if (actionsToAdd.length === 0) {
@@ -384,9 +400,9 @@ export const groupService = {
 
     // Add new action permissions
     await db.insert(groupActionPermissions).values(
-      actionsToAdd.map((action) => ({
+      actionsToAdd.map((actionId) => ({
         groupId,
-        action,
+        actionId,
       }))
     );
 
@@ -394,7 +410,7 @@ export const groupService = {
   },
 
   /**
-   * Get module permissions for a group
+   * Get module permissions for a group (returns the full relation objects)
    */
   async getModulePermissions(groupId: number) {
     return db.query.groupModulePermissions.findMany({
@@ -403,7 +419,7 @@ export const groupService = {
   },
 
   /**
-   * Get action permissions for a group
+   * Get action permissions for a group (returns the full relation objects)
    */
   async getActionPermissions(groupId: number) {
     return db.query.groupActionPermissions.findMany({
@@ -413,33 +429,37 @@ export const groupService = {
 
   /**
    * Remove module permissions from a group
+   * @param groupId The group ID
+   * @param moduleIds An array of module IDs to remove
    */
-  async removeModulePermissions(groupId: number, modules: string[]) {
+  async removeModulePermissions(groupId: number, moduleIds: number[]) {
     await db
       .delete(groupModulePermissions)
       .where(
         and(
           eq(groupModulePermissions.groupId, groupId),
-          inArray(groupModulePermissions.module, modules)
+          inArray(groupModulePermissions.moduleId, moduleIds)
         )
       );
 
-    return { removed: modules.length };
+    return { removed: moduleIds.length };
   },
 
   /**
    * Remove action permissions from a group
+   * @param groupId The group ID
+   * @param actionIds An array of action IDs to remove
    */
-  async removeActionPermissions(groupId: number, actions: string[]) {
+  async removeActionPermissions(groupId: number, actionIds: number[]) {
     await db
       .delete(groupActionPermissions)
       .where(
         and(
           eq(groupActionPermissions.groupId, groupId),
-          inArray(groupActionPermissions.action, actions)
+          inArray(groupActionPermissions.actionId, actionIds)
         )
       );
 
-    return { removed: actions.length };
+    return { removed: actionIds.length };
   },
 };

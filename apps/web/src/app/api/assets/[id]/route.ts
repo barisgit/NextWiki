@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { assetService } from "~/lib/services";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 import { checkServerPermission } from "~/lib/utils/server-auth-helpers";
 
 export const dynamic = "force-dynamic";

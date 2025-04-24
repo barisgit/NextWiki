@@ -174,16 +174,17 @@ export function SearchModal({
       className="bg-background-paper/95 dark:bg-background-level1/95 border-border-default flex max-h-[80vh] max-w-3xl flex-col border p-0 shadow-2xl backdrop-blur-sm"
       overlayClassName="pt-16 md:pt-20"
       position="top"
-      showCloseButton={false} // Zod doesn't show a close button explicitly
+      showCloseButton={true} // Now showing close button
     >
       {/* Search Input Area */}
       <div className="border-border-default flex flex-shrink-0 items-center border-b p-4">
-        <Search className="text-text-secondary mr-3 h-5 w-5" />
+        <Search className="text-text-secondary mr-3 h-6 w-6" />{" "}
+        {/* Larger icon */}
         <input
           ref={inputRef}
           type="search"
           placeholder="Search wiki..."
-          className="text-text-primary placeholder:text-text-secondary/70 flex-1 border-none bg-transparent text-base focus:outline-none"
+          className="text-text-primary placeholder:text-text-secondary/70 flex-1 border-none bg-transparent text-lg focus:outline-none" // Larger text (text-lg)
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />

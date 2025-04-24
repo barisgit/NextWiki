@@ -8,7 +8,7 @@ import remarkParse from "remark-parse";
 import rehypeStringify from "rehype-stringify";
 import remarkRehype from "remark-rehype";
 import { createServerMarkdownProcessor } from "./server-factory";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 /**
  * Renders Markdown content to HTML string for server-side rendering

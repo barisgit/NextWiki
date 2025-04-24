@@ -1,25 +1,26 @@
-"use client";
+import RegisterClientPage from "./register-page";
+import { getSettingValue } from "~/lib/utils/settings";
 
-import { ArrowLeftIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { RegisterForm } from "~/components/auth/RegisterForm";
-import { usePermissions } from "~/components/auth/permission/client";
-import { Button } from "@repo/ui";
-
-export default function RegisterPage({
+export default async function RegisterPage({
   isFirstUser = false,
 }: {
   isFirstUser?: boolean;
 }) {
-  const router = useRouter();
-  const { isAuthenticated } = usePermissions();
+  const allowRegistration = await getSettingValue("auth.allowRegistration");
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/");
-    }
-  }, [isAuthenticated, router]);
+  if (!allowRegistration) {
+    return (
+      <div className="bg-background-paper flex h-screen flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-8">
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight">
+              Registration is not allowed
+            </h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background-paper flex h-screen flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
@@ -34,18 +35,8 @@ export default function RegisterPage({
             </p>
           )}
         </div>
-
-        <RegisterForm isFirstUser={isFirstUser} />
-
-        <Button
-          className="fixed bottom-16 left-16 rounded-full"
-          variant="outlined"
-          onClick={() => router.push("/")}
-        >
-          <ArrowLeftIcon className="h-4 w-4" />
-          Back to home
-        </Button>
       </div>
+      <RegisterClientPage isFirstUser={isFirstUser} />
     </div>
   );
 }

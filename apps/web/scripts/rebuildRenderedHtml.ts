@@ -1,5 +1,5 @@
 import { markdownService } from "~/lib/services/markdown";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 async function main() {
   await markdownService.rebuildAllRenderedHtml();

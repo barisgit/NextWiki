@@ -2,12 +2,7 @@
  * Auth router - Server only
  */
 import { z } from "zod";
-import {
-  router,
-  protectedProcedure,
-  guestProcedure,
-  publicProcedure,
-} from "~/server";
+import { router, guestProcedure, publicProcedure } from "~/server";
 import { authorizationService } from "~/lib/services";
 import { PermissionIdentifier, validatePermissionId } from "@repo/db";
 
@@ -31,21 +26,32 @@ export const authRouter = router({
     }
 
     // Get all permissions for the current user
-    const permissions = await authorizationService.getUserPermissions(userId);
+    const permissionsWithRelations =
+      await authorizationService.getUserPermissions(userId);
 
     // Return permissions in a convenient format for the frontend
     return {
-      // Return the full permission objects
-      permissions,
+      // Return the full permission objects (including relations if needed by client)
+      permissions: permissionsWithRelations,
 
       // Return an array of permission names (e.g. ["wiki:page:read", "wiki:page:create"])
-      permissionNames: permissions.map((p) => p.name as PermissionIdentifier),
+      permissionNames: permissionsWithRelations.map((p) => {
+        // Construct name from relations. Handle potential nulls defensively.
+        const moduleName = p.module?.name ?? "unknown-module";
+        const actionName = p.action?.name ?? "unknown-action";
+        return `${moduleName}:${p.resource}:${actionName}` as PermissionIdentifier;
+      }),
 
       // Return a map of permissions for easy checking (e.g. {"wiki:page:read": true})
-      permissionMap: permissions.reduce(
+      permissionMap: permissionsWithRelations.reduce(
         (acc, p) => {
-          if (validatePermissionId(p.name)) {
-            acc[p.name] = true;
+          const moduleName = p.module?.name;
+          const actionName = p.action?.name;
+          if (moduleName && actionName) {
+            const name = `${moduleName}:${p.resource}:${actionName}`;
+            if (validatePermissionId(name)) {
+              acc[name as PermissionIdentifier] = true;
+            }
           }
           return acc;
         },
@@ -55,7 +61,7 @@ export const authRouter = router({
   }),
 
   // Check if the current user has a specific permission
-  hasPermission: protectedProcedure
+  hasPermission: guestProcedure
     .input(z.object({ permission: permissionIdentifierSchema }))
     .query(async ({ ctx, input }) => {
       const userId = parseInt(ctx.session.user.id);
@@ -67,7 +73,7 @@ export const authRouter = router({
     }),
 
   // Check if the current user has any of the specified permissions
-  hasAnyPermission: protectedProcedure
+  hasAnyPermission: guestProcedure
     .input(z.object({ permissions: z.array(permissionIdentifierSchema) }))
     .query(async ({ ctx, input }) => {
       const userId = parseInt(ctx.session.user.id);
@@ -79,7 +85,7 @@ export const authRouter = router({
     }),
 
   // Check if the current user has access to a specific page
-  hasPagePermission: protectedProcedure
+  hasPagePermission: guestProcedure
     .input(
       z.object({
         pageId: z.number(),
@@ -96,7 +102,10 @@ export const authRouter = router({
       return hasPermission;
     }),
 
-  // Create a procedure to get guest permissions
+  /*
+   * Get permissions for guest users
+   * @deprecated Use getMyPermissions instead
+   */
   getGuestPermissions: guestProcedure
     .meta({
       description: "Get permissions for guest users",
@@ -115,27 +124,34 @@ export const authRouter = router({
       }
 
       // Guest users have userId undefined
-      const permissions =
+      const permissionsWithRelations =
         await authorizationService.getUserPermissions(undefined);
 
       // Collect permission names
-      const permissionNames = permissions.map(
-        (p) => `${p.module}:${p.resource}:${p.action}` as PermissionIdentifier
-      );
+      const permissionNames = permissionsWithRelations.map((p) => {
+        const moduleName = p.module?.name ?? "unknown-module";
+        const actionName = p.action?.name ?? "unknown-action";
+        return `${moduleName}:${p.resource}:${actionName}` as PermissionIdentifier;
+      });
 
       // Create a map for easy lookup
-      const permissionMap = permissions.reduce(
+      const permissionMap = permissionsWithRelations.reduce(
         (acc, permission) => {
-          const id =
-            `${permission.module}:${permission.resource}:${permission.action}` as PermissionIdentifier;
-          acc[id] = true;
+          const moduleName = permission.module?.name;
+          const actionName = permission.action?.name;
+          if (moduleName && actionName) {
+            const name = `${moduleName}:${permission.resource}:${actionName}`;
+            if (validatePermissionId(name)) {
+              acc[name as PermissionIdentifier] = true;
+            }
+          }
           return acc;
         },
         {} as Record<PermissionIdentifier, boolean>
       );
 
       return {
-        permissions,
+        permissions: permissionsWithRelations,
         permissionNames,
         permissionMap,
       };

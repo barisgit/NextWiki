@@ -13,7 +13,8 @@
     "GOOGLE_CLIENT_ID",
     "GOOGLE_CLIENT_SECRET",
     "OVERRIDE_MAX_LOG_LEVEL",
-    "SKIP_ENV_VALIDATION"
+    "SKIP_ENV_VALIDATION",
+    "SKIP_DEVELOPER_SEEDS"
   ],
   "tasks": {
     "build": {
@@ -22,10 +23,10 @@
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^build"]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["^build"]
     },
     "dev": {
       "dependsOn": ["^build"],
@@ -60,6 +61,12 @@
       "cache": false
     },
     "db:studio": {
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    },
+    "fullclean": {
       "cache": false
     }
   }

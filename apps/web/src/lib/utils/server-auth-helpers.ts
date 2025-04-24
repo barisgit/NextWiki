@@ -4,7 +4,7 @@ import { authOptions } from "~/lib/auth";
 import { authorizationService } from "~/lib/services";
 import { db } from "@repo/db";
 import type { PermissionIdentifier } from "@repo/db";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 interface PermissionCheckResult {
   authorized: boolean;

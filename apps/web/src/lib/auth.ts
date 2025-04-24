@@ -10,6 +10,8 @@ import { compare } from "bcryptjs";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { env } from "~/env";
 
+// FIXME: Migrate to v5 and use session tokens
+
 // Helper function to handle provider import differences between environments
 // Ignore any type errors here, we know the providers are valid
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

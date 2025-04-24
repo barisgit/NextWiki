@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { tagService } from "~/lib/services";
-import { protectedProcedure, router } from "~/server";
+import { permissionProtectedProcedure, router } from "~/server";
 import { TRPCError } from "@trpc/server";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 /**
  * tRPC router for tag-related operations.
@@ -12,7 +12,7 @@ export const tagsRouter = router({
    * Search for tags by name.
    * Requires authentication.
    */
-  search: protectedProcedure
+  search: permissionProtectedProcedure("wiki:page:read")
     .input(
       z.object({
         query: z.string(),

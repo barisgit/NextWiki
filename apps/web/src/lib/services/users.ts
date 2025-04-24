@@ -1,6 +1,9 @@
 import { db } from "@repo/db";
 import { users } from "@repo/db";
 import { sql, eq } from "drizzle-orm";
+import { logger } from "../utils/logger";
+import { TRPCError } from "@trpc/server";
+import { getPaginationParams, PaginationInput } from "../utils/pagination";
 
 /**
  * User service - handles all user-related database operations
@@ -28,8 +31,12 @@ export const userService = {
 
   /**
    * Get a list of all users
+   * @deprecated Implement pagination and search
    */
   async getAll() {
+    logger.warn(
+      "Deprecated procedure getAll called. Use getPaginated instead."
+    );
     return db.query.users.findMany({
       with: {
         userGroups: {
@@ -38,6 +45,28 @@ export const userService = {
           },
         },
       },
+    });
+  },
+
+  /**
+   * Get a paginated list of users
+   * @param page - The page number to fetch
+   * @param pageSize - The number of users per page
+   * @param search - Optional search query
+   * @returns A paginated list of users
+   */
+  async getPaginated(
+    pagination: PaginationInput,
+    options?: { search?: string }
+  ) {
+    const { take, skip } = getPaginationParams(pagination);
+    void take;
+    void skip;
+    void options;
+
+    throw new TRPCError({
+      code: "NOT_IMPLEMENTED",
+      message: "getPaginated is not implemented",
     });
   },
 

@@ -91,22 +91,25 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
               <SkeletonText lines={3} className="mb-2" />
             </div>
           ) : searchResults?.pages.length === 0 ? (
-            <div className="py-6 text-center text-slate-500">
+            <div className="text-text-secondary py-6 text-center">
               No results found for &ldquo;{debouncedSearch}&rdquo;
             </div>
           ) : (
-            <div className="overflow-hidden rounded-lg border shadow-sm">
-              <ul className="divide-y">
+            <div className="border-border-light overflow-hidden rounded-lg border shadow-sm">
+              <ul
+                className="divide-border-light divide-y"
+                style={{ paddingLeft: "0", marginLeft: "0" }}
+              >
                 {searchResults?.pages.map((page) => (
                   <li key={page.id}>
                     <Link
                       href={`/${page.path}`}
-                      className="block px-5 py-4 hover:bg-slate-50"
+                      className="hover:bg-background-paper block px-5 py-4"
                     >
                       <div className="text-primary text-lg font-medium">
                         {page.title}
                       </div>
-                      <div className="mt-1 text-sm text-slate-500">
+                      <div className="text-text-secondary mt-1 text-sm">
                         /{page.path}
                       </div>
                     </Link>
@@ -128,6 +131,7 @@ export function WikiBrowser({ initialSearch = "" }: WikiBrowserProps) {
             openDepth={2}
             className="w-full"
             showActions={true}
+            mode="navigation"
           />
         </div>
       )}

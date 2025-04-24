@@ -25,14 +25,14 @@ export default function AddUsersModal({
 
   // Get all users
   const { data: allUsers, isLoading: loadingUsers } = useQuery(
-    trpc.users.getAll.queryOptions(undefined, {
+    trpc.admin.users.getAll.queryOptions(undefined, {
       enabled: isModalOpen,
     })
   );
 
   // Get existing group users to exclude them
   const { data: groupUsers } = useQuery(
-    trpc.groups.getGroupUsers.queryOptions(
+    trpc.admin.groups.getGroupUsers.queryOptions(
       { groupId },
       {
         enabled: isModalOpen,
@@ -60,7 +60,7 @@ export default function AddUsersModal({
   });
 
   const addUsersMutation = useMutation(
-    trpc.groups.addUsers.mutationOptions({
+    trpc.admin.groups.addUsers.mutationOptions({
       onSuccess: () => {
         toast.success("Users added to group successfully");
         setIsModalOpen(false);
@@ -131,7 +131,7 @@ export default function AddUsersModal({
             </h3>
 
             <div className="relative mb-6">
-              <Search className="text-text-secondary absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+              <Search className="text-text-tertiary absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
               <Input
                 className="pl-10"
                 placeholder="Search users by name or email"
@@ -148,10 +148,10 @@ export default function AddUsersModal({
                   <Loader2 className="text-primary h-6 w-6 animate-spin" />
                 </div>
               ) : filteredUsers && filteredUsers.length > 0 ? (
-                <div className="max-h-[50vh] overflow-auto rounded-md border">
+                <div className="border-border-default max-h-[50vh] overflow-auto rounded-md border">
                   <table className="w-full">
                     <thead className="bg-background-paper sticky top-0 z-10">
-                      <tr className="border-b">
+                      <tr className="border-border-default border-b">
                         <th className="p-3"></th>
                         <th className="p-3 text-left">Name</th>
                         <th className="p-3 text-left">Email</th>
@@ -159,7 +159,10 @@ export default function AddUsersModal({
                     </thead>
                     <tbody>
                       {filteredUsers.map((user) => (
-                        <tr key={user.id} className="border-b">
+                        <tr
+                          key={user.id}
+                          className="hover:bg-background-level2"
+                        >
                           <td className="p-3 text-center">
                             <Checkbox
                               checked={selectedUsers.includes(user.id)}

@@ -4,7 +4,7 @@ import { authorizationService } from "~/lib/services/authorization";
 import { PermissionIdentifier, validatePermissionId } from "@repo/db";
 import type { TRPCPanelMeta } from "trpc-ui";
 import { Context } from "./context";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 // Initialize tRPC server instance
 const t = initTRPC.context<Context>().meta<TRPCPanelMeta>().create();
@@ -54,6 +54,10 @@ const allowGuests = middleware(async ({ ctx, next }) => {
   });
 });
 
+/**
+ * Procedure that allows guest access
+ * @abstract Better than publicProcedure because it adds context if user is logged in
+ */
 export const guestProcedure = t.procedure.use(allowGuests);
 
 // Create middleware that checks for a specific permission

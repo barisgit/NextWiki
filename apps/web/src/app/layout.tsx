@@ -11,7 +11,7 @@ import { Providers } from "~/providers";
 // import { seed } from "@repo/db";
 import { PermissionGate } from "~/components/auth/permission/server";
 import { LogOutButton } from "~/components/auth/LogOutButton";
-import { logger } from "~/lib/utils/logger";
+import { logger } from "@repo/logger";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -63,16 +63,16 @@ async function RootLayoutContent({ children }: { children: React.ReactNode }) {
 
   if (userCount === null) {
     // Check user count *after* attempting seed if necessary
-    logger.log("Checking user count...");
+    logger.debug("Checking user count...");
     userCount = await dbService.users.count();
   } else {
-    logger.log("User count already cached:", userCount);
+    logger.debug("User count already cached:", userCount);
   }
 
   const isFirstUser = userCount === 0;
 
   if (isFirstUser) {
-    logger.log(
+    logger.debug(
       "No users found, directing to registration within RootLayoutContent."
     );
     return <RegisterPage isFirstUser={true} />;

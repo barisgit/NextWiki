@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import { dbService } from "~/lib/services";
 import GroupForm from "../../group-form";
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@repo/ui";
+import Link from "next/link";
 
 interface EditGroupPageProps {
   params: {
@@ -14,7 +17,11 @@ interface EditGroupPageProps {
 export async function generateMetadata({
   params,
 }: EditGroupPageProps): Promise<Metadata> {
-  const group = await dbService.groups.getById(parseInt(params.id));
+  const groupId = parseInt((await params).id);
+  if (isNaN(groupId)) {
+    return { title: "Invalid Group | NextWiki" };
+  }
+  const group = await dbService.groups.getById(groupId);
   return {
     title: `Edit ${group?.name ?? "Group"} | NextWiki`,
     description: "Edit user group settings and permissions",
@@ -22,6 +29,11 @@ export async function generateMetadata({
 }
 
 export default async function EditGroupPage({ params }: EditGroupPageProps) {
+  const groupId = parseInt((await params).id);
+  if (isNaN(groupId)) {
+    notFound();
+  }
+
   const session = await getServerAuthSession();
 
   // Redirect if not logged in
@@ -34,33 +46,44 @@ export default async function EditGroupPage({ params }: EditGroupPageProps) {
     redirect("/");
   }
 
-  const group = await dbService.groups.getById(parseInt(params.id));
+  const group = await dbService.groups.getById(groupId);
   if (!group) {
     notFound();
   }
 
-  // Get all permissions
-  const permissions = await dbService.permissions.getAll();
+  // Get all permissions (already includes module and action names)
+  const fetchedPermissions = await dbService.permissions.getAll();
+
+  // Transform permissions to include the synthesized 'name' expected by GroupForm
+  const permissionsForForm = fetchedPermissions.map((p) => ({
+    ...p,
+    name: `${p.module.name}:${p.resource}:${p.action.name}`, // Synthesize the name
+  }));
 
   // Get group permissions
-  const groupPermissions = await dbService.groups.getGroupPermissions(group.id);
+  const groupPermissions = await dbService.groups.getGroupPermissions(groupId);
   const groupPermissionIds = groupPermissions.map((p) => p.id);
 
   // Get module permissions
-  const modulePermissions = await dbService.groups.getModulePermissions(
-    group.id
-  );
-  const modulePermissionModules = modulePermissions.map((p) => p.module);
+  const modulePermissions =
+    await dbService.groups.getModulePermissions(groupId);
+  const initialSelectedModuleIds = modulePermissions.map((p) => p.moduleId);
 
   // Get action permissions
-  const actionPermissions = await dbService.groups.getActionPermissions(
-    group.id
-  );
-  const actionPermissionActions = actionPermissions.map((p) => p.action);
+  const actionPermissions =
+    await dbService.groups.getActionPermissions(groupId);
+  const initialSelectedActionIds = actionPermissions.map((p) => p.actionId);
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="mb-6 text-3xl font-bold">Edit Group</h1>
+      <div className="mb-6 flex items-center">
+        <Link href="/admin/groups">
+          <Button variant="ghost" size="icon" className="mr-2">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </Link>
+        <h1 className="text-3xl font-bold">Edit Group: {group.name}</h1>
+      </div>
 
       <div className="bg-card rounded-lg p-6 shadow-sm">
         <p className="text-muted-foreground mb-6">
@@ -79,10 +102,10 @@ export default async function EditGroupPage({ params }: EditGroupPageProps) {
                 ? undefined
                 : group.allowUserAssignment,
           }}
-          permissions={permissions}
+          permissions={permissionsForForm}
           groupPermissions={groupPermissionIds}
-          groupModulePermissions={modulePermissionModules}
-          groupActionPermissions={actionPermissionActions}
+          initialSelectedModuleIds={initialSelectedModuleIds}
+          initialSelectedActionIds={initialSelectedActionIds}
         />
       </div>
     </div>

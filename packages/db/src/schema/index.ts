@@ -11,8 +11,11 @@ import {
   index,
   pgEnum,
   uuid,
+  uniqueIndex,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { relations, SQL, sql } from "drizzle-orm";
+import { SettingKey } from "@repo/types";
 
 // Define custom PostgreSQL extension for trigrams
 export const pgExtensions = sql`
@@ -43,21 +46,42 @@ export const users = pgTable(
   (t) => [index("email_idx").on(t.email)]
 );
 
-// Permissions table - defines available permissions in the system
-export const permissions = pgTable("permissions", {
+// Modules table
+export const modules = pgTable("modules", {
   id: serial("id").primaryKey(),
-  module: varchar("module", { length: 50 }).notNull(), // e.g., 'wiki', 'system', 'assets'
-  resource: varchar("resource", { length: 50 }).notNull(), // e.g., 'page', 'asset', 'user'
-  action: varchar("action", { length: 50 }).notNull(), // e.g., 'create', 'read', 'update', 'delete'
-  name: varchar("name", { length: 100 })
-    .notNull()
-    .generatedAlwaysAs(
-      (): SQL => sql`"module" || ':' || "resource" || ':' || "action"`
-    )
-    .unique(),
+  name: varchar("name", { length: 50 }).notNull().unique(),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Actions table
+export const actions = pgTable("actions", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 50 }).notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Permissions table - defines available permissions in the system
+export const permissions = pgTable(
+  "permissions",
+  {
+    id: serial("id").primaryKey(),
+    moduleId: integer("module_id")
+      .notNull()
+      .references(() => modules.id),
+    resource: varchar("resource", { length: 50 }).notNull(),
+    actionId: integer("action_id")
+      .notNull()
+      .references(() => actions.id),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (t) => [
+    // Ensure logical uniqueness for a permission
+    uniqueIndex("permission_uniq_idx").on(t.moduleId, t.resource, t.actionId),
+  ]
+);
 
 // Groups table - custom user groups
 export const groups = pgTable("groups", {
@@ -114,12 +138,14 @@ export const groupModulePermissions = pgTable(
     groupId: integer("group_id")
       .references(() => groups.id)
       .notNull(),
-    module: varchar("module", { length: 50 }).notNull(),
+    moduleId: integer("module_id") // Changed from varchar("module")
+      .references(() => modules.id)
+      .notNull(),
     createdAt: timestamp("created_at").defaultNow(),
   },
   (t) => [
-    primaryKey({ columns: [t.groupId, t.module] }),
-    index("group_module_permissions_idx").on(t.groupId, t.module),
+    primaryKey({ columns: [t.groupId, t.moduleId] }), // Updated primary key column
+    index("group_module_permissions_idx").on(t.groupId, t.moduleId), // Updated index column
   ]
 );
 
@@ -130,12 +156,14 @@ export const groupActionPermissions = pgTable(
     groupId: integer("group_id")
       .references(() => groups.id)
       .notNull(),
-    action: varchar("action", { length: 50 }).notNull(),
+    actionId: integer("action_id") // Changed from varchar("action")
+      .references(() => actions.id)
+      .notNull(),
     createdAt: timestamp("created_at").defaultNow(),
   },
   (t) => [
-    primaryKey({ columns: [t.groupId, t.action] }),
-    index("group_action_permissions_idx").on(t.groupId, t.action),
+    primaryKey({ columns: [t.groupId, t.actionId] }), // Updated primary key column
+    index("group_action_permissions_idx").on(t.groupId, t.actionId), // Updated index column
   ]
 );
 
@@ -185,7 +213,15 @@ export const groupsRelations = relations(groups, ({ many }) => ({
 }));
 
 // Permission relations
-export const permissionsRelations = relations(permissions, ({ many }) => ({
+export const permissionsRelations = relations(permissions, ({ one, many }) => ({
+  module: one(modules, {
+    fields: [permissions.moduleId],
+    references: [modules.id],
+  }),
+  action: one(actions, {
+    fields: [permissions.actionId],
+    references: [actions.id],
+  }),
   groupPermissions: many(groupPermissions),
   pagePermissions: many(pagePermissions),
 }));
@@ -243,6 +279,11 @@ export const groupModulePermissionsRelations = relations(
       fields: [groupModulePermissions.groupId],
       references: [groups.id],
     }),
+    module: one(modules, {
+      // Added relation to modules
+      fields: [groupModulePermissions.moduleId],
+      references: [modules.id],
+    }),
   })
 );
 
@@ -253,8 +294,25 @@ export const groupActionPermissionsRelations = relations(
       fields: [groupActionPermissions.groupId],
       references: [groups.id],
     }),
+    action: one(actions, {
+      // Added relation to actions
+      fields: [groupActionPermissions.actionId],
+      references: [actions.id],
+    }),
   })
 );
+
+// Module relations
+export const modulesRelations = relations(modules, ({ many }) => ({
+  permissions: many(permissions),
+  groupModulePermissions: many(groupModulePermissions),
+}));
+
+// Action relations
+export const actionsRelations = relations(actions, ({ many }) => ({
+  permissions: many(permissions),
+  groupActionPermissions: many(groupActionPermissions),
+}));
 
 export const wikiPageEditorTypeEnum = pgEnum("editor_type", [
   "markdown",
@@ -442,9 +500,10 @@ export const verificationTokens = pgTable(
     token: varchar("token", { length: 255 }).notNull(),
     expires: timestamp("expires").notNull(),
   },
-  (t) => ({
-    pk: primaryKey({ columns: [t.identifier, t.token] }),
-  })
+  (t) => [
+    primaryKey({ columns: [t.identifier, t.token] }),
+    index("verification_token_idx").on(t.identifier, t.token),
+  ]
 );
 
 // Assets table for storing uploaded files
@@ -506,3 +565,56 @@ export const assetsToPagesRelations = relations(assetsToPages, ({ one }) => ({
     references: [wikiPages.id],
   }),
 }));
+
+// Settings table - stores application settings
+export const settings = pgTable(
+  "settings",
+  {
+    key: varchar("key", { length: 100 }).primaryKey().$type<SettingKey>(),
+    value: jsonb("value").notNull(), // Store setting value as JSONB
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("settings_key_idx").on(t.key)]
+);
+
+// Settings history table - tracks changes to settings
+export const settingsHistory = pgTable(
+  "settings_history",
+  {
+    id: serial("id").primaryKey(),
+    settingKey: varchar("setting_key", { length: 100 })
+      .notNull()
+      .$type<SettingKey>()
+      .references(() => settings.key),
+    previousValue: jsonb("previous_value"), // Previous value as JSONB
+    changedById: integer("changed_by_id").references(() => users.id),
+    changedAt: timestamp("changed_at").defaultNow().notNull(),
+    changeReason: text("change_reason"),
+  },
+  (t) => [
+    index("settings_history_key_idx").on(t.settingKey),
+    index("settings_history_user_idx").on(t.changedById),
+    index("settings_history_time_idx").on(t.changedAt),
+  ]
+);
+
+// Add relations for settings
+export const settingsRelations = relations(settings, ({ many }) => ({
+  history: many(settingsHistory),
+}));
+
+export const settingsHistoryRelations = relations(
+  settingsHistory,
+  ({ one }) => ({
+    setting: one(settings, {
+      fields: [settingsHistory.settingKey],
+      references: [settings.key],
+    }),
+    changedBy: one(users, {
+      fields: [settingsHistory.changedById],
+      references: [users.id],
+    }),
+  })
+);

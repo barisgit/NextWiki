@@ -14,6 +14,17 @@ import {
   SelectValue,
 } from "@repo/ui";
 
+/* TODO: A lot to be done here and for assets in general
+ * - Add pagination URGENT
+ * - Add search
+ * - Add filter by file type
+ * - Add filter by uploaded by
+ * - Add filter by page
+ * - Add filter by date
+ * - Implement preview for images
+ * - Implement download
+ */
+
 export default function AssetsAdminPage() {
   const notification = useNotification();
   const [searchTerm, setSearchTerm] = useState("");
@@ -69,7 +80,7 @@ export default function AssetsAdminPage() {
     : [];
 
   return (
-    <div className="container mx-auto px-6">
+    <div className="container mx-auto px-6 py-3">
       <h1 className="mb-6 text-3xl font-bold">Asset Management</h1>
 
       {/* Search and filter controls */}

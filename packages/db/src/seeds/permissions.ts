@@ -1,11 +1,59 @@
 import { db } from "../index.js";
 import * as schema from "../schema/index.js";
+import { getAllPermissions } from "../registry/permissions.js";
 import {
-  getAllPermissions,
-  createPermissionId,
-} from "../registry/permissions.js";
-import { Permission } from "../registry/types.js";
+  Permission,
+  PermissionModule,
+  PermissionAction,
+  PermissionResource,
+} from "../registry/types.js";
 import { sql } from "drizzle-orm";
+
+/**
+ * Seed Modules and Actions from the registry
+ */
+async function seedModulesAndActions(registryPermissions: Permission[]) {
+  console.log(`Seeding modules and actions...`);
+
+  const uniqueModules = [
+    ...new Map(
+      registryPermissions.map((p) => [p.module, { name: p.module }])
+    ).values(),
+  ];
+  const uniqueActions = [
+    ...new Map(
+      registryPermissions.map((p) => [p.action, { name: p.action }])
+    ).values(),
+  ];
+
+  const modulePromise = db
+    .insert(schema.modules)
+    .values(uniqueModules)
+    .onConflictDoNothing()
+    .returning();
+
+  const actionPromise = db
+    .insert(schema.actions)
+    .values(uniqueActions)
+    .onConflictDoNothing()
+    .returning();
+
+  await Promise.all([modulePromise, actionPromise]);
+
+  // Fetch all modules and actions (including existing ones) to get IDs
+  const [allModules, allActions] = await Promise.all([
+    db.query.modules.findMany(),
+    db.query.actions.findMany(),
+  ]);
+
+  const moduleNameToIdMap = new Map(allModules.map((m) => [m.name, m.id]));
+  const actionNameToIdMap = new Map(allActions.map((a) => [a.name, a.id]));
+
+  console.log(
+    `Modules and actions seeding finished. Found ${allModules.length} modules, ${allActions.length} actions.`
+  );
+  return { moduleNameToIdMap, actionNameToIdMap };
+}
 
 /**
  * Seed all permissions from the central registry
@@ -14,36 +62,62 @@ export async function seedPermissions() {
   console.log(`Seeding permissions from registry...`);
 
   const registryPermissions = getAllPermissions();
-
-  // Prepare permissions for insertion, generating the unique name
-  const permissionsToInsert = registryPermissions.map((p: Permission) => ({
-    module: p.module,
-    resource: p.resource,
-    action: p.action,
-    description: p.description,
-    name: createPermissionId(p), // Use the function to generate the name
-  }));
-
-  console.log(`Found ${permissionsToInsert.length} permissions to seed.`);
-
-  if (permissionsToInsert.length === 0) {
+  if (registryPermissions.length === 0) {
     console.warn("No permissions found in the registry to seed.");
     return;
   }
 
-  try {
-    // Use insert with onConflictDoUpdate to handle existing permissions
-    await db
-      .insert(schema.permissions)
-      .values(permissionsToInsert)
-      .onConflictDoUpdate({
-        target: schema.permissions.name, // Target the unique name column
-        set: {
-          // Use sql`excluded.column_name` syntax
-          description: sql`excluded.description`,
-        },
-      });
+  const { moduleNameToIdMap, actionNameToIdMap } =
+    await seedModulesAndActions(registryPermissions);
 
+  // Fetch existing permissions to avoid duplicates
+  const existingPermissions = await db.query.permissions.findMany({
+    columns: {
+      moduleId: true,
+      resource: true,
+      actionId: true,
+    },
+  });
+  const existingSet = new Set(
+    existingPermissions.map((p) => `${p.moduleId}:${p.resource}:${p.actionId}`)
+  );
+
+  // Prepare permissions for insertion, filtering out existing ones
+  const permissionsToInsert = registryPermissions
+    .map((p: Permission) => {
+      const moduleId = moduleNameToIdMap.get(p.module);
+      const actionId = actionNameToIdMap.get(p.action);
+      if (moduleId === undefined || actionId === undefined) {
+        console.warn(
+          `Skipping permission: Could not find ID for module '${p.module}' or action '${p.action}'.`
+        );
+        return null;
+      }
+      return {
+        moduleId: moduleId,
+        resource: p.resource,
+        actionId: actionId,
+        description: p.description,
+      };
+    })
+    .filter((p): p is NonNullable<typeof p> => p !== null) // Type guard to remove nulls
+    .filter(
+      (p) => !existingSet.has(`${p.moduleId}:${p.resource}:${p.actionId}`)
+    );
+
+  console.log(`Found ${permissionsToInsert.length} new permissions to seed.`);
+
+  if (permissionsToInsert.length === 0) {
+    console.log("No new permissions to insert.");
+    console.log("Permissions seeding finished.");
+    return;
+  }
+
+  try {
+    // Insert only the new permissions
+    await db.insert(schema.permissions).values(permissionsToInsert);
+
+    console.log(`${permissionsToInsert.length} new permissions inserted.`);
     console.log("Permissions seeding finished.");
   } catch (error) {
     console.error(`Error during permissions seeding:`, error);
@@ -90,13 +164,14 @@ export async function createDefaultGroups() {
       },
     ];
 
+    // Use Promise.all for potentially parallelizable inserts if DB supports it well,
+    // but sequential insertReturning is safer for getting IDs back reliably.
     const createdGroups = await db
       .insert(schema.groups)
       .values(groupsToCreate)
       .onConflictDoUpdate({
         target: schema.groups.name,
         set: {
-          // Use sql`excluded.column_name` syntax
           description: sql`excluded.description`,
           isEditable: sql`excluded.is_editable`,
           allowUserAssignment: sql`excluded.allow_user_assignment`,
@@ -110,8 +185,13 @@ export async function createDefaultGroups() {
     const viewerGroup = createdGroups.find((g) => g.name === "Viewers");
     const guestGroup = createdGroups.find((g) => g.name === "Guests");
 
-    // --- Assign Permissions ---
-    const allDbPermissions = await db.query.permissions.findMany();
+    // --- Fetch Data Needed for Assignments ---
+    const [allDbPermissions, allModules, allActions] = await Promise.all([
+      db.query.permissions.findMany(),
+      db.query.modules.findMany(),
+      db.query.actions.findMany(),
+    ]);
+
     if (!allDbPermissions || allDbPermissions.length === 0) {
       console.error(
         "No permissions found in the database. Cannot assign permissions to groups. Ensure seedPermissions ran successfully."
@@ -119,24 +199,49 @@ export async function createDefaultGroups() {
       return;
     }
 
-    const findPermission = (id: string) =>
-      allDbPermissions.find((p) => p.name === id);
+    const moduleNameToIdMap = new Map(allModules.map((m) => [m.name, m.id]));
+    const actionNameToIdMap = new Map(allActions.map((a) => [a.name, a.id]));
+
+    // Helper to find a permission ID based on its logical components
+    const findPermissionId = (
+      moduleName: PermissionModule,
+      resource: PermissionResource,
+      actionName: PermissionAction
+    ): number | undefined => {
+      const moduleId = moduleNameToIdMap.get(moduleName);
+      const actionId = actionNameToIdMap.get(actionName);
+      if (moduleId === undefined || actionId === undefined) return undefined;
+      const permission = allDbPermissions.find(
+        (p) =>
+          p.moduleId === moduleId &&
+          p.resource === resource &&
+          p.actionId === actionId
+      );
+      return permission?.id;
+    };
+
+    // --- Assign Permissions --- //
+    const assignmentPromises: Promise<void>[] = [];
 
     // Administrator: All permissions
     if (adminGroup) {
       const allPermissionIds = allDbPermissions.map((p) => p.id);
       if (allPermissionIds.length > 0) {
-        await db
-          .insert(schema.groupPermissions)
-          .values(
-            allPermissionIds.map((permissionId) => ({
-              groupId: adminGroup.id,
-              permissionId,
-            }))
-          )
-          .onConflictDoNothing();
-        console.log(
-          `Assigned ${allPermissionIds.length} permissions to Administrators.`
+        assignmentPromises.push(
+          db
+            .insert(schema.groupPermissions)
+            .values(
+              allPermissionIds.map((permissionId) => ({
+                groupId: adminGroup.id,
+                permissionId,
+              }))
+            )
+            .onConflictDoNothing()
+            .then(() =>
+              console.log(
+                `Assigned ${allPermissionIds.length} permissions to Administrators.`
+              )
+            )
         );
       } else {
         console.warn("No permissions available to assign to Administrators.");
@@ -145,24 +250,30 @@ export async function createDefaultGroups() {
 
     // Editors: Wiki create, read, update + Asset read
     if (editorGroup) {
-      const editorPerms = [
-        findPermission("wiki:page:create"),
-        findPermission("wiki:page:read"),
-        findPermission("wiki:page:update"),
-        findPermission("assets:asset:read"), // Editors likely need to see assets too
-      ].filter((p) => p !== undefined) as typeof allDbPermissions;
+      const editorPermIds = [
+        findPermissionId("wiki", "page", "create"),
+        findPermissionId("wiki", "page", "read"),
+        findPermissionId("wiki", "page", "update"),
+        findPermissionId("assets", "asset", "read"), // Editors likely need to see assets too
+      ].filter((id): id is number => id !== undefined);
 
-      if (editorPerms.length > 0) {
-        await db
-          .insert(schema.groupPermissions)
-          .values(
-            editorPerms.map((p) => ({
-              groupId: editorGroup.id,
-              permissionId: p.id,
-            }))
-          )
-          .onConflictDoNothing();
-        console.log(`Assigned ${editorPerms.length} permissions to Editors.`);
+      if (editorPermIds.length > 0) {
+        assignmentPromises.push(
+          db
+            .insert(schema.groupPermissions)
+            .values(
+              editorPermIds.map((permissionId) => ({
+                groupId: editorGroup.id,
+                permissionId,
+              }))
+            )
+            .onConflictDoNothing()
+            .then(() =>
+              console.log(
+                `Assigned ${editorPermIds.length} permissions to Editors.`
+              )
+            )
+        );
       } else {
         console.warn("Could not find necessary permissions for Editors.");
       }
@@ -170,27 +281,31 @@ export async function createDefaultGroups() {
 
     // Viewers & Guests: Wiki read, Asset read
     const readPermIds = [
-      findPermission("wiki:page:read")?.id,
-      findPermission("assets:asset:read")?.id,
-    ].filter((id) => id !== undefined) as number[];
+      findPermissionId("wiki", "page", "read"),
+      findPermissionId("assets", "asset", "read"),
+    ].filter((id): id is number => id !== undefined);
 
     const viewerGuestGroups = [viewerGroup, guestGroup].filter(
-      (g) => g !== undefined
-    ) as typeof createdGroups;
+      (g): g is NonNullable<typeof g> => g !== undefined
+    );
 
     if (readPermIds.length > 0) {
       for (const group of viewerGuestGroups) {
-        await db
-          .insert(schema.groupPermissions)
-          .values(
-            readPermIds.map((permissionId) => ({
-              groupId: group.id,
-              permissionId,
-            }))
-          )
-          .onConflictDoNothing();
-        console.log(
-          `Assigned ${readPermIds.length} read permissions to ${group.name}.`
+        assignmentPromises.push(
+          db
+            .insert(schema.groupPermissions)
+            .values(
+              readPermIds.map((permissionId) => ({
+                groupId: group.id,
+                permissionId,
+              }))
+            )
+            .onConflictDoNothing()
+            .then(() =>
+              console.log(
+                `Assigned ${readPermIds.length} read permissions to ${group.name}.`
+              )
+            )
         );
       }
     } else {
@@ -198,22 +313,42 @@ export async function createDefaultGroups() {
     }
 
     // -- Assign Module/Action Permissions (Simplified Example) --
-    // You might need more granular control here based on your specific needs
-    // Example: Assign 'wiki' and 'assets' module access and 'read' action to Viewers/Guests
-    for (const group of viewerGuestGroups) {
-      await db
-        .insert(schema.groupModulePermissions)
-        .values([
-          { groupId: group.id, module: "wiki" },
-          { groupId: group.id, module: "assets" },
-        ])
-        .onConflictDoNothing();
-      await db
-        .insert(schema.groupActionPermissions)
-        .values({ groupId: group.id, action: "read" })
-        .onConflictDoNothing();
-      console.log(`Assigned basic module/action permissions to ${group.name}.`);
+    const wikiModuleId = moduleNameToIdMap.get("wiki");
+    const assetsModuleId = moduleNameToIdMap.get("assets");
+    const readActionId = actionNameToIdMap.get("read");
+
+    if (wikiModuleId && assetsModuleId && readActionId) {
+      for (const group of viewerGuestGroups) {
+        assignmentPromises.push(
+          db
+            .insert(schema.groupModulePermissions)
+            .values([
+              { groupId: group.id, moduleId: wikiModuleId },
+              { groupId: group.id, moduleId: assetsModuleId },
+            ])
+            .onConflictDoNothing()
+            .then(() =>
+              console.log(`Assigned module permissions to ${group.name}.`)
+            )
+        );
+        assignmentPromises.push(
+          db
+            .insert(schema.groupActionPermissions)
+            .values({ groupId: group.id, actionId: readActionId })
+            .onConflictDoNothing()
+            .then(() =>
+              console.log(`Assigned action permissions to ${group.name}.`)
+            )
+        );
+      }
+    } else {
+      console.warn(
+        "Could not find IDs for basic module/action permissions (wiki, assets, read)."
+      );
     }
+
+    // Wait for all assignments to complete
+    await Promise.all(assignmentPromises);
 
     console.log("Default groups and permissions assigned successfully!");
   } catch (error) {

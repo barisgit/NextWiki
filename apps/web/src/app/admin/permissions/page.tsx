@@ -3,6 +3,7 @@ import { getServerAuthSession } from "~/lib/auth";
 import { redirect } from "next/navigation";
 import { dbService } from "~/lib/services";
 import PermissionsTable from "./permissions-table";
+import { PermissionsActions } from "./permissions-actions";
 
 export const metadata: Metadata = {
   title: "Admin - Permissions | NextWiki",
@@ -27,6 +28,10 @@ export default async function PermissionsPage() {
   return (
     <div className="container mx-auto p-6">
       <h1 className="mb-6 text-3xl font-bold">Permissions Management</h1>
+
+      <PermissionsActions />
+
+      <br />
 
       <div className="bg-background-level1 rounded-lg p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-semibold">System Permissions</h2>

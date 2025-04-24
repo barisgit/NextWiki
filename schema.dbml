@@ -1,0 +1,251 @@
+// Database Markup Language for NextWiki Schema
+
+// Define PostgreSQL specific types or extensions if needed
+// Note: pg_trgm extension is used but not representable directly in standard DBML
+// Note: tsvector type is used but not representable directly in standard DBML
+
+Enum editor_type {
+  markdown
+  html
+}
+
+Table USERS {
+  id int [pk, increment]
+  name varchar(255)
+  email varchar(255) [unique, not null]
+  password varchar(255)
+  email_verified timestamp
+  image text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    email_idx (email)
+  }
+}
+
+Table MODULES {
+  id int [pk, increment]
+  name varchar(50) [unique, not null]
+  description text
+  created_at timestamp [default: `now()`]
+}
+
+Table ACTIONS {
+  id int [pk, increment]
+  name varchar(50) [unique, not null]
+  description text
+  created_at timestamp [default: `now()`]
+}
+
+Table PERMISSIONS {
+  id int [pk, increment]
+  module_id int [not null, ref: > MODULES.id]
+  resource varchar(50) [not null]
+  action_id int [not null, ref: > ACTIONS.id]
+  description text
+  created_at timestamp [default: `now()`]
+}
+
+Table GROUPS {
+  id int [pk, increment]
+  name varchar(100) [unique, not null]
+  description text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  is_system boolean [default: false]
+  is_editable boolean [default: true]
+  allow_user_assignment boolean [default: true]
+}
+
+Table USER_GROUPS {
+  user_id int [not null, ref: > USERS.id]
+  group_id int [not null, ref: > GROUPS.id]
+  created_at timestamp [default: `now()`]
+
+  indexes {
+    (user_id, group_id) [pk]
+    user_group_idx (user_id, group_id)
+  }
+}
+
+Table GROUP_PERMISSIONS {
+  group_id int [not null, ref: > GROUPS.id]
+  permission_id int [not null, ref: > PERMISSIONS.id]
+  created_at timestamp [default: `now()`]
+
+  indexes {
+    (group_id, permission_id) [pk]
+    group_permission_idx (group_id, permission_id)
+  }
+}
+
+Table GROUP_MODULE_PERMISSIONS {
+  group_id int [not null, ref: > GROUPS.id]
+  module_id int [not null, ref: > MODULES.id]
+  created_at timestamp [default: `now()`]
+
+  indexes {
+    (group_id, module_id) [pk]
+    group_module_permissions_idx (group_id, module_id)
+  }
+}
+
+Table GROUP_ACTION_PERMISSIONS {
+  group_id int [not null, ref: > GROUPS.id]
+  action_id int [not null, ref: > ACTIONS.id]
+  created_at timestamp [default: `now()`]
+
+  indexes {
+    (group_id, action_id) [pk]
+    group_action_permissions_idx (group_id, action_id)
+  }
+}
+
+Table PATH_PERMISSIONS {
+  id int [pk, increment]
+  path_pattern varchar(1000) [not null, note: 'Path pattern using SQL LIKE syntax (e.g., /admin/%, /wiki/page, /docs/_%)']
+  group_id int [not null, ref: > GROUPS.id]
+  permission_id int [not null, ref: > PERMISSIONS.id]
+  permission_type varchar(10) [not null, default: 'allow', note: "'allow' or 'deny'"]
+  precedence int [not null, default: 0, note: 'Higher value takes precedence in case of conflicting patterns']
+  created_at timestamp [default: `now()`]
+
+  indexes {
+    // Index for efficient lookup based on group and potentially path prefix
+    path_perm_group_idx (group_id)
+    // Potentially add unique constraint depending on desired logic:
+    // unique_path_perm (group_id, permission_id, path_pattern, permission_type)
+  }
+}
+
+Table WIKI_PAGES {
+  id int [pk, increment]
+  path varchar(1000) [unique, not null]
+  title varchar(255) [not null]
+  content text
+  rendered_html text
+  editor_type editor_type
+  is_published boolean [default: false]
+  created_by_id int [not null, ref: > USERS.id]
+  created_at timestamp [default: `now()`]
+  updated_by_id int [not null, ref: > USERS.id]
+  updated_at timestamp [default: `now()`]
+  rendered_html_updated_at timestamp
+  locked_by_id int [ref: > USERS.id]
+  locked_at timestamp
+  lock_expires_at timestamp
+  search text [not null, note: "Generated tsvector: setweight(to_tsvector('english', title), 'A') || setweight(to_tsvector('english', content), 'B')"] // Representing tsvector as text
+
+  indexes {
+    idx_search (search)
+    trgm_idx_title (title)
+  }
+}
+
+Table WIKI_PAGE_REVISIONS {
+  id int [pk, increment]
+  page_id int [not null, ref: > WIKI_PAGES.id]
+  content text [not null]
+  created_by_id int [ref: > USERS.id]
+  created_at timestamp [default: `now()`]
+}
+
+Table WIKI_TAGS {
+  id int [pk, increment]
+  name varchar(100) [unique, not null]
+  description text
+  created_at timestamp [default: `now()`]
+}
+
+Table WIKI_PAGE_TO_TAG {
+  page_id int [not null, ref: > WIKI_PAGES.id]
+  tag_id int [not null, ref: > WIKI_TAGS.id]
+
+  indexes {
+    (page_id, tag_id) [pk]
+  }
+}
+
+Table ACCOUNTS {
+  id int [pk, increment]
+  user_id int [not null, ref: > USERS.id]
+  type varchar(255) [not null]
+  provider varchar(255) [not null]
+  provider_account_id varchar(255) [not null]
+  refresh_token text
+  access_token text
+  expires_at int
+  token_type varchar(255)
+  scope varchar(255)
+  id_token text
+  session_state varchar(255)
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+Table SESSIONS {
+  id int [pk, increment]
+  session_token varchar(255) [unique, not null]
+  user_id int [not null, ref: > USERS.id]
+  expires timestamp [not null]
+}
+
+Table VERIFICATION_TOKENS {
+  identifier varchar(255) [not null]
+  token varchar(255) [not null]
+  expires timestamp [not null]
+
+  indexes {
+    (identifier, token) [pk]
+  }
+}
+
+Table ASSETS {
+  id uuid [pk, default: `random_uuid()`] // Assuming DBML understands uuid or similar
+  name varchar(255)
+  description text
+  file_name varchar(255) [not null]
+  file_type varchar(100) [not null]
+  file_size int [not null]
+  data text [not null, note: 'Base64 encoded file data']
+  uploaded_by_id int [not null, ref: > USERS.id]
+  created_at timestamp [default: `now()`]
+}
+
+Table ASSETS_TO_PAGES {
+  asset_id uuid [not null, ref: > ASSETS.id]
+  page_id int [not null, ref: > WIKI_PAGES.id]
+
+  indexes {
+    (asset_id, page_id) [pk]
+    asset_page_idx (asset_id, page_id)
+  }
+}
+
+Table SETTINGS {
+  key varchar(100) [pk, not null, note: 'Unique key for the setting']
+  value jsonb [note: 'Value of the setting, stored as JSONB'] // Note: Using jsonb type
+  description text [note: 'Description of what the setting controls']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    settings_key_idx (key) [unique]
+  }
+}
+
+Table SETTINGS_HISTORY {
+  id int [pk, increment]
+  setting_key varchar(100) [not null, note: 'The key of the setting that was changed']
+  previous_value jsonb [note: 'Value of the setting *before* this change (JSONB)']
+  changed_by_id int [ref: > USERS.id, note: 'User who made the change']
+  changed_at timestamp [default: `now()`, note: 'Timestamp of the change']
+  change_reason text [note: 'Optional reason for the change']
+
+  indexes {
+    settings_history_key_idx (setting_key)
+    settings_history_user_idx (changed_by_id)
+    settings_history_time_idx (changed_at)
+  }
+}
