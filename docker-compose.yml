@@ -1,0 +1,86 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: nextwiki_db
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" # Expose DB port to host for potential external access/debugging
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nextwiki}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-nextwiki}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nextwiki_net
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: nextwiki_web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Pass environment variables needed by the Next.js app
+      # These should ideally match variables in apps/web/.env
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/nextwiki} # Use service name 'db'
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET} # Needs to be set in host env or .env file
+      # Add other necessary env vars from apps/web/.env
+    networks:
+      - nextwiki_net
+    # If you need live reload for development (mounts source code):
+    volumes:
+      - .:/app
+      # Prevent node_modules from being overwritten by host
+      - /app/node_modules
+      - /app/apps/web/.next
+    command: pnpm run dev # Use dev command instead of start
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: nextwiki_backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Pass environment variables needed by the NestJS app
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/nextwiki} # Use service name 'db'
+      PORT: ${BACKEND_PORT:-3001}
+      # Add other necessary env vars from apps/backend/.env (if it exists)
+    networks:
+      - nextwiki_net
+    # If you need live reload for development (mounts source code):
+    volumes:
+      - .:/app
+      # Prevent node_modules from being overwritten by host
+      - /app/node_modules
+      - /app/dist
+    command: pnpm run start:dev # Use dev command
+
+networks:
+  nextwiki_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
