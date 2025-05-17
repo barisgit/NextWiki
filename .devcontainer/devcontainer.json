@@ -1,0 +1,55 @@
+{
+  "name": "NextWiki Dev Container",
+
+  // Reference your existing Docker Compose file
+  "dockerComposeFile": "../docker-compose.yml",
+
+  // The service VS Code should connect to.
+  // Change to 'backend' if you primarily work there.
+  "service": "web",
+
+  // The path of the workspace folder inside the container
+  "workspaceFolder": "/app",
+
+  // Forward ports from the container to the host machine.
+  "forwardPorts": [
+    3000, // Next.js app
+    3001, // Optional NestJS backend
+    5432 // PostgreSQL DB (useful for external tools)
+  ],
+
+  // List of extensions to install inside the container.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "streetsidesoftware.code-spell-checker",
+        "prisma.prisma",
+        "bradlc.vscode-tailwindcss",
+        "ms-azuretools.vscode-docker",
+        "mhutchie.git-graph",
+        "github.vscode-pull-request-github",
+        "dsznajder.es7-react-js-snippets",
+        "unifiedjs.vscode-mdx"
+      ]
+    }
+  },
+
+  // Command to run after the container is created.
+  // Runs migration and seeding automatically after container creation/rebuild.
+  "postCreateCommand": "pnpm db:migrate && pnpm db:seed",
+
+  // Run commands after the container starts.
+  // Useful for starting dev servers if not handled by container CMD/ENTRYPOINT
+  // or if you remove the 'command' override from docker-compose.yml
+  // "postStartCommand": "pnpm run dev",
+
+  // Use 'postAttachCommand' if you want a command to run every time you attach
+  // "postAttachCommand": {
+  //   "server": "pnpm run dev"
+  // },
+
+  // Set the user for the container. Optional, 'node' is common for Node images.
+  "remoteUser": "node"
+}

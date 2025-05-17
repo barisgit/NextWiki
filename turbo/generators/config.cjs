@@ -10,6 +10,9 @@ const fs = require("fs");
  * @param {NodePlopAPI} plop
  */
 module.exports = function generator(plop) {
+  // Register the 'eq' helper
+  plop.addHelper("eq", (a, b) => a === b);
+
   // A simple generator to create a new package
   plop.setActionType("runCommand", function (answers, config, plop) {
     if (!config || !config.data) {
@@ -33,7 +36,12 @@ module.exports = function generator(plop) {
   });
 
   plop.setActionType("checkDirEmpty", function (answers, config, plop) {
-    const dir = config.data.currentDir;
+    const dir =
+      config.data.currentDir + "/" + config.data.folder + "/" + answers.name;
+    const dirExists = fs.existsSync(dir);
+    if (!dirExists) {
+      return "success";
+    }
     const files = fs.readdirSync(dir);
     if (files.length === 0) {
       return "success";
@@ -64,6 +72,7 @@ module.exports = function generator(plop) {
         type: "checkDirEmpty",
         data: {
           currentDir: plop.getDestBasePath(),
+          folder: "packages",
         },
       },
       {

@@ -1,64 +1,76 @@
-# Dockerfile for apps/web (Next.js)
+# Dockerfile for apps/web (Next.js) using turbo prune
 
 # ---- Base ----
-# Use a specific Node.js version based on project requirements
-FROM node:22-alpine AS base
+FROM node:22-bookworm-slim AS base
+# Pnpm is included via corepack in node:18+
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN corepack enable pnpm
 
-# ---- Builder ----
-FROM base AS builder
+# Install Turbo globally
+RUN pnpm add -g turbo@latest
+
+# ---- Pruner ----
+# Stage to copy only necessary files and prune the monorepo
+FROM base AS pruner
 WORKDIR /app
 
-# Copy Turborepo config and root package files first for caching
-COPY turbo.json turbo.json
-COPY pnpm-workspace.yaml pnpm-workspace.yaml
-COPY .npmrc .npmrc
-COPY package.json package.json
-
-# Install all workspace dependencies (including devDependencies needed for build)
-RUN pnpm install --frozen-lockfile --prefer-offline
-
-# Copy source code for all packages and apps required for the build
-# Adjust these paths based on actual dependencies of apps/web
+# Copy root configs, lockfile, and turbo config first
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+# Copy full source code to allow pruning
 COPY . .
 
-# Build the specific application (apps/web)
-# This leverages Turborepo's build system
-RUN pnpm turbo run build --filter=web...
+# Prune to only include dependencies for the 'web' app
+# Generates ./out/json (package files + pruned lockfile) and ./out/full (source code)
+RUN turbo prune web --docker
 
-# ---- Runner ----
-FROM base AS runner
+# ---- Installer ----
+# Stage to install dependencies using the pruned monorepo structure
+FROM base AS installer
 WORKDIR /app
 
-# Set NODE_ENV environment variable
-ENV NODE_ENV production
+# Copy the pruned package files and lockfile
+COPY --from=pruner /app/out/json/ .
 
-# Copy Turborepo config and root package files
-COPY turbo.json turbo.json
-COPY pnpm-workspace.yaml pnpm-workspace.yaml
-COPY .npmrc .npmrc
-COPY package.json package.json
+# Install dependencies using the pruned lockfile
+RUN pnpm install --frozen-lockfile
 
-# Install ONLY production dependencies for the entire workspace
-# This might install more than needed, but simpler for monorepo setup
-# Alternatively, copy only the necessary node_modules from the builder stage
-RUN pnpm install --prod --frozen-lockfile --prefer-offline
+# Copy the pruned source code
+COPY --from=pruner /app/out/full/ .
 
-# Copy the built web app and necessary dependencies from the builder stage
-COPY --from=builder /app/apps/web/.next /app/apps/web/.next
-COPY --from=builder /app/apps/web/public /app/apps/web/public
-COPY --from=builder /app/apps/web/package.json /app/apps/web/package.json
-COPY --from=builder /app/node_modules /app/node_modules
-# Copy other relevant packages if needed at runtime (check dependencies)
-# Example: COPY --from=builder /app/packages/ui /app/packages/ui
+# Build the 'web' app using the pruned source and installed dependencies
+# Note: If using Remote Caching, add ARG/ENV for TURBO_TEAM/TURBO_TOKEN here
+RUN turbo run build --filter=web
 
-# Expose the port the app runs on
+# ---- Runner ----
+# Stage to run the production application
+FROM base AS runner
+# Set base working directory
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Create a non-root user and group
+# Use /home/nextjs as the home directory
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs --home /home/nextjs --shell /bin/false
+
+# Copy standalone output files (including necessary node_modules)
+# Change ownership to the nextjs user - copy to WORKDIR (/app)
+COPY --from=installer --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+# Copy static assets to their expected location relative to the server
+COPY --from=installer --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+# Copy public files
+COPY --from=installer --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+
+# Switch to the non-root user
+USER nextjs
+
+# WORKDIR remains /app
+
 EXPOSE 3000
 
-# Change to the web app directory
-WORKDIR /app/apps/web
+ENV PORT=3000
 
-# Start the Next.js app
-CMD ["pnpm", "start"] 
+# Run the node server using the path relative to WORKDIR (/app)
+CMD ["node", "apps/web/server.js"] 

@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+**/node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build artifacts
+.turbo
+dist
+.next
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Editor / IDE specific
+.vscode
+.idea
+*.sublime-*
+
+# Docker specific
+Dockerfile
+Dockerfile.*
+.dockerignore
+docker-compose.yml
+docker-compose.*.yml
+
+# Dev Container specific
+.devcontainer
+
+# Secrets / Environment
+.env
+.env.*
+!.env.example 

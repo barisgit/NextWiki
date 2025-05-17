@@ -1,7 +1,15 @@
+import path from "path";
 import type { NextConfig } from "next";
 
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+});
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  turbopack: {},
+  // Configure standalone output
+  output: "standalone",
 };
 
-export default nextConfig;
+// module.exports = withBundleAnalyzer(nextConfig);
+export default withBundleAnalyzer(nextConfig);
